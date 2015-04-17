@@ -259,8 +259,14 @@
 		msg_admin_attack("[key_name_admin(user)][isAntag(user) ? "(ANTAG)" : ""] triggered a fueltank explosion.")
 		log_game("[key_name(user)] triggered a fueltank explosion.")
 		user << "\red That was stupid of you."
-		var/obj/structure/reagent_dispensers/fueltank/tank = O
-		tank.explode()
+		//var/obj/structure/reagent_dispensers/fueltank/tank = O //no need to define if it isn't exploding
+		//tank.explode()
+		//Sets the asshole on fire instead of blowing it up
+		if(istype(user, /mob/living))
+			var/mob/living/carbon/human/M = user
+			M << "<span class='danger'>You accidentally light the fuel on fire, a gout of flame envelops you!</span>"
+			M.adjust_fire_stacks(20)
+			M.IgniteMob()
 		return
 	if (src.welding)
 		remove_fuel(1)

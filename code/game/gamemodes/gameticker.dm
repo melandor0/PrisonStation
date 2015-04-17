@@ -40,7 +40,7 @@ var/global/datum/controller/gameticker/ticker
 
 	var/round_end_announced = 0 // Spam Prevention. Announce round end only once.
 
-/datum/controller/gameticker/proc/pregame()
+/datum/controller/gameticker/proc/pregame() //login music picked here
 	login_music = pick(\
 	'sound/music/space.ogg',\
 	'sound/music/Title1.ogg',\
@@ -154,6 +154,7 @@ var/global/datum/controller/gameticker/ticker
 			for(var/obj/effect/landmark/spacepod/random/R in L)
 				del(R)
 
+		auto_toggle_ooc(0) //Turn OOC off if configged
 		world << "<FONT color='blue'><B>Enjoy the game!</B></FONT>"
 		world << sound('sound/AI/welcome.ogg') // Skie
 		//Holiday Round-start stuff	~Carn
@@ -244,6 +245,7 @@ var/global/datum/controller/gameticker/ticker
 	proc/station_explosion_cinematic(var/station_missed=0, var/override = null)
 		if( cinematic )	return	//already a cinematic in progress!
 
+		auto_toggle_ooc(1) // Turn OOC on
 		//initialise our cinematic screen object
 		cinematic = new(src)
 		cinematic.icon = 'icons/effects/station_explosion.dmi'
@@ -395,7 +397,7 @@ var/global/datum/controller/gameticker/ticker
 
 		if(!mode.explosion_in_progress && game_finished && (mode_finished || post_game))
 			current_state = GAME_STATE_FINISHED
-
+			auto_toggle_ooc(1) // Turn OOC on
 			spawn
 				declare_completion()
 

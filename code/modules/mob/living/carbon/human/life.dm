@@ -861,6 +861,15 @@ var/global/list/brutefireloss_overlays = list("1" = image("icon" = 'icons/mob/sc
 				else
 					overeatduration -= 2
 
+		if(nutrition < 20)
+			if(starwarn == 0)
+				src << "<span class='userdanger'>Hunger is driving you crazy, you are literally starving!</span>"
+				starwarn = 60
+			starwarn -= 1
+
+		if(nutrition == 0)
+			adjustCloneLoss(0.1)
+
 		if(species.flags & REQUIRE_LIGHT)
 			if(nutrition < 200)
 				take_overall_damage(10,0)

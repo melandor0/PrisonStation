@@ -523,6 +523,47 @@ var/list/all_supply_groups = list(supply_emergency,supply_security,supply_engine
 	cost = 20
 	containername = "Inflatable Barrier Crate"
 
+/datum/supply_packs/engineering/atmos/plasma
+	name = "Plasma Canister Crate"
+	contains = list(/obj/machinery/portable_atmospherics/canister/toxins,
+					/obj/machinery/portable_atmospherics/canister/toxins,
+					/obj/machinery/portable_atmospherics/canister/toxins)
+	cost = 40
+	containername = "plasma canister crate"
+	access = access_ce
+
+/datum/supply_packs/engineering/atmos/oxygen
+	name = "Oxygen Canister Crate"
+	contains = list(/obj/machinery/portable_atmospherics/canister/oxygen,
+					/obj/machinery/portable_atmospherics/canister/oxygen,
+					/obj/machinery/portable_atmospherics/canister/oxygen)
+	cost = 15
+	containername = "oxygen canister crate"
+
+/datum/supply_packs/engineering/atmos/co2
+	name = "CO2 Canister Crate"
+	contains = list(/obj/machinery/portable_atmospherics/canister/carbon_dioxide,
+					/obj/machinery/portable_atmospherics/canister/carbon_dioxide,
+					/obj/machinery/portable_atmospherics/canister/carbon_dioxide)
+	cost = 30
+	containername = "co2 canister crate"
+
+/datum/supply_packs/engineering/atmos/n2o
+	name = "N2O Canister Crate"
+	contains = list(/obj/machinery/portable_atmospherics/canister/sleeping_agent,
+					/obj/machinery/portable_atmospherics/canister/sleeping_agent,
+					/obj/machinery/portable_atmospherics/canister/sleeping_agent)
+	cost = 30
+	containername = "n2o canister crate"
+
+/datum/supply_packs/engineering/atmos/nitrogen
+	name = "Nitrogen Canister Crate"
+	contains = list(/obj/machinery/portable_atmospherics/canister/nitrogen,
+					/obj/machinery/portable_atmospherics/canister/nitrogen,
+					/obj/machinery/portable_atmospherics/canister/nitrogen)
+	cost = 15
+	containername = "nitrogen canister crate"
+
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////// Medical /////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
