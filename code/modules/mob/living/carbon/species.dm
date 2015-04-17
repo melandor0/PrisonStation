@@ -482,6 +482,7 @@
 	H.verbs += /mob/living/carbon/human/proc/gut
 	..()
 
+/* No Armalis - Melandor0
 /datum/species/vox/armalis
 	name = "Vox Armalis"
 	icobase = 'icons/mob/human_races/r_armalis.dmi'
@@ -527,6 +528,7 @@
 		"eyes" =     /obj/item/organ/eyes,
 		"stack" =    /obj/item/organ/stack/vox
 		)
+*/
 
 /datum/species/kidan
 	name = "Kidan"

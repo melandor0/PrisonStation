@@ -78,7 +78,7 @@
 	drone_progress = 0
 
 
-
+/* No drones, no one to enforce synth laws - Mel
 /mob/dead/verb/join_as_drone()
 	set category = "Ghost"
 	set name = "Join As Drone"
@@ -97,7 +97,7 @@
 	if(jobban_isbanned(src,"nonhumandept") || jobban_isbanned(src,"Drone"))
 		usr << "\red You are banned from playing drones and cannot spawn as a drone."
 		return
-		
+
 	var/drone_age = 14 // 14 days to play as a drone
 	var/player_age_check = check_client_age(usr.client, drone_age)
 	if(player_age_check && config.use_age_restriction_for_antags)
@@ -124,7 +124,7 @@
 		pluralcheck = " [deathtimeminutes] minutes and"
 	var/deathtimeseconds = round((deathtime - deathtimeminutes * 600) / 10,1)
 
-	if (deathtime < 6000 && joinedasobserver == 0)	
+	if (deathtime < 6000 && joinedasobserver == 0)
 		usr << "You have been dead for[pluralcheck] [deathtimeseconds] seconds."
 		usr << "You must wait 10 minutes to respawn as a drone!"
 		return
@@ -142,3 +142,4 @@
 			return
 
 	src << "\red There are no available drone spawn points, sorry."
+*/
