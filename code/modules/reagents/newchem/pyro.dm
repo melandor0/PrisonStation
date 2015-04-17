@@ -16,7 +16,7 @@
 	id = "stabilizing_agent"
 	result = "stabilizing_agent"
 	required_reagents = list("iron" = 1, "oxygen" = 1, "hydrogen" = 1)
-	result_amount = 3
+	result_amount = 2
 	mix_message = "The mixture becomes a yellow liquid!"
 
 /datum/reagent/clf3
@@ -32,7 +32,7 @@
 	id = "clf3"
 	result = "clf3"
 	required_reagents = list("chlorine" = 1, "fluorine" = 3)
-	result_amount = 4
+	result_amount = 3
 	required_temp = 424
 
 /datum/reagent/clf3/on_mob_life(var/mob/living/M as mob)
@@ -46,7 +46,6 @@
 	var/turf/T = get_turf(holder.my_atom)
 	for(var/turf/turf in range(1,T))
 		new /obj/fire(turf)
-	holder.chem_temp = 1000 // hot as shit
 	return
 
 /datum/reagent/clf3/reaction_turf(var/turf/simulated/T, var/volume)
@@ -260,50 +259,43 @@
 	name = "smoke_powder"
 	id = "smoke_powder"
 	result = "smoke_powder"
+	required_reagents = list("stabilizing_agent" = 1, "potassium" = 1, "sugar" = 1, "phosphorus" = 1)
+	result_amount = 1
+	mix_message = "The mixture sets into a greyish powder!"
+
+/datum/chemical_reaction/smoke
+	name = "smoke"
+	id = "smoke"
+	result = null
 	required_reagents = list("potassium" = 1, "sugar" = 1, "phosphorus" = 1)
-	result_amount = 3
+	result_amount = 1
+	mix_message = "The mixture quickly turns into a pall of smoke!"
+	var/forbidden_reagents = list("sugar", "phosphorus", "potassium") //Do not transfer this stuff through smoke.
 
+/datum/chemical_reaction/smoke/on_reaction(var/datum/reagents/holder, var/created_volume)
+	for(var/f_reagent in forbidden_reagents)
+		if(holder.has_reagent(f_reagent))
+			holder.remove_reagent(f_reagent, holder.get_reagent_amount(f_reagent))
+	var/location = get_turf(holder.my_atom)
+	var/datum/effect/effect/system/chem_smoke_spread/S = new /datum/effect/effect/system/chem_smoke_spread
+	S.attach(location)
+	playsound(location, 'sound/effects/smoke.ogg', 50, 1, -3)
+	spawn(0)
+		if(S)
+			S.set_up(holder, 10, 0, location)
+			S.start(created_volume >= 10 ? 3 : 2)
+		if(holder && holder.my_atom)
+			holder.clear_reagents()
+	return
 
-/datum/chemical_reaction/smoke_powder_smoke
+/datum/chemical_reaction/smoke/smoke_powder
 	name = "smoke_powder_smoke"
 	id = "smoke_powder_smoke"
-	result = null
 	required_reagents = list("smoke_powder" = 1)
 	required_temp = 374
 	secondary = 1
-
-/datum/chemical_reaction/smoke_powder_smoke/on_reaction(var/datum/reagents/holder, var/created_volume)
-	var/location = get_turf(holder.my_atom)
-	var/datum/effect/effect/system/chem_smoke_spread/S = new /datum/effect/effect/system/chem_smoke_spread
-	S.attach(location)
-	playsound(location, 'sound/effects/smoke.ogg', 50, 1, -3)
-	spawn(0)
-		if(S)
-			S.set_up(holder, 10, 0, location)
-			S.start()
-			sleep(10)
-			S.start()
-		if(holder && holder.my_atom)
-			holder.clear_reagents()
-	return
-
-/datum/chemical_reaction/smoke_powder/on_reaction(var/datum/reagents/holder, var/created_volume)
-	if(holder.has_reagent("stabilizing_agent"))
-		return
-	holder.remove_reagent("smoke_powder", created_volume)
-	var/location = get_turf(holder.my_atom)
-	var/datum/effect/effect/system/chem_smoke_spread/S = new /datum/effect/effect/system/chem_smoke_spread
-	S.attach(location)
-	playsound(location, 'sound/effects/smoke.ogg', 50, 1, -3)
-	spawn(0)
-		if(S)
-			S.set_up(holder, 10, 0, location)
-			S.start()
-			sleep(10)
-			S.start()
-		if(holder && holder.my_atom)
-			holder.clear_reagents()
-	return
+	result_amount = 1
+	forbidden_reagents = list()
 
 /datum/reagent/sonic_powder
 	name = "Sonic Powder"

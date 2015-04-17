@@ -117,6 +117,12 @@ datum/reagent/colorful_reagent
 	result_amount = 6
 	mix_message = "The substance flashes multiple colors and emits the smell of a pocket protector."
 
+datum/reagent/colorful_reagent/reaction_mob(var/mob/living/simple_animal/M, var/method=TOUCH, var/volume)
+    if(M)
+        M.color = pick(random_color_list)
+    ..()
+    return
+
 datum/reagent/colorful_reagent/reaction_obj(var/obj/O, var/volume)
 	if(O)
 		O.color = pick(random_color_list)
@@ -148,6 +154,22 @@ datum/reagent/corgium
 	new /mob/living/simple_animal/corgi(location)
 	..()
 	return
+
+
+/datum/chemical_reaction/flaptonium
+	name = "Flaptonium"
+	id = "flaptonium"
+	result = null
+	required_reagents = list("egg" = 1, "colorful_reagent" = 1, "chicken_soup" = 1, "strange_reagent" = 1, "blood" = 1)
+	result_amount = 5
+	required_temp = 374
+
+/datum/chemical_reaction/flaptonium/on_reaction(var/datum/reagents/holder, var/created_volume)
+	var/location = get_turf(holder.my_atom)
+	new /mob/living/simple_animal/parrot(location)
+	..()
+	return
+
 
 datum/reagent/hair_dye
 	name = "Quantum Hair Dye"
@@ -233,3 +255,80 @@ datum/reagent/super_hairgrownium/on_mob_life(var/mob/living/M as mob)
 			H << "<span class = 'notice'>Hair bursts forth from your every follicle!"
 	..()
 	return
+
+datum/reagent/fartonium
+	name = "Fartonium"
+	id = "fartonium"
+	description = "Oh god it never ends, IT NEVER STOPS!"
+	reagent_state = GAS
+	color = "#D06E27"
+
+/datum/chemical_reaction/fartonium
+	name = "Fartonium"
+	id = "fartonium"
+	result = "fartonium"
+	required_reagents = list("fake_cheese" = 1, "beans" = 1, "????" = 1, "egg" = 1)
+	result_amount = 2
+	mix_message = "The substance makes a little 'toot' noise and starts to smell pretty bad."
+
+datum/reagent/fartonium/on_mob_life(var/mob/living/M as mob)
+	if(!M) M = holder.my_atom
+	M.emote("fart")
+	if(holder.has_reagent("simethicone"))
+		if(prob(30))
+			switch(pick(1,2))
+				if(1)
+					M << "<span class = 'danger'>Something isn't right!"
+					M.adjustBruteLoss(1)
+				if(2)
+					M.emote("me",1,"strains, but nothing happens.")
+					M.adjustBruteLoss(2)
+				if(3)
+					M.emote("scream")
+					M.adjustBruteLoss(2)
+				if(4)
+					M << "<span class = 'danger'>Oh gosh, the pain!"
+					M.adjustBruteLoss(1)
+				if(5)
+					M << "<span class = 'danger'>THE PAIN!"
+					M.adjustBruteLoss(1)
+	..()
+	return
+
+
+///Alchemical Reagents
+
+datum/reagent/eyenewt
+	name = "Eye of newt"
+	id = "eyenewt"
+	description = "A potent alchemic ingredient."
+	reagent_state = LIQUID
+	color = "#050519"
+
+datum/reagent/toefrog
+	name = "Toe of frog"
+	id = "toefrog"
+	description = "A potent alchemic ingredient."
+	reagent_state = LIQUID
+	color = "#092D09"
+
+datum/reagent/woolbat
+	name = "Wool of bat"
+	id = "woolbat"
+	description = "A potent alchemic ingredient."
+	reagent_state = LIQUID
+	color = "#080808"
+
+datum/reagent/tonguedog
+	name = "Tongue of dog"
+	id = "tonguedog"
+	description = "A potent alchemic ingredient."
+	reagent_state = LIQUID
+	color = "#2D0909"
+
+datum/reagent/triplepiss
+	name = "Triplepiss"
+	id = "triplepiss"
+	description = "Ewwwwwwwww."
+	reagent_state = LIQUID
+	color = "#857400"

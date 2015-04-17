@@ -370,8 +370,8 @@
 							qdel(src)
 
 		proc/dead_legs(mob/living/carbon/human/H as mob)
-			var/datum/organ/external/l = H.get_organ("l_leg")
-			var/datum/organ/external/r = H.get_organ("r_leg")
+			var/obj/item/organ/external/l = H.get_organ("l_leg")
+			var/obj/item/organ/external/r = H.get_organ("r_leg")
 			if(l && !(l.status & ORGAN_DESTROYED))
 				l.status |= ORGAN_DESTROYED
 			if(r && !(r.status & ORGAN_DESTROYED))
@@ -483,6 +483,12 @@
 	name = "wooden table parts"
 	desc = "Keep away from fire."
 	icon_state = "wood_tableparts"
+	flags = null
+
+/obj/item/weapon/table_parts/glass
+	name = "glass table parts"
+	desc = "fragile!"
+	icon_state = "glass_tableparts"
 	flags = null
 
 /obj/item/weapon/wire
@@ -828,13 +834,6 @@
 	desc = "A large piece of equipment used to open a window into the subspace dimension."
 	origin_tech = "magnets=3;materials=3;bluespace=2"
 	m_amt = 50
-
-/obj/item/weapon/ectoplasm
-	name = "ectoplasm"
-	desc = "spooky"
-	gender = PLURAL
-	icon = 'icons/obj/wizard.dmi'
-	icon_state = "ectoplasm"
 
 /obj/item/weapon/research//Makes testing much less of a pain -Sieve
 	name = "research"

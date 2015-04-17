@@ -23,11 +23,16 @@ datum/reagent/polonium/on_mob_life(var/mob/living/M as mob)
 datum/reagent/histamine
 	name = "Histamine"
 	id = "histamine"
-	description = "A dose-dependent toxin, ranges from annoying to incredibly lethal."
+	description = "Immune-system neurotransmitter. If detected in blood, the subject is likely undergoing an allergic reaction."
 	reagent_state = LIQUID
-	color = "#CF3600"
+	color = "#E7C4C4"
 	metabolization_rate = 0.2
 	overdose_threshold = 30
+
+datum/reagent/histamine/reaction_mob(var/mob/living/M as mob, var/method=TOUCH, var/volume) //dumping histamine on someone is VERY mean.
+	if(iscarbon(M))
+		if(method == TOUCH)
+			M.reagents.add_reagent("histamine",10)
 
 datum/reagent/histamine/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
@@ -58,7 +63,7 @@ datum/reagent/formaldehyde
 	id = "formaldehyde"
 	description = "Formaldehyde is a common industrial chemical and is used to preserve corpses and medical samples. It is highly toxic and irritating."
 	reagent_state = LIQUID
-	color = "#CF3600"
+	color = "#DED6D0"
 	penetrates_skin = 1
 
 datum/reagent/formaldehyde/on_mob_life(var/mob/living/M as mob)
@@ -175,16 +180,11 @@ datum/reagent/cyanide/on_mob_life(var/mob/living/M as mob)
 datum/reagent/itching_powder
 	name = "Itching Powder"
 	id = "itching_powder"
-	description = "Lots of annoying random effects, chances to do some brute damage from scratching. 6% chance to decay into 1-3 units of histamine."
+	description = "An abrasive powder beloved by cruel pranksters."
 	reagent_state = LIQUID
-	color = "#CF3600"
+	color = "#B0B0B0"
 	metabolization_rate = 0.3
 	penetrates_skin = 1
-
-/datum/reagent/itching_powder/reaction_mob(var/mob/living/M, var/method=TOUCH, var/volume)
-	if(method == TOUCH)
-		M.reagents.add_reagent("itching_powder", volume)
-		return
 
 datum/reagent/itching_powder/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
@@ -199,7 +199,6 @@ datum/reagent/itching_powder/on_mob_life(var/mob/living/M as mob)
 		M.adjustBruteLoss(0.2*REM)
 	if(prob(6))
 		M.reagents.add_reagent("histamine",rand(1,3))
-		M.reagents.remove_reagent("itching_powder",1)
 	..()
 	return
 
@@ -209,6 +208,7 @@ datum/reagent/itching_powder/on_mob_life(var/mob/living/M as mob)
 	result = "itching_powder"
 	required_reagents = list("fuel" = 1, "ammonia" = 1, "charcoal" = 1)
 	result_amount = 3
+	mix_message = "The mixture congeals and dries up, leaving behind an abrasive powder."
 
 datum/reagent/facid/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
@@ -227,65 +227,48 @@ datum/reagent/facid
 datum/reagent/facid/reaction_mob(var/mob/living/M, var/method=TOUCH, var/volume)
 	if(!istype(M, /mob/living))
 		return //wooo more runtime fixin
-	if(method == TOUCH)
+	if(method == TOUCH || method == INGEST)
 		if(ishuman(M))
 			var/mob/living/carbon/human/H = M
 
-			if(H.wear_mask)
-				if(!H.wear_mask.unacidable)
-					qdel (H.wear_mask)
-					H.update_inv_wear_mask()
-					H << "\red Your mask melts away but protects you from the acid!"
-				else
-					H << "\red Your mask protects you from the acid!"
-				return
+			if(volume < 5)
+				M << "<span class = 'danger'>The blueish acidic substance stings you, but isn't concentrated enough to harm you!</span>"
 
-			if(H.head)
-				if(prob(15) && !H.head.unacidable)
-					qdel(H.head)
-					H.update_inv_head()
-					H << "\red Your helmet melts away but protects you from the acid"
-				else
-					H << "\red Your helmet protects you from the acid!"
-				return
+			if(volume >=5 && volume <=10)
+				if(!H.unacidable)
+					M.take_organ_damage(max(volume-5,2)*4,0)
+					M.emote("scream")
 
-			if(!H.unacidable)
-				var/datum/organ/external/affecting = H.get_organ("head")
-				if(affecting.take_damage(15, 0))
+
+			if(volume > 10)
+
+				if(method == TOUCH)
+					if(H.wear_mask)
+						if(!H.wear_mask.unacidable)
+							qdel (H.wear_mask)
+							H.update_inv_wear_mask()
+							H << "\red Your mask melts away but protects you from the acid!"
+						else
+							H << "\red Your mask protects you from the acid!"
+						return
+
+					if(H.head)
+						if(!H.head.unacidable)
+							qdel(H.head)
+							H.update_inv_head()
+							H << "\red Your helmet melts away but protects you from the acid"
+						else
+							H << "\red Your helmet protects you from the acid!"
+						return
+
+				if(!H.unacidable)
+					var/obj/item/organ/external/affecting = H.get_organ("head")
+					affecting.take_damage(75, 0)
 					H.UpdateDamageIcon()
-				H.emote("scream")
-		else if(ismonkey(M))
-			var/mob/living/carbon/monkey/MK = M
-
-			if(MK.wear_mask)
-				if(!MK.wear_mask.unacidable)
-					qdel (MK.wear_mask)
-					MK.update_inv_wear_mask()
-					MK << "\red Your mask melts away but protects you from the acid!"
-				else
-					MK << "\red Your mask protects you from the acid!"
-				return
-
-			if(!MK.unacidable)
-				MK.take_organ_damage(min(15, volume * 4)) // same deal as sulphuric acid
-	else
-		if(!M.unacidable)
-			if(ishuman(M))
-				var/mob/living/carbon/human/H = M
-				var/datum/organ/external/affecting = H.get_organ("head")
-				if(affecting.take_damage(15, 0))
-					H.UpdateDamageIcon()
-				H.emote("scream")
-				H.status_flags |= DISFIGURED
-			else
-				M.take_organ_damage(min(15, volume * 4))
+					H.emote("scream")
+					H.status_flags |= DISFIGURED
 
 datum/reagent/facid/reaction_obj(var/obj/O, var/volume)
-	if(istype(O,/obj/item/weapon/organ/head))
-		new/obj/item/weapon/skeleton/head(O.loc)
-		for(var/mob/M in viewers(5, O))
-			M << "\red \the [O] melts."
-		qdel(O)
 	if((istype(O,/obj/item) || istype(O,/obj/effect/glowshroom)))
 		if(!O.unacidable)
 			var/obj/effect/decal/cleanable/molten_item/I = new/obj/effect/decal/cleanable/molten_item(O.loc)
@@ -293,6 +276,7 @@ datum/reagent/facid/reaction_obj(var/obj/O, var/volume)
 			for(var/mob/M in viewers(5, O))
 				M << "\red \the [O] melts."
 			qdel(O)
+
 /datum/chemical_reaction/facid
 	name = "Fluorosulfuric Acid"
 	id = "facid"
@@ -328,10 +312,24 @@ datum/reagent/initropidril/on_mob_life(var/mob/living/M as mob)
 			if(3)
 				var/mob/living/carbon/human/H = M
 				if(!H.heart_attack)
-					H.visible_message("<span class = 'userdanger'>[H] clutches at their chest!</span>")
 					H.heart_attack = 1 // rip in pepperoni
 	..()
 	return
+
+datum/reagent/concentrated_initro
+	name = "Concentrated Initropidril"
+	id = "concentrated_initro"
+	description = "A guaranteed heart-stopper!"
+	reagent_state = LIQUID
+	color = "#AB1CCF"
+	metabolization_rate = 0.4
+
+datum/reagent/concentrated_initro/on_mob_life(var/mob/living/M as mob)
+	if(!M) M = holder.my_atom
+	if(volume >=5)
+		var/mob/living/carbon/human/H = M
+		if(!H.heart_attack)
+			H.heart_attack = 1 // rip in pepperoni
 
 datum/reagent/pancuronium
 	name = "Pancuronium"
@@ -353,16 +351,19 @@ datum/reagent/pancuronium/on_mob_life(var/mob/living/M as mob)
 datum/reagent/sodium_thiopental
 	name = "Sodium Thiopental"
 	id = "sodium_thiopental"
-	description = "Puts you to sleep after 30 seconds, along with some major stamina loss."
+	description = "An rapidly-acting barbituate tranquilizer."
 	reagent_state = LIQUID
-	color = "#CF3600"
+	color = "#5F8BE1"
 	metabolization_rate = 0.7
 
 datum/reagent/sodium_thiopental/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
-	if(current_cycle >= 10)
-		M.sleeping += 3
-	M.adjustStaminaLoss(10)
+	if(current_cycle == 1)
+		M.emote("drool")
+	if(current_cycle >= 2)
+		M.drowsyness = max(M.drowsyness, 20)
+	if(current_cycle >= 5)
+		M.Paralyse(4)
 	..()
 	return
 
@@ -423,9 +424,9 @@ datum/reagent/sulfonal/on_mob_life(var/mob/living/M as mob)
 datum/reagent/amanitin
 	name = "Amanitin"
 	id = "amanitin"
-	description = "On the last second that it's in you, it hits you with a stack of toxin damage based on how long it's been in you. The more you use, the longer it takes before anything happens, but the harder it hits when it does."
+	description = "A toxin produced by certain mushrooms. Very deadly."
 	reagent_state = LIQUID
-	color = "#CF3600"
+	color = "#D9D9D9"
 
 datum/reagent/amanitin/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
@@ -441,9 +442,9 @@ datum/reagent/amanitin/reagent_deleted(var/mob/living/M as mob)
 datum/reagent/lipolicide
 	name = "Lipolicide"
 	id = "lipolicide"
-	description = "Deals some toxin damage unless they keep eating food. Will reduce nutrition values."
-	reagent_state = LIQUID
-	color = "#CF3600"
+	description = "A compound found in many seedy dollar stores in the form of a weight-loss tonic."
+	reagent_state = SOLID
+	color = "#D1DED1"
 
 /datum/chemical_reaction/lipolicide
 	name = "lipolicide"
@@ -466,9 +467,9 @@ datum/reagent/lipolicide/on_mob_life(var/mob/living/M as mob)
 datum/reagent/coniine
 	name = "Coniine"
 	id = "coniine"
-	description = "Does moderate toxin damage and oxygen loss."
+	description = "A neurotoxin that rapidly causes respiratory failure."
 	reagent_state = LIQUID
-	color = "#CF3600"
+	color = "#C2D8CD"
 	metabolization_rate = 0.05
 
 datum/reagent/coniine/on_mob_life(var/mob/living/M as mob)
@@ -519,7 +520,6 @@ datum/reagent/sarin
 datum/reagent/sarin/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
 	M.adjustFireLoss(1)
-	M.adjustToxLoss(1)
 	if(prob(20))
 		M.emote(pick("twitch","drool", "quiver"))
 	if(prob(10))
@@ -542,8 +542,10 @@ datum/reagent/sarin/on_mob_life(var/mob/living/M as mob)
 	switch(current_cycle)
 		if(0 to 60)
 			M.adjustBrainLoss(1)
+			M.adjustToxLoss(1)
 		if(61 to INFINITY)
 			M.adjustBrainLoss(2)
+			M.adjustToxLoss(2)
 			M.Paralyse(5)
 			M.losebreath += 5
 	..()
@@ -708,5 +710,26 @@ datum/reagent/glowing_slurry/on_mob_life(var/mob/living/M as mob)
 		randmutg(M)
 	domutcheck(M, null)
 	M.UpdateAppearance()
+	..()
+	return
+
+datum/reagent/ants
+	name = "Ants"
+	id = "ants"
+	description = "A sample of a lost breed of Space Ants (formicidae bastardium tyrannus), they are well-known for ravaging the living shit out of pretty much anything."
+	reagent_state = SOLID
+	color = "#993333"
+
+datum/reagent/ants/reaction_mob(var/mob/living/M as mob, var/method=TOUCH, var/volume) //NOT THE ANTS
+	if(iscarbon(M))
+		if(method == TOUCH || method==INGEST)
+			M.adjustBruteLoss(4)
+			M.emote("scream")
+			M << "<span class='warning'>OH SHIT ANTS!!!!</span>"
+
+
+datum/reagent/ants/on_mob_life(var/mob/living/M as mob)
+	if(!M) M = holder.my_atom
+	M.adjustBruteLoss(2)
 	..()
 	return

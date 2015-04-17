@@ -218,6 +218,15 @@ var/list/uplink_items = list()
 	cost = 7
 	job = list("Scientist","Research Director","Geneticist","Chief Medical Officer","Medical Doctor","Psychiatrist","Chemist","Paramedic","Virologist","Brig Physician")
 
+//Tator Poison Bottles
+
+/datum/uplink_item/jobspecific/poisonbottle
+	name = "Poison Bottle"
+	desc = "The Syndicate will ship a bottle containing 40 units of a randomly selected poison. The poison can range from highly irritating to incredibly lethal."
+	item = /obj/item/weapon/reagent_containers/glass/bottle/traitor
+	cost = 2
+	job = list("Scientist","Research Director","Chief Medical Officer","Medical Doctor","Psychiatrist","Chemist","Paramedic","Virologist","Bartender")
+
 // DANGEROUS WEAPONS
 
 /datum/uplink_item/dangerous
@@ -263,6 +272,12 @@ var/list/uplink_items = list()
 	item = /obj/item/weapon/melee/energy/sword
 	cost = 8
 
+/datum/uplink_item/dangerous/chainsaw
+	name = "Chainsaw"
+	desc = "A high powered chainsaw for cutting up ...you know...."
+	item = /obj/item/weapon/twohanded/chainsaw
+	cost = 13
+
 /datum/uplink_item/dangerous/manhacks
 	name = "Viscerator Delivery Grenade"
 	desc = "A unique grenade that deploys a swarm of viscerators upon activation, which will chase down and shred any non-operatives in the area."
@@ -270,12 +285,11 @@ var/list/uplink_items = list()
 	cost = 8
 	gamemodes = list("nuclear emergency")
 
-/datum/uplink_item/dangerous/bioterror
-	name = "Biohazardous Chemical Sprayer"
-	desc = "A chemical sprayer that allows a wide dispersal of selected chemicals. Especially tailored by the Tiger Cooperative, the deadly blend it comes stocked with will disorient, damage, and disable your foes... \
-	Use with extreme caution, to prevent exposure to yourself and your fellow operatives."
-	item = /obj/item/weapon/reagent_containers/spray/chemsprayer/bioterror
-	cost = 20
+/datum/uplink_item/dangerous/saringrenades
+	name = "Sarin Gas Grenades"
+	desc = "A box of four (4) grenades filled with sarin, a deadly neurotoxin. Use extreme caution when handling and be sure to vacate the premise after using; ensure communication is maintaind with team to avoid accidental gassings."
+	item = /obj/item/weapon/storage/box/syndie_kit/sarin
+	cost = 15
 	gamemodes = list("nuclear emergency")
 
 /datum/uplink_item/dangerous/emp

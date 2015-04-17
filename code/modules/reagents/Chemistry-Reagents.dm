@@ -720,57 +720,54 @@ datum
 					if(ishuman(M))
 						var/mob/living/carbon/human/H = M
 
-						if(H.wear_mask)
-							if(!H.wear_mask.unacidable)
-								del (H.wear_mask)
-								H.update_inv_wear_mask()
-								H << "\red Your mask melts away but protects you from the acid!"
-							else
+						if(volume > 25)
+
+							if(H.wear_mask)
 								H << "\red Your mask protects you from the acid!"
-							return
+								return
 
-						if(H.head)
-							if(prob(15) && !H.head.unacidable)
-								del(H.head)
-								H.update_inv_head()
-								H << "\red Your helmet melts away but protects you from the acid"
-							else
+							if(H.head)
 								H << "\red Your helmet protects you from the acid!"
-							return
+								return
 
-					else if(ismonkey(M))
-						var/mob/living/carbon/monkey/MK = M
-						if(MK.wear_mask)
-							if(!MK.wear_mask.unacidable)
-								del (MK.wear_mask)
-								MK.update_inv_wear_mask()
-								MK << "\red Your mask melts away but protects you from the acid!"
-							else
-								MK << "\red Your mask protects you from the acid!"
-							return
-
-					if(!M.unacidable)
-						if(prob(15) && istype(M, /mob/living/carbon/human) && volume >= 30)
-							var/mob/living/carbon/human/H = M
-							var/datum/organ/external/affecting = H.get_organ("head")
-							if(affecting)
-								if(affecting.take_damage(25, 0))
-									H.UpdateDamageIcon()
-								H.status_flags |= DISFIGURED
-								H.emote("scream")
+							if(!M.unacidable)
+								if(prob(75))
+									var/obj/item/organ/external/affecting = H.get_organ("head")
+									if(affecting)
+										affecting.take_damage(20, 0)
+										H.UpdateDamageIcon()
+										H.emote("scream")
+								else
+									M.take_organ_damage(15,0)
 						else
-							M.take_organ_damage(min(15, volume * 2)) // uses min() and volume to make sure they aren't being sprayed in trace amounts (1 unit != insta rape) -- Doohl
-				else
-					if(!M.unacidable)
-						M.take_organ_damage(min(15, volume * 2))
+							M.take_organ_damage(15,0)
+
+				if(method == INGEST)
+					if(ishuman(M))
+						var/mob/living/carbon/human/H = M
+
+						if(volume < 10)
+							M << "<span class = 'danger'>The greenish acidic substance stings you, but isn't concentrated enough to harm you!</span>"
+
+						if(volume >=10 && volume <=25)
+							if(!H.unacidable)
+								M.take_organ_damage(min(max(volume-10,2)*2,20),0)
+								M.emote("scream")
+
+
+						if(volume > 25)
+							if(!M.unacidable)
+								if(prob(75))
+									var/obj/item/organ/external/affecting = H.get_organ("head")
+									if(affecting)
+										affecting.take_damage(20, 0)
+										H.UpdateDamageIcon()
+										H.emote("scream")
+								else
+									M.take_organ_damage(15,0)
 
 			reaction_obj(var/obj/O, var/volume)
-				if(istype(O,/obj/item/weapon/organ/head))
-					new/obj/item/weapon/skeleton/head(O.loc)
-					for(var/mob/M in viewers(5, O))
-						M << "\red \the [O] melts."
-					del(O)
-				if((istype(O,/obj/item) || istype(O,/obj/effect/glowshroom)) && prob(10))
+				if((istype(O,/obj/item) || istype(O,/obj/effect/glowshroom)) && prob(40))
 					if(!O.unacidable)
 						var/obj/effect/decal/cleanable/molten_item/I = new/obj/effect/decal/cleanable/molten_item(O.loc)
 						I.desc = "Looks like this was \an [O] some time ago."
@@ -1078,6 +1075,11 @@ datum
 			reaction_mob(var/mob/M, var/method=TOUCH, var/volume)
 				if(iscarbon(M))
 					var/mob/living/carbon/C = M
+					if(istype(M,/mob/living/carbon/human))
+						var/mob/living/carbon/human/H = M
+						if(H.lip_style)
+							H.lip_style = null
+							H.update_body()
 					if(C.r_hand)
 						C.r_hand.clean_blood()
 					if(C.l_hand)
@@ -1180,7 +1182,7 @@ datum
 				M.eye_blind = 0
 				if(ishuman(M))
 					var/mob/living/carbon/human/H = M
-					var/datum/organ/internal/eyes/E = H.internal_organs_by_name["eyes"]
+					var/obj/item/organ/eyes/E = H.internal_organs_by_name["eyes"]
 					if(istype(E))
 						E.damage = max(E.damage-5 , 0)
 				M.SetWeakened(0)
@@ -1252,7 +1254,7 @@ datum
 
 					//Mitocholide is hard enough to get, it's probably fair to make this all internal organs
 					for(var/name in H.internal_organs_by_name)
-						var/datum/organ/internal/I = H.internal_organs_by_name[name]
+						var/obj/item/organ/I = H.internal_organs_by_name[name]
 						if(I.damage > 0)
 							I.damage -= 0.20
 				..()
@@ -1449,21 +1451,6 @@ datum
 			description = "A secondary amine, useful as a plant nutrient and as building block for other compounds."
 			reagent_state = LIQUID
 			color = "#322D00"
-
-		Spores
-			name = "Spores"
-			id = "spores"
-			description = "A toxic spore cloud which blocks vision when ingested."
-			reagent_state = LIQUID
-			color = "#9ACD32" // rgb: 0, 51, 51
-
-			on_mob_life(var/mob/living/M as mob)
-				if(!M) M = holder.my_atom
-				M.adjustToxLoss(0.5*REM)
-				..()
-				M.damageoverlaytemp = 60
-				M.eye_blurry = max(M.eye_blurry, 3)
-				return
 
 		beer2	//disguised as normal beer for use by emagged brobots
 			name = "Beer"
@@ -2112,6 +2099,12 @@ datum
 					description = "The fatty, still liquid part of milk. Why don't you mix this with sum scotch, eh?"
 					color = "#DFD7AF" // rgb: 223, 215, 175
 
+				chocolate_milk
+					name = "Chocolate milk"
+					id ="chocolate_milk"
+					description = "Chocolate-flavored milk, tastes like being a kid again."
+					color = "#85432C"
+
 			hot_coco
 				name = "Hot Chocolate"
 				id = "hot_coco"
@@ -2131,11 +2124,15 @@ datum
 				adj_temp = 25
 
 				on_mob_life(var/mob/living/M as mob)
-					..()
 					M.Jitter(5)
 					if(adj_temp > 0 && holder.has_reagent("frostoil"))
 						holder.remove_reagent("frostoil", 10*REAGENTS_METABOLISM)
-					holder.remove_reagent(src.id, 0.1)
+					if(prob(50))
+						M.AdjustParalysis(-1)
+						M.AdjustStunned(-1)
+						M.AdjustWeakened(-1)
+					..()
+					return
 
 				icecoffee
 					name = "Iced Coffee"
@@ -2397,6 +2394,7 @@ datum
 			var/confused_adj = 2
 			var/slur_start = 65			//amount absorbed after which mob starts slurring
 			var/confused_start = 130	//amount absorbed after which mob starts confusing directions
+			var/vomit_start = 180	//amount absorbed after which mob starts vomitting
 			var/blur_start = 260	//amount absorbed after which mob starts getting blurred vision
 			var/pass_out = 325	//amount absorbed after which mob starts passing out
 
@@ -2430,12 +2428,15 @@ datum
 				if(d >= blur_start)
 					M.eye_blurry = max(M.eye_blurry, 10/sober_str)
 					M:drowsyness  = max(M:drowsyness, 0)
+				if(d >= vomit_start)
+					if(prob(8))
+						M.fakevomit()
 				if(d >= pass_out)
 					M:paralysis = max(M:paralysis, 20/sober_str)
 					M:drowsyness  = max(M:drowsyness, 30/sober_str)
 					if(ishuman(M))
 						var/mob/living/carbon/human/H = M
-						var/datum/organ/internal/liver/L = H.internal_organs_by_name["liver"]
+						var/obj/item/organ/liver/L = H.internal_organs_by_name["liver"]
 						if (istype(L))
 							L.take_damage(0.1, 1)
 						H.adjustToxLoss(0.1)
@@ -2474,6 +2475,12 @@ datum
 					..()
 					M:jitteriness = max(M:jitteriness-3,0)
 					return
+
+			cider
+				name = "Cider"
+				id = "cider"
+				description = "An alcoholic beverage derived from apples."
+				color = "#174116"
 
 			whiskey
 				name = "Whiskey"
@@ -2572,15 +2579,18 @@ datum
 				dizzy_adj = 4
 				confused_start = 115	//amount absorbed after which mob starts confusing directions
 
-			hooch
-				name = "Hooch"
-				id = "hooch"
-				description = "Either someone's failure at cocktail making or attempt in alchohol production. In any case, do you really want to drink that?"
-				color = "#664300" // rgb: 102, 67, 0
-				dizzy_adj = 6
-				slurr_adj = 5
-				slur_start = 35			//amount absorbed after which mob starts slurring
-				confused_start = 90	//amount absorbed after which mob starts confusing directions
+			suicider //otherwise known as "I want to get so smashed my liver gives out and I die from alcohol poisoning".
+				name = "Suicider"
+				id = "suicider"
+				description = "An unbelievably strong and potent variety of Cider."
+				color = "#CF3811"
+				dizzy_adj = 20
+				slurr_adj = 20
+				confused_adj = 3
+				slur_start = 15
+				confused_start = 40
+				blur_start = 60
+				pass_out = 80
 
 			ale
 				name = "Ale"

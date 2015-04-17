@@ -277,7 +277,7 @@ datum/reagent/crank/addiction_act_stage4(var/mob/living/M as mob)
 	name = "bath_salts"
 	id = "bath_salts"
 	result = "bath_salts"
-	required_reagents = list("????" = 1, "saltpetre" = 1, "nutriment" = 1, "cleaner" = 1, "enzyme" = 1, "mugwort" = 1, "mercury" = 1)
+	required_reagents = list("????" = 1, "saltpetre" = 1, "msg" = 1, "cleaner" = 1, "enzyme" = 1, "mugwort" = 1, "mercury" = 1)
 	result_amount = 6
 	required_temp = 374
 	mix_message = "Tiny cubic crystals precipitate out of the mixture. Huh."
@@ -346,7 +346,7 @@ datum/reagent/crank/addiction_act_stage4(var/mob/living/M as mob)
 	return
 
 /datum/chemical_reaction/aranesp
-	name = "aranesp"
+	name = "Aranesp"
 	id = "aranesp"
 	result = "aranesp"
 	required_reagents = list("epinephrine" = 1, "atropine" = 1, "insulin" = 1)
@@ -361,14 +361,14 @@ datum/reagent/crank/addiction_act_stage4(var/mob/living/M as mob)
 
 /datum/reagent/aranesp/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
-	var/high_message = pick("You feel amped up.", "You feel ready.", "You feel like you can push it to the limit.")
+	var/high_message = pick("You feel like you're made of steel!", "You feel invigorated!", "You feel really buff!", "You feel on top of the world!", "You feel full of energy!")
 	if(prob(5))
 		M << "<span class='notice'>[high_message]</span>"
 	M.adjustStaminaLoss(-35)
 	M.adjustToxLoss(1)
-	if(prob(rand(1,100)))
-		M.losebreath++
-		M.adjustOxyLoss(20)
+	if(prob(3))
+		M.losebreath += 2
+		M.Stun(2)
 	..()
 	return
 
@@ -386,5 +386,75 @@ datum/reagent/crank/addiction_act_stage4(var/mob/living/M as mob)
 		M.emote(pick("smile","giggle","laugh"))
 	if(prob(50))
 		M.stuttering += 2
+	..()
+	return
+
+/datum/reagent/fliptonium
+	name = "Fliptonium"
+	id = "fliptonium"
+	description = "Do some flips!"
+	reagent_state = LIQUID
+	color = "#A42964"
+	metabolization_rate = 0.2
+	overdose_threshold = 15
+
+/datum/chemical_reaction/fliptonium
+	name = "fliptonium"
+	id = "fliptonium"
+	result = "fliptonium"
+	required_reagents = list("ephedrine" = 1, "liquid_dark_matter" = 1, "chocolate" = 1, "ginsonic" = 1)
+	result_amount = 4
+	mix_message = "The mixture swirls around excitedly!"
+
+datum/reagent/fliptonium/reaction_mob(var/mob/M, var/method=TOUCH, var/volume)
+	if(!istype(M, /mob/living))
+		return
+	if(method == INGEST || method == TOUCH)
+		M.SpinAnimation(speed = 12, loops = -1)
+
+/datum/reagent/fliptonium/on_mob_life(var/mob/living/M as mob)
+	if(!M) M = holder.my_atom
+	if(current_cycle == 5)
+		M.SpinAnimation(speed = 11, loops = -1)
+	if(current_cycle == 10)
+		M.SpinAnimation(speed = 10, loops = -1)
+	if(current_cycle == 15)
+		M.SpinAnimation(speed = 9, loops = -1)
+	if(current_cycle == 20)
+		M.SpinAnimation(speed = 8, loops = -1)
+	if(current_cycle == 25)
+		M.SpinAnimation(speed = 7, loops = -1)
+	if(current_cycle == 30)
+		M.SpinAnimation(speed = 6, loops = -1)
+	if(current_cycle == 40)
+		M.SpinAnimation(speed = 5, loops = -1)
+	if(current_cycle == 50)
+		M.SpinAnimation(speed = 4, loops = -1)
+	M.AdjustParalysis(-2)
+	M.AdjustStunned(-2)
+	M.AdjustWeakened(-2)
+	M.adjustStaminaLoss(-2)
+	..()
+	return
+
+datum/reagent/fliptonium/reagent_deleted(var/mob/living/M as mob)
+	M.SpinAnimation(speed = 12, loops = -1)
+
+datum/reagent/fliptonium/overdose_process(var/mob/living/M as mob)
+	if(volume > 15)
+		if(prob(5))
+			switch(pick(1, 2, 3))
+				if(1)
+					M.emote("laugh")
+					M.adjustToxLoss(1)
+				if(2)
+					M << "<span class = 'danger'>[M] can't seem to control their legs!</span>"
+					M.Weaken(8)
+					M.adjustToxLoss(1)
+				if(3)
+					M << "<span class = 'danger'>[M]'s hands flip out and flail everywhere!</span>"
+					M.drop_l_hand()
+					M.drop_r_hand()
+					M.adjustToxLoss(1)
 	..()
 	return

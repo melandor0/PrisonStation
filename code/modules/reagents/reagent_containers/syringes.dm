@@ -189,7 +189,7 @@
 						M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been injected with [src.name] by [user.name] ([user.ckey]). Reagents: [contained]</font>")
 						user.attack_log += text("\[[time_stamp()]\] <font color='red'>Used the [src.name] to inject [M.name] ([M.key]). Reagents: [contained]</font>")
 						if(M.ckey)
-							msg_admin_attack("[user.name] ([user.ckey]) injected [M.name] ([M.key]) with [src.name]. Reagents: [contained] (INTENT: [uppertext(user.a_intent)]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
+							msg_admin_attack("[user.name] ([user.ckey])[isAntag(user) ? "(ANTAG)" : ""] injected [M.name] ([M.key]) with [src.name]. Reagents: [contained] (INTENT: [uppertext(user.a_intent)]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
 						if(!iscarbon(user))
 							M.LAssailant = null
 						else
@@ -274,7 +274,7 @@
 		user.attack_log += "\[[time_stamp()]\]<font color='red'> Attacked [target.name] ([target.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)])</font>"
 		target.attack_log += "\[[time_stamp()]\]<font color='orange'> Attacked by [user.name] ([user.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)])</font>"
 		if(target.ckey)
-			msg_admin_attack("[user.name] ([user.ckey]) attacked [target.name] ([target.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
+			msg_admin_attack("[user.name] ([user.ckey])[isAntag(user) ? "(ANTAG)" : ""] attacked [target.name] ([target.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
 		if(!iscarbon(user))
 			target.LAssailant = null
 		else
@@ -283,14 +283,12 @@
 		if(istype(target, /mob/living/carbon/human))
 
 			var/target_zone = ran_zone(check_zone(user.zone_sel.selecting, target))
-			var/datum/organ/external/affecting = target:get_organ(target_zone)
+			var/obj/item/organ/external/affecting = target:get_organ(target_zone)
 
-			if (!affecting)
+			if (!affecting || (affecting.status & ORGAN_DESTROYED) || affecting.is_stump())
+				user << "<span class='danger'>They are missing that limb!</span>"
 				return
-			if(affecting.status & ORGAN_DESTROYED)
-				user << "What [affecting.display_name]?"
-				return
-			var/hit_area = affecting.display_name
+			var/hit_area = affecting.name
 
 			var/mob/living/carbon/human/H = target
 			if((user != target) && H.check_shields(7, "the [src.name]"))

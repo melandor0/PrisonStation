@@ -388,8 +388,20 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 2)
-		reagents.add_reagent("sugar", 2)
+		reagents.add_reagent("chocolate",2)
 		reagents.add_reagent("coco", 2)
+		bitesize = 2
+
+/obj/item/weapon/reagent_containers/food/snacks/reagentchocolatebar //for reagent chocolate
+	name = "Chocolate Bar"
+	desc = "A plain chocolate bar. Is it dark chocolate, milk chocolate? Who knows!"
+	icon_state = "chocolatebar"
+	filling_color = "#7D5F46"
+
+	New()
+		..()
+		reagents.add_reagent("sugar", 10)
+		reagents.add_reagent("chocolate",10)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/chocolateegg
@@ -401,7 +413,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 3)
-		reagents.add_reagent("sugar", 2)
+		reagents.add_reagent("chocolate",2)
 		reagents.add_reagent("coco", 2)
 		bitesize = 2
 
@@ -589,6 +601,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 2)
+		reagents.add_reagent("egg", 5)
 		reagents.add_reagent("sodiumchloride", 1)
 		reagents.add_reagent("blackpepper", 1)
 		bitesize = 1
@@ -602,6 +615,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 2)
+		reagents.add_reagent("egg", 5)
 
 /obj/item/weapon/reagent_containers/food/snacks/flour
 	name = "flour"
@@ -1260,6 +1274,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 6)
+		reagents.add_reagent("msg",4)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/chinese/tao
@@ -1269,6 +1284,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 6)
+		reagents.add_reagent("msg",4)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/chinese/newdles
@@ -1278,6 +1294,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 6)
+		reagents.add_reagent("msg",4)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/chinese/rice
@@ -1288,6 +1305,7 @@
 		..()
 		reagents.add_reagent("nutriment", 3)
 		reagents.add_reagent("rice", 3)
+		reagents.add_reagent("msg",4)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/syndicake
@@ -1670,9 +1688,9 @@
 			surprise.transform *= 0.6
 			surprise.add_blood(M)
 			var/mob/living/carbon/human/H = M
-			var/datum/organ/external/E = H.get_organ("chest")
+			var/obj/item/organ/external/E = H.get_organ("chest")
 			E.fracture()
-			for (var/datum/organ/internal/I in E.internal_organs)
+			for (var/obj/item/organ/I in E.internal_organs)
 				I.take_damage(rand(I.min_bruised_damage, I.min_broken_damage+1))
 
 			if (!E.hidden && prob(60)) //set it snuggly
@@ -2540,6 +2558,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 20)
+		reagents.add_reagent("chocolate",20)
 
 /obj/item/weapon/reagent_containers/food/snacks/chocolatecakeslice
 	name = "Chocolate Cake slice"
@@ -2559,6 +2578,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 20)
+		reagents.add_reagent("cheese", 20)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/cheesewedge
@@ -2568,7 +2588,18 @@
 	filling_color = "#FFF700"
 	bitesize = 2
 
-
+/obj/item/weapon/reagent_containers/food/snacks/weirdcheesewedge
+	name = "Weird Cheese"
+	desc = "Some kind of... gooey, messy, gloopy thing. Similar to cheese, but only in the looser sense of the word."
+	icon_state = "weirdcheesewedge"
+	filling_color = "#00FF33"
+	bitesize = 2
+	New()
+		..()
+		reagents.add_reagent("mercury", 5)
+		reagents.add_reagent("mindbreaker", 5)
+		reagents.add_reagent("ethanol", 5)
+		reagents.add_reagent("weird_cheese", 5)
 
 /obj/item/weapon/reagent_containers/food/snacks/sliceable/birthdaycake
 	name = "Birthday Cake"
@@ -2596,7 +2627,7 @@
 	icon_state = "Some plain old Earthen bread."
 	icon_state = "bread"
 	slice_path = /obj/item/weapon/reagent_containers/food/snacks/breadslice
-	slices_num = 5
+	slices_num = 6
 	filling_color = "#FFE396"
 
 	New()
@@ -2612,6 +2643,9 @@
 	filling_color = "#D27332"
 	bitesize = 2
 
+	New()
+		..()
+		reagents.add_reagent("bread", 5)
 
 /obj/item/weapon/reagent_containers/food/snacks/sliceable/creamcheesebread
 	name = "Cream Cheese Bread"
@@ -2969,6 +3003,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 10)
+		reagents.add_reagent("beans",10)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/benedict
@@ -2978,6 +3013,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 3)
+		reagents.add_reagent("egg", 3)
 		bitesize = 3
 
 /obj/item/weapon/reagent_containers/food/snacks/hotdog
@@ -3153,7 +3189,7 @@
         New()
                 ..()
                 reagents.add_reagent("nutriment", 4)
-                reagents.add_reagent("sugar",8)
+                reagents.add_reagent("chocolate",8)
                 reagents.add_reagent("ice",2)
                 bitesize = 6
 
@@ -3324,3 +3360,126 @@
 		..()
 		reagents.add_reagent("nutriment", 3)
 
+/obj/item/weapon/reagent_containers/food/snacks/ectoplasm
+	name = "ectoplasm"
+	desc = "A luminescent blob of what scientists refer to as 'ghost goo'."
+	icon = 'icons/obj/wizard.dmi'
+	icon_state = "ectoplasm"
+	New()
+		..()
+		reagents.add_reagent("ectoplasm", 10)
+
+////Discount Dan's Burritos//////       May God have mercy on your souls---and stomachs.    -Fox
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito
+	name = "Discount Dan's Burrito"
+	desc = "Quite possibly the worst burrito in all of space."
+	icon_state = "danburrito"
+	bitesize = 10
+	var/selfheat = 0
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito/attack_self(mob/user as mob) //self-heating action!
+	if(selfheat)
+		return
+	else
+		selfheat = 1
+		user << "<span class='notice'>You crack the burrito like a glow stick, activating the heater mechanism.</span>"
+		reagents.add_reagent("pyrosium", 2)
+		reagents.add_reagent("oxygen", 2)
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito/random
+	New()
+		..()
+		var/list/list = typesof(/obj/item/weapon/reagent_containers/food/snacks/danburrito) - list(/obj/item/weapon/reagent_containers/food/snacks/danburrito,/obj/item/weapon/reagent_containers/food/snacks/danburrito/random)
+		var/T = pick(list)
+		new T(loc)
+		spawn(0)
+			del src
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito/pizza
+	name = "Sconto Danilo's Burritos - 50% Real Mozzarella Pepperoni Pizza Party Flavor"
+	desc = "A self-heating pizza burrito."
+	New()
+		..()
+		reagents.add_reagent("soybeanoil", 3)
+		reagents.add_reagent("msg", 9)
+		reagents.add_reagent("fake_cheese", 3)
+		reagents.add_reagent("cheese", 3)
+		reagents.add_reagent("pepperoni", 3)
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito/pancake
+	name = "Descuento Danito's Burritos - Pancake Sausage Brunch Flavor"
+	desc = "A self-heating breakfast burrito with a buttermilk pancake in lieu of a tortilla. A little frightening."
+	New()
+		..()
+		reagents.add_reagent("hydrogenated_soybeanoil", 3)
+		reagents.add_reagent("msg", 9)
+		reagents.add_reagent("porktonium", 4)
+		reagents.add_reagent("vhfcs", 2)
+		reagents.add_reagent("coffee", 4)
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito/beans
+	name = "Descuento Danito's Burritos - Spicy Beans and Wieners Ole! Flavor"
+	desc = "A self-heating convenience reinterpretation of Mexican cuisine. The exact mechanism used to heat it is probably best left to speculation."
+	New()
+		..()
+		reagents.add_reagent("soybeanoil", 3)
+		reagents.add_reagent("msg", 9)
+		reagents.add_reagent("lithium", 4)
+		reagents.add_reagent("capsaicin", 6)
+		reagents.add_reagent("beans", 10)
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito/homestyle
+	name = "Descuento Danito's Burritos - Homestyle Comfort Flavor"
+	desc = "A self-heating burrito just like Mom used to make, if your mother was a souless, automated burrito production line."
+	New()
+		..()
+		reagents.add_reagent("soybeanoil", 3)
+		reagents.add_reagent("msg", 9)
+		reagents.add_reagent("mashedpotatoes", 5)
+		reagents.add_reagent("gravy", 3)
+		reagents.add_reagent("diethylamine", 2)
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito/texas
+	name = "Spooky Dan's BOO-ritos - Texas Toast Chainsaw Massacre Flavor"
+	desc = "A self-heating burrito.  Isn't that concept scary enough on its own?"
+	New()
+		..()
+		reagents.add_reagent("soybeanoil", 3)
+		reagents.add_reagent("msg", 9)
+		reagents.add_reagent("fake_cheese", 3)
+		reagents.add_reagent("space_drugs", 3)
+//		reagents.add_reagent("cblood", 4)   uncomment once actual changeling blood is added
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito/beff
+	name = "Descuento Danito's Burritos - Beff and Bean Flavor"
+	desc = "A self-heating convenience reinterpretation of Mexican cuisine. The exact mechanism used to heat it is probably best left to speculation."
+	New()
+		..()
+		reagents.add_reagent("hydrogenated_soybeanoil", 3)
+		reagents.add_reagent("msg", 9)
+		reagents.add_reagent("uranium", 2)
+		reagents.add_reagent("beff", 4)
+		reagents.add_reagent("fake_cheese", 4)
+		reagents.add_reagent("beans", 10)
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito/nightmare
+	name = "Spooky Dan's BOO-ritos - Nightmare on Elm Meat Flavor"
+	desc = "A self-heating burrito that purports to contain elm-smoked meat. Of some sort. Probably from an animal."
+	New()
+		..()
+		reagents.add_reagent("soybeanoil", 3)
+		reagents.add_reagent("msg", 9)
+		reagents.add_reagent("beff", 3)
+		reagents.add_reagent("synthflesh", 2)
+		reagents.add_reagent("tonguedog", 9)
+
+/obj/item/weapon/reagent_containers/food/snacks/danburrito/strawberry
+	name = "Descuento Danito's Burritos - Strawberrito Churro Flavor"
+	desc = "There is no way anyone could possibly justify this."
+	New()
+		..()
+		reagents.add_reagent("soybeanoil", 3)
+		reagents.add_reagent("msg", 9)
+		reagents.add_reagent("vhfcs", 8)
+		reagents.add_reagent("oil", 2)

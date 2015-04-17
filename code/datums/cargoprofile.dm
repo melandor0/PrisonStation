@@ -245,7 +245,7 @@
 	id = "trash"
 	//Note that this filters out blueprints because they are a paper item.  Do NOT throw out the station blueprints unless you be trollin'.
 	blacklist = null
-	whitelist = list(/obj/item/trash,/obj/item/toy,/obj/item/weapon/ectoplasm,/obj/item/weapon/bananapeel,/obj/item/weapon/broken_bottle,/obj/item/weapon/bikehorn,
+	whitelist = list(/obj/item/trash,/obj/item/toy,/obj/item/weapon/reagent_containers/food/snacks/ectoplasm,/obj/item/weapon/bananapeel,/obj/item/weapon/broken_bottle,/obj/item/weapon/bikehorn,
 					/obj/item/weapon/cigbutt,/obj/item/weapon/contraband,/obj/item/weapon/corncob,/obj/item/weapon/paper,/obj/item/weapon/shard,
 					/obj/item/weapon/sord,/obj/item/weapon/photo,/obj/item/weapon/folder,
 					/obj/item/areaeditor/blueprints,/obj/item/weapon/contraband,/obj/item/weapon/kitchen,/obj/item/weapon/book,/obj/item/clothing/mask/facehugger)
@@ -656,7 +656,7 @@
 		var/bruteloss = M.bruteloss
 		if(istype(M,/mob/living/carbon/human))
 			var/mob/living/carbon/human/C = M
-			for(var/datum/organ/external/L in C.organs)
+			for(var/obj/item/organ/external/L in C.organs)
 				bruteloss += L.brute_dam
 		if(bruteloss < 100) // requires tenderization
 			M.apply_damage(rand(5,15),BRUTE)
@@ -765,7 +765,7 @@
 			if(maxpunches > 1 && prob(50)) // Follow through on a miss, 50% chance
 				return punch(M,maxpunches - 1) + 1
 			return 1
-		var/datum/organ/external/affecting = M.get_organ(ran_zone("chest",50))
+		var/obj/item/organ/external/affecting = M.get_organ(ran_zone("chest",50))
 		var/armor_block = M.run_armor_check(affecting, "melee")
 
 		playsound(master.loc, "punch", 25, 1, -1)
