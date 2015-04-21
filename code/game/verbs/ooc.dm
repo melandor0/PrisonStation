@@ -82,6 +82,13 @@ var/global/normal_ooc_colour = "#002eb8"
 	else
 		world << "<B>The OOC channel has been globally disabled!</B>"
 
+/proc/toggle_looc()
+	looc_allowed = !( looc_allowed )
+	if (looc_allowed)
+		world << "<B>The LOOC channel has been globally enabled!</B>"
+	else
+		world << "<B>The LOOC channel has been globally disabled!</B>"
+
 /proc/auto_toggle_ooc(var/on)
 	if(!config.ooc_during_round && ooc_allowed != on)
 		toggle_ooc()
@@ -111,7 +118,7 @@ var/global/normal_ooc_colour = "#002eb8"
 		return
 
 	if(!(holder && holder.rights && (holder.rights & R_MOD)))
-		if(!ooc_allowed)
+		if(!looc_allowed)
 			src << "\red LOOC is globally muted"
 			return
 		if(!dooc_allowed && (mob.stat == DEAD))
