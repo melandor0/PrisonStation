@@ -868,7 +868,7 @@ var/global/list/brutefireloss_overlays = list("1" = image("icon" = 'icons/mob/sc
 			starwarn -= 1
 
 		if(nutrition == 0)
-			adjustFireLoss(0.05)
+			adjustToxLoss(0.1)
 
 		if(species.flags & REQUIRE_LIGHT)
 			if(nutrition < 200)
