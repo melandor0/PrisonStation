@@ -336,7 +336,7 @@
 			S = spawntypes[spawning_at]
 
 		if(S && istype(S))
-			if(character.mind.assigned_role == "Prisoner")
+			if(character.mind.assigned_role == "Prisoner")		//If someone is a prisoner they get snowflake spawn.
 				character.loc = pick(latejoin_prisoner)
 				join_message = "has arrived via prisoner transfer"
 			else

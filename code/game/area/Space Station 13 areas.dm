@@ -279,6 +279,10 @@ var/list/ghostteleportlocs = list()
 	icon_state = "shuttle"
 	name = "\improper Transport Shuttle Centcom"
 
+/area/shuttle/prisonarrival
+	name = "\improper Prisoner Transfer Shuttle"
+	icon_state = "shuttle"
+
 
 /area/shuttle/specops/centcom
 	name = "\improper Special Ops Shuttle"

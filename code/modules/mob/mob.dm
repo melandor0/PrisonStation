@@ -196,13 +196,16 @@
 		if(istype(back,/obj/item/weapon/storage))
 			//Mob is wearing backpack
 			B = back
+		/* No plastic bags. --Mel
 		else
 			//not wearing backpack.  Check if player holding plastic bag
 			B=is_in_hands(/obj/item/weapon/storage/bag/plasticbag)
+			if
 			if(!B) //If not holding plastic bag, give plastic bag
 				B=new /obj/item/weapon/storage/bag/plasticbag(null) // Null in case of failed equip.
 				if(!put_in_hands(B))
 					return // Bag could not be placed in players hands.  I don't know what to do here...
+		*/
 		//Now, B represents a container we can insert W into.
 		B.handle_item_insertion(W,1)
 
@@ -1331,6 +1334,31 @@ mob/proc/yank_out_object()
 	set name = "Respawn as Prisoner"
 	set category = "Ghost"
 
+	var/deathtime = world.time - src.timeofdeath
+	var/joinedasobserver = 0
+	if(istype(src,/mob/dead/observer))
+		var/mob/dead/observer/G = src
+		if(G.has_enabled_antagHUD == 1 && config.antag_hud_restricted)
+			usr << "\blue <B>Upon using the antagHUD you forfeited the ability to join the round.</B>"
+			return
+		if(G.started_as_observer == 1)
+			joinedasobserver = 1
+
+	var/deathtimeminutes = round(deathtime / 600)
+	var/pluralcheck = "minute"
+	if(deathtimeminutes == 0)
+		pluralcheck = ""
+	else if(deathtimeminutes == 1)
+		pluralcheck = " [deathtimeminutes] minute and"
+	else if(deathtimeminutes > 1)
+		pluralcheck = " [deathtimeminutes] minutes and"
+	var/deathtimeseconds = round((deathtime - deathtimeminutes * 600) / 10,1)
+
+	if (deathtime < 6000 && joinedasobserver == 0)
+		usr << "You have been dead for[pluralcheck] [deathtimeseconds] seconds."
+		usr << "You must wait 10 minutes to respawn as a prisoner!"
+		return
+
 	if((usr in respawnable_list) && (stat==2 || istype(usr,/mob/dead/observer)))
 		var/mob/M = src
 
@@ -1357,6 +1385,31 @@ mob/proc/yank_out_object()
 /mob/dead/observer/verb/respawn()
 	set name = "Respawn as NPC"
 	set category = "Ghost"
+
+	var/deathtime = world.time - src.timeofdeath
+	var/joinedasobserver = 0
+	if(istype(src,/mob/dead/observer))
+		var/mob/dead/observer/G = src
+		if(G.has_enabled_antagHUD == 1 && config.antag_hud_restricted)
+			usr << "\blue <B>Upon using the antagHUD you forfeited the ability to join the round.</B>"
+			return
+		if(G.started_as_observer == 1)
+			joinedasobserver = 1
+
+	var/deathtimeminutes = round(deathtime / 600)
+	var/pluralcheck = "minute"
+	if(deathtimeminutes == 0)
+		pluralcheck = ""
+	else if(deathtimeminutes == 1)
+		pluralcheck = " [deathtimeminutes] minute and"
+	else if(deathtimeminutes > 1)
+		pluralcheck = " [deathtimeminutes] minutes and"
+	var/deathtimeseconds = round((deathtime - deathtimeminutes * 600) / 10,1)
+
+	if (deathtime < 3000 && joinedasobserver == 0)
+		usr << "You have been dead for[pluralcheck] [deathtimeseconds] seconds."
+		usr << "You must wait 5 minutes to respawn as an NPC!"
+		return
 
 	if(jobban_isbanned(usr, "NPC"))
 		usr << "<span class='warning'>You are banned from playing as NPC's.</span>"
