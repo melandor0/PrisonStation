@@ -1327,7 +1327,32 @@ mob/proc/yank_out_object()
 			anchored = 0
 	return 1
 
+/mob/dead/observer/verb/respawnmigrant()
+	set name = "Respawn as Prisoner"
+	set category = "Ghost"
 
+	if((usr in respawnable_list) && (stat==2 || istype(usr,/mob/dead/observer)))
+		var/mob/M = src
+
+		if(!isobserver(M))
+			usr << "<span class='notice'>Only ghosts can respawn.</span>"
+			return
+
+		if(alert(usr, "Go back to Lobby?", "Message", "Yes", "No") != "Yes")
+			return
+
+		//Keeping these for debug for now
+		log_admin("[key_name(usr)] has respawned back to the Lobby.")
+		message_admins("[key_name(usr)] has respawned back to the Lobby.")
+
+		var/mob/new_player/NP = new()
+		NP.ckey = M.ckey
+		NP.hasrespawned = 1
+		qdel(M)
+
+	else
+		usr << "You are not dead or you have given up your right to be respawned!"
+		return
 
 /mob/dead/observer/verb/respawn()
 	set name = "Respawn as NPC"

@@ -55,3 +55,7 @@ var/list/spawntypes = list()
 /datum/spawnpoint/cyborg/New()
 	..()
 	turfs = latejoin_cyborg
+
+/datum/spawnpoint/prisoner/New()
+	..()
+	turfs = latejoin_prisoner

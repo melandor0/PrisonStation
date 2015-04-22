@@ -5,6 +5,7 @@
 	var/spawning = 0//Referenced when you want to delete the new_player later on in the code.
 	var/totalPlayers = 0		 //Player counts for the Lobby tab
 	var/totalPlayersReady = 0
+	var/hasrespawned = 0		//Keep track of those who used the Respawn as Prisoner verb.
 	universal_speak = 1
 
 	invisibility = 101
@@ -335,13 +336,17 @@
 			S = spawntypes[spawning_at]
 
 		if(S && istype(S))
-			if(S.check_job_spawning(rank))
-				character.loc = pick(S.turfs)
-				join_message = S.msg
+			if(character.mind.assigned_role == "Prisoner")
+				character.loc = pick(latejoin_prisoner)
+				join_message = "has arrived via prisoner transfer"
 			else
-				character << "Your chosen spawnpoint ([S.display_name]) is unavailable for your chosen job. Spawning you at the Arrivals shuttle instead."
-				character.loc = pick(latejoin)
-				join_message = "has arrived on the station"
+				if(S.check_job_spawning(rank))
+					character.loc = pick(S.turfs)
+					join_message = S.msg
+				else
+					character << "Your chosen spawnpoint ([S.display_name]) is unavailable for your chosen job. Spawning you at the Arrivals shuttle instead."
+					character.loc = pick(latejoin)
+					join_message = "has arrived on the station"
 		else
 			character.loc = pick(latejoin)
 			join_message = "has arrived on the station"
@@ -423,13 +428,22 @@
 					dat += "<font color='red'>The station is currently undergoing crew transfer procedures.</font><br>"
 
 		dat += "Choose from the following open positions:<br>"
-		for(var/datum/job/job in job_master.occupations)
-			if(job && IsJobAvailable(job.title))
-				var/active = 0
-				// Only players with the job assigned and AFK for less than 10 minutes count as active
-				for(var/mob/M in player_list) if(M.mind && M.client && M.mind.assigned_role == job.title && M.client.inactivity <= 10 * 60 * 10)
-					active++
-				dat += "<a href='byond://?src=\ref[src];SelectedJob=[job.title]'>[job.title] ([job.current_positions]) (Active: [active])</a><br>"
+		if(hasrespawned == 0)
+			for(var/datum/job/job in job_master.occupations)
+				if(job && IsJobAvailable(job.title))
+					var/active = 0
+					// Only players with the job assigned and AFK for less than 10 minutes count as active
+					for(var/mob/M in player_list) if(M.mind && M.client && M.mind.assigned_role == job.title && M.client.inactivity <= 10 * 60 * 10)
+						active++
+					dat += "<a href='byond://?src=\ref[src];SelectedJob=[job.title]'>[job.title] ([job.current_positions]) (Active: [active])</a><br>"
+		else
+			for(var/datum/job/job in job_master.occupations)
+				if(job && IsJobAvailable(job.title) && job.title == "Prisoner")
+					var/active = 0
+					// Only players with the job assigned and AFK for less than 10 minutes count as active
+					for(var/mob/M in player_list) if(M.mind && M.client && M.mind.assigned_role == job.title && M.client.inactivity <= 10 * 60 * 10)
+						active++
+					dat += "<a href='byond://?src=\ref[src];SelectedJob=[job.title]'>[job.title] ([job.current_positions]) (Active: [active])</a><br>"
 
 		dat += "</center>"
 		// Removing the old window method but leaving it here for reference

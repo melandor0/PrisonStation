@@ -43,7 +43,7 @@ var/const/CHAPLAIN			=(1<<10)
 var/const/CLOWN				=(1<<11)
 var/const/MIME				=(1<<12)
 var/const/CIVILIAN			=(1<<13)
-
+var/const/PRISONER			=(1<<14)
 
 var/const/KARMA				=(1<<3)
 
@@ -112,6 +112,7 @@ var/list/support_positions = list(
 	"Mime",
 	"Barber",
 	"Magistrate",
+	"Prisoner",
 )
 
 
@@ -122,19 +123,19 @@ var/list/security_positions = list(
 	"Security Officer",
 	"Blueshield",
 	"Brig Physician",
-	"Security Pod Pilot"
+	"Security Pod Pilot",
 )
 
 
 var/list/civilian_positions = list(
-	"Civilian"
+	"Civilian",
 )
 
 var/list/nonhuman_positions = list(
 	"AI",
 	"Cyborg",
 	"Drone",
-	"pAI"
+	"pAI",
 )
 
 var/list/whitelisted_positions = list(

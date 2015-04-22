@@ -448,6 +448,8 @@ var/global/datum/controller/occupations/job_master
 				if("Clown")	//don't need bag preference stuff!
 					if(rank=="Clown") // Clowns DO need to breathe, though - N3X
 						H.species.equip(H)
+				if("Prisoner")	//NO EXTRA GEAR FOR YOU SCUM
+					return H
 				else
 					switch(H.backbag) //BS12 EDIT
 						if(1)
@@ -471,8 +473,9 @@ var/global/datum/controller/occupations/job_master
 		if(job.req_admin_notify)
 			H << "<b>You are playing a job that is important for the game progression. If you have to disconnect, please notify the admins via adminhelp.</b>"
 
-		spawnId(H, rank, alt_title)
-		H.equip_to_slot_or_del(new /obj/item/device/radio/headset(H), slot_l_ear)
+		if(H.mind.assigned_role != "Prisoner")	//Prisoners get nothing extra.
+			spawnId(H, rank, alt_title)
+			H.equip_to_slot_or_del(new /obj/item/device/radio/headset(H), slot_l_ear)
 
 		//Gives glasses to the vision impaired
 		if(H.disabilities & DISABILITY_FLAG_NEARSIGHTED)

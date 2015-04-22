@@ -28,7 +28,7 @@
 	_color="yellow"
 
 	New()
-		siemens_coefficient = pick(0,0.5,0.5,0.5,0.5,0.75,1.5)
+		siemens_coefficient = pick(0,0.5,0.5,0.5,0.5,0.75)
 
 /obj/item/clothing/gloves/color/black
 	desc = "These gloves are fire-resistant."
