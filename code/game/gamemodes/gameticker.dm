@@ -42,9 +42,10 @@ var/global/datum/controller/gameticker/ticker
 
 /datum/controller/gameticker/proc/pregame() //login music picked here
 	login_music = pick(\
-	'sound/music/space.ogg',\
-	'sound/music/Title1.ogg',\
-	'sound/music/Title2.ogg',)
+	'sound/music/hellmarch.ogg',\
+	'sound/music/eaglehunter.ogg',\
+	'sound/music/200meters.ogg',\
+	'sound/music/indeep.ogg',)
 	do
 		pregame_timeleft = 180
 		world << "<B><FONT color='blue'>Welcome to the pre-game lobby!</FONT></B>"

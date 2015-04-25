@@ -159,7 +159,26 @@
 		new /obj/item/weapon/storage/box/holobadge(src)
 		return
 
+/obj/structure/closet/prisonerclothes
+	name = "Outfits Locker"
+	req_access = list(access_security)
 
+	New()
+		..()
+		sleep(2)
+		if(prob(25))
+			new /obj/item/weapon/storage/backpack/duffel(src)
+		if(prob(25))
+			new /obj/item/weapon/storage/backpack/duffel(src)
+		new /obj/item/clothing/shoes/orange(src)
+		new /obj/item/clothing/shoes/orange(src)
+		new /obj/item/clothing/shoes/orange(src)
+		new /obj/item/clothing/shoes/orange(src)
+		new /obj/item/clothing/under/color/orange(src)
+		new /obj/item/clothing/under/color/orange(src)
+		new /obj/item/clothing/under/color/orange(src)
+		new /obj/item/clothing/under/color/orange(src)
+		return
 
 /obj/structure/closet/secure_closet/security
 	name = "Security Officer's Locker"
@@ -379,7 +398,25 @@
 		new /obj/item/clothing/shoes/orange( src )
 		return
 
+/obj/structure/closet/secure_closet/perma_accessories
+	name = "Duffelbags & Headsets"
+	req_access = list(access_brig)
+	var/id = null
 
+	New()
+		new /obj/item/weapon/storage/backpack/duffel(src)
+		new /obj/item/weapon/storage/backpack/duffel(src)
+		new /obj/item/weapon/storage/backpack/duffel(src)
+		new /obj/item/weapon/storage/backpack/duffel(src)
+		new /obj/item/weapon/storage/backpack/duffel(src)
+		new /obj/item/weapon/storage/backpack/duffel(src)
+		new /obj/item/device/radio/headset(src)
+		new /obj/item/device/radio/headset(src)
+		new /obj/item/device/radio/headset(src)
+		new /obj/item/device/radio/headset(src)
+		new /obj/item/device/radio/headset(src)
+		new /obj/item/device/radio/headset(src)
+		return
 
 /obj/structure/closet/secure_closet/courtroom
 	name = "Courtroom Locker"

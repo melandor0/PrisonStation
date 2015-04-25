@@ -1494,6 +1494,12 @@ var/list/ghostteleportlocs = list()
 	name = "\improper Prison Wing"
 	icon_state = "sec_prison"
 
+/area/security/prison/kitchen
+	name = "\improper Prison Kitchen"
+
+/area/security/prison/observation
+	name = "\improper Prison Observation"
+
 /area/security/prison/cell_block
 	name = "\improper Prison Cell Block"
 	icon_state = "brig"
