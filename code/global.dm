@@ -264,7 +264,7 @@ var/sqlfdbkpass = "example"
 
 var/sqllogging = 0 // Should we log deaths, population stats, etc?
 
-
+var/inmatenumber = 8 // For the inmate IDs. There's 7 in a box, so we start on 8
 
 	// Forum MySQL configuration (for use with forum account/key authentication)
 	// These are all default values that will load should the forumdbconfig.txt

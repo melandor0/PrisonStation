@@ -75,8 +75,7 @@
 		SetLuminosity(brightness_on)
 
 
-
-// ENGINEERING
+// OTHER
 /obj/item/clothing/suit/space/eva/plasmaman/assistant
 	name = "plasmaman assistant suit"
 	icon_state = "plasmamanAssistant_suit"
@@ -86,6 +85,22 @@
 	icon_state = "plasmamanAssistant_helmet0"
 	base_state = "plasmamanAssistant_helmet"
 
+
+/obj/item/clothing/suit/space/eva/plasmaman/prisoner
+	name = "plasmaman prisoner suit"
+	icon_state = "plasmamanEngineer_suit"
+	flags = PLASMAGUARD
+	desc = "A special containment suit designed to protect a plasmaman's volatile body from outside exposure and quickly extinguish it in emergencies. This one has been stripped of its ability to protect against pressure hazards."
+
+/obj/item/clothing/head/helmet/space/eva/plasmaman/prisoner
+	name = "plasmaman prisoner helmet"
+	icon_state = "plasmamanEngineer_helmet0"
+	base_state = "plasmamanEngineer_helmet"
+	flags = PLASMAGUARD
+	desc = "A special containment helmet designed to protect a plasmaman's volatile body from outside exposure and quickly extinguish it in emergencies. This one has been stripped of its ability to protect against pressure hazards."
+
+
+// ENGINEERING
 /obj/item/clothing/suit/space/eva/plasmaman/atmostech
 	name = "plasmaman atmospheric suit"
 	icon_state = "plasmamanAtmos_suit"

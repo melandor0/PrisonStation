@@ -41,8 +41,8 @@
 		var/obj/item/organ/eyes/E = H.internal_organs_by_name["eyes"]
 		flick("e_flash", M.flash)
 		E.damage += rand(1, 3)
-		M.Stun(max(10/distance, 3))
-		M.Weaken(max(10/distance, 3))
+		M.Stun(max(10/distance, 6))
+		M.Weaken(max(10/distance, 6))
 		if (E.damage >= E.min_bruised_damage)
 			M << "<span class='warning'>Your eyes start to burn badly!</span>"
 			if(!banglet && !(istype(src , /obj/item/weapon/grenade/flashbang/clusterbang)))
@@ -54,8 +54,8 @@
 		M.Stun(10)
 		M.Weaken(10)
 	if(!ear_safety)
-		M.Stun(max(10/distance, 3))
-		M.Weaken(max(10/distance, 3))
+		M.Stun(max(10/distance, 6))
+		M.Weaken(max(10/distance, 6))
 		M.ear_damage += rand(0, 5)
 		M.ear_deaf = max(M.ear_deaf,15)
 		if (M.ear_damage >= 15)

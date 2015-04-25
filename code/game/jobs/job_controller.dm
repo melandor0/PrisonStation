@@ -448,10 +448,17 @@ var/global/datum/controller/occupations/job_master
 				if("Clown")	//don't need bag preference stuff!
 					if(rank=="Clown") // Clowns DO need to breathe, though - N3X
 						H.species.equip(H)
-				if("Prisoner")	//NO EXTRA GEAR FOR YOU SCUM
+				if("Prisoner")	//Zipties for the newly arrived.
+					if(H.species.name == "Vox")
+						H.equip_to_slot_or_del(new /obj/item/clothing/mask/breath(H), slot_wear_mask)
+						H.equip_to_slot_or_del(new /obj/item/weapon/tank/emergency_oxygen/vox(H), slot_r_store)
+						H << "\blue You are now running on nitrogen internals from your [H.get_item_by_slot(slot_r_store)]. Your species finds oxygen toxic, so you must breathe nitrogen only."
+						H.internal = H.get_item_by_slot(slot_r_store)
+						if (H.internals)
+							H.internals.icon_state = "internal1"
 					H.handcuffed = new /obj/item/weapon/restraints/handcuffs/cable/zipties/used(H)
 					H.update_inv_handcuffed(1)
-					return H
+					H.species.equip(H)	//Species equip for plasmamen mostly I think.
 				else
 					switch(H.backbag) //BS12 EDIT
 						if(1)
@@ -476,7 +483,8 @@ var/global/datum/controller/occupations/job_master
 			H << "<b>You are playing a job that is important for the game progression. If you have to disconnect, please notify the admins via adminhelp.</b>"
 
 		spawnId(H, rank, alt_title)
-		H.equip_to_slot_or_del(new /obj/item/device/radio/headset(H), slot_l_ear)
+		if(rank != "Prisoner")	//No headset for prisoners.
+			H.equip_to_slot_or_del(new /obj/item/device/radio/headset(H), slot_l_ear)
 
 		//Gives glasses to the vision impaired
 		if(H.disabilities & DISABILITY_FLAG_NEARSIGHTED)
@@ -533,6 +541,19 @@ var/global/datum/controller/occupations/job_master
 			pda.ownrank = C.rank
 			pda.name = "PDA-[H.real_name] ([pda.ownjob])"
 			pda.JFLOG("Created")
+
+			if(rank == "Prisoner")	//Prisoner ID numbering
+				if(inmatenumber > 9)
+					if(inmatenumber > 99)
+						C.name = "Prisoner #13-[inmatenumber]"
+						C.registered_name = "Prisoner #13-[inmatenumber]"
+					else
+						C.name = "Prisoner #13-0[inmatenumber]"
+						C.registered_name = "Prisoner #13-0[inmatenumber]"
+				else
+					C.name = "Prisoner #13-00[inmatenumber]"
+					C.registered_name = "Prisoner #13-00[inmatenumber]"
+				inmatenumber++
 
 		return 1
 

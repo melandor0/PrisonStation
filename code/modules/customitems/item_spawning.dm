@@ -1,5 +1,7 @@
 /proc/EquipRacialItems(mob/living/carbon/human/M)
 	if(M.species.name == "Vox" || M.species.name == "Vox Armalis")
+		if(M.mind.assigned_role == "Prisoner")	//Handled in job_controller.dm
+			return
 		M.equip_to_slot_or_del(new /obj/item/clothing/mask/breath(M), slot_wear_mask)
 		if(M.client.prefs.speciesprefs)//Diseasel, here you go
 			M.equip_to_slot_or_del(new /obj/item/weapon/tank/nitrogen(M), slot_l_hand)

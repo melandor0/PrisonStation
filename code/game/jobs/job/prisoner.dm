@@ -6,6 +6,7 @@
 	spawn_positions = -1
 	supervisors = "the warden"
 	selection_color = "#dddddd"
+	idtype = /obj/item/weapon/card/id/prisoner
 	access = list()
 	minimal_access = list()
 
