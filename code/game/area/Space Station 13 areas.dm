@@ -1497,6 +1497,18 @@ var/list/ghostteleportlocs = list()
 /area/security/prison/kitchen
 	name = "\improper Prison Kitchen"
 
+/area/security/prison/diner
+	name = "\improper Prison Diner"
+
+/area/security/prison/shower
+	name = "\improper Prison Showers"
+
+/area/security/prison/hydro
+	name = "\improper Prison Hydroponics"
+
+/area/security/prison/storage
+	name = "\improper Prison Storage"
+
 /area/security/prison/observation
 	name = "\improper Prison Observation"
 
