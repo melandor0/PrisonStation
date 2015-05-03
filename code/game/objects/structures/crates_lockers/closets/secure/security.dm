@@ -206,7 +206,7 @@
 		new /obj/item/weapon/storage/belt/security(src)
 		new /obj/item/clothing/mask/gas/sechailer(src)
 		new /obj/item/clothing/glasses/sunglasses/sechud(src)
-		new /obj/item/weapon/melee/baton/loaded(src)
+		new /obj/item/weapon/melee/classic_baton(src)	//No more stunbatons. -Mel
 		new /obj/item/taperoll/police(src)
 		return
 

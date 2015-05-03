@@ -86,7 +86,7 @@
 
 // RIOT SHOTGUN //
 
-/obj/item/weapon/gun/projectile/shotgun/riot //for spawn in the armory
+/obj/item/weapon/gun/projectile/shotgun/riot
 	name = "riot shotgun"
 	desc = "A sturdy shotgun with a longer magazine and a fixed tactical stock designed for non-lethal riot control."
 	icon_state = "riotshotgun"
@@ -197,7 +197,7 @@
 		else
 			user << "<span class='warning'>You need at least ten lengths of cable if you want to make a sling.</span>"
 			return
-			
+
 // Sawing guns related procs //
 
 /obj/item/weapon/gun/projectile/proc/blow_up(mob/user as mob)
@@ -238,4 +238,3 @@
 		return
 	else
 		sawn_state = SAWN_INTACT
-		

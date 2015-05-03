@@ -10,10 +10,10 @@
 	req_admin_notify = 1
 	access = list(access_medical, access_morgue, access_genetics, access_heads,
 			access_chemistry, access_virology, access_cmo, access_surgery, access_RC_announce,
-			access_keycard_auth, access_sec_doors, access_psychiatrist, access_paramedic)
+			access_keycard_auth, access_security, access_psychiatrist, access_paramedic)
 	minimal_access = list(access_eva, access_medical, access_morgue, access_genetics, access_heads,
 			access_chemistry, access_virology, access_cmo, access_surgery, access_RC_announce,
-			access_keycard_auth, access_sec_doors, access_psychiatrist, access_maint_tunnels, access_paramedic)
+			access_keycard_auth, access_security, access_psychiatrist, access_maint_tunnels, access_paramedic)
 	minimal_player_age = 21
 
 	equip(var/mob/living/carbon/human/H)
@@ -46,8 +46,8 @@
 	spawn_positions = 3
 	supervisors = "the chief medical officer"
 	selection_color = "#ffeef0"
-	access = list(access_medical, access_morgue, access_surgery, access_chemistry, access_virology, access_genetics)
-	minimal_access = list(access_medical, access_morgue, access_surgery, access_maint_tunnels)
+	access = list(access_medical, access_morgue, access_surgery, access_chemistry, access_virology, access_genetics, access_security)
+	minimal_access = list(access_medical, access_morgue, access_surgery, access_maint_tunnels, access_security)
 	alt_titles = list("Surgeon","Nurse","Coroner")
 	minimal_player_age = 3
 
@@ -64,7 +64,7 @@
 					H.equip_or_collect(new /obj/item/clothing/under/rank/medical/mortician(H), slot_w_uniform)
 					H.equip_or_collect(new /obj/item/clothing/suit/storage/labcoat/mortician(H), slot_wear_suit)
 					if(H.backbag != 1)
-						H.equip_or_collect(new /obj/item/clothing/head/surgery/black(H.back), slot_in_backpack)					
+						H.equip_or_collect(new /obj/item/clothing/head/surgery/black(H.back), slot_in_backpack)
 						H.equip_or_collect(new /obj/item/weapon/autopsy_scanner(H.back), slot_in_backpack)
 						H.equip_or_collect(new /obj/item/device/mass_spectrometer(H.back), slot_in_backpack)
 						H.equip_or_collect(new /obj/item/weapon/storage/box/bodybags(H.back), slot_in_backpack)
@@ -98,8 +98,6 @@
 		return 1
 
 
-
-//Chemist is a medical job damnit	//YEAH FUCK YOU SCIENCE	-Pete	//Guys, behave -Erro
 /datum/job/chemist
 	title = "Chemist"
 	flag = CHEMIST
@@ -108,8 +106,8 @@
 	spawn_positions = 2
 	supervisors = "the chief medical officer"
 	selection_color = "#ffeef0"
-	access = list(access_medical, access_morgue, access_surgery, access_chemistry, access_virology, access_genetics)
-	minimal_access = list(access_medical, access_chemistry, access_maint_tunnels)
+	access = list(access_medical, access_morgue, access_surgery, access_chemistry, access_virology, access_genetics, access_security)
+	minimal_access = list(access_medical, access_chemistry, access_maint_tunnels, access_security)
 	alt_titles = list("Pharmacist","Pharmacologist")
 	minimal_player_age = 7
 
@@ -139,8 +137,8 @@
 	spawn_positions = 2
 	supervisors = "the chief medical officer and the research director"
 	selection_color = "#ffeef0"
-	access = list(access_medical, access_morgue, access_surgery, access_chemistry, access_virology, access_genetics, access_research)
-	minimal_access = list(access_medical, access_morgue, access_genetics, access_research, access_maint_tunnels)
+	access = list(access_medical, access_morgue, access_surgery, access_chemistry, access_virology, access_genetics, access_research, access_security, access_brig)
+	minimal_access = list(access_medical, access_morgue, access_genetics, access_research, access_maint_tunnels, access_security, access_brig)
 	minimal_player_age = 3
 
 	equip(var/mob/living/carbon/human/H)
