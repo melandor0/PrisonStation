@@ -200,7 +200,7 @@
 	spawn_positions = 2
 	supervisors = "the head of security"
 	selection_color = "#ffeeee"
-	access = list(access_medical, access_morgue, access_surgery, access_chemistry, access_virology, access_genetics access_security, access_brig)
+	access = list(access_medical, access_morgue, access_surgery, access_chemistry, access_virology, access_genetics, access_security, access_brig)
 	minimal_access = list(access_medical, access_morgue, access_surgery, access_security, access_sec_doors, access_brig, access_court, access_maint_tunnels)
 
 	equip(var/mob/living/carbon/human/H)
