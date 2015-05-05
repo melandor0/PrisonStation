@@ -21,6 +21,11 @@
 	shuttle_tag = "Labor"
 	req_access = list(access_brig)
 
+/obj/machinery/computer/shuttle_control/labor_camp/two_way
+	name = "Prisoner Shuttle Console"
+	shuttle_tag = "Labor"
+	req_access = list()
+
 /obj/machinery/computer/shuttle_control/labor_camp/one_way
 	name = "Prisoner Shuttle Console"
 	req_access = list()
@@ -33,7 +38,7 @@
 		src.visible_message("\blue Shuttle is already at the outpost.")
 		return
 	..()
-	
+
 /obj/machinery/computer/shuttle_control/labor_camp/one_way/force_launch()
 	var/datum/shuttle/ferry/shuttle = shuttle_controller.shuttles[shuttle_tag]
 	if (!istype(shuttle))
@@ -44,4 +49,29 @@
 	..()
 
 /obj/machinery/computer/shuttle_control/labor_camp/one_way/cancel_launch()
+	src.visible_message("\red That command has been disabled.")
+
+/obj/machinery/computer/shuttle_control/labor_camp/one_way2
+	name = "Prisoner Shuttle Console"
+	req_access = list()
+
+/obj/machinery/computer/shuttle_control/labor_camp/one_way2/launch()
+	var/datum/shuttle/ferry/shuttle = shuttle_controller.shuttles[shuttle_tag]
+	if (!istype(shuttle))
+		return
+	if (!shuttle.location)
+		src.visible_message("\blue Shuttle is already at the installation.")
+		return
+	..()
+
+/obj/machinery/computer/shuttle_control/labor_camp/one_way2/force_launch()
+	var/datum/shuttle/ferry/shuttle = shuttle_controller.shuttles[shuttle_tag]
+	if (!istype(shuttle))
+		return
+	if (!shuttle.location)
+		src.visible_message("\blue Shuttle is already at the installation.")
+		return
+	..()
+
+/obj/machinery/computer/shuttle_control/labor_camp/one_way2/cancel_launch()
 	src.visible_message("\red That command has been disabled.")
