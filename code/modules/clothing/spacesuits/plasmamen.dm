@@ -88,14 +88,14 @@
 
 /obj/item/clothing/suit/space/eva/plasmaman/prisoner
 	name = "plasmaman prisoner suit"
-	icon_state = "plasmamanEngineer_suit"
+	icon_state = "plasmaman_suit"
 	flags = PLASMAGUARD
 	desc = "A special containment suit designed to protect a plasmaman's volatile body from outside exposure and quickly extinguish it in emergencies. This one has been stripped of its ability to protect against pressure hazards."
 
 /obj/item/clothing/head/helmet/space/eva/plasmaman/prisoner
 	name = "plasmaman prisoner helmet"
-	icon_state = "plasmamanEngineer_helmet0"
-	base_state = "plasmamanEngineer_helmet"
+	icon_state = "plasmaman_helmet0"
+	base_state = "plasmaman_helmet"
 	flags = PLASMAGUARD
 	desc = "A special containment helmet designed to protect a plasmaman's volatile body from outside exposure and quickly extinguish it in emergencies. This one has been stripped of its ability to protect against pressure hazards."
 
