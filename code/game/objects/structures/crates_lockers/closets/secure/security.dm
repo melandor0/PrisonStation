@@ -208,6 +208,7 @@
 		new /obj/item/clothing/glasses/sunglasses/sechud(src)
 		new /obj/item/weapon/melee/classic_baton(src)	//No more stunbatons. -Mel
 		new /obj/item/taperoll/police(src)
+		new /obj/item/clothing/head/helmet(src)
 		return
 
 /obj/structure/closet/secure_closet/brigdoc

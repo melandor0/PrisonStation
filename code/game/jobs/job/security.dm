@@ -171,19 +171,20 @@
 			if(2) H.equip_or_collect(new /obj/item/weapon/storage/backpack/security(H), slot_back)
 			if(3) H.equip_or_collect(new /obj/item/weapon/storage/backpack/satchel_sec(H), slot_back)
 			if(4) H.equip_or_collect(new /obj/item/weapon/storage/backpack/satchel(H), slot_back)
-		H.equip_or_collect(new /obj/item/clothing/under/rank/security(H), slot_w_uniform)
+		H.equip_or_collect(new /obj/item/clothing/under/rank/security/formal(H), slot_w_uniform)
 		H.equip_or_collect(new /obj/item/clothing/shoes/jackboots(H), slot_shoes)
 		H.equip_or_collect(new /obj/item/clothing/suit/armor/vest/security(H), slot_wear_suit)
-		H.equip_to_slot_or_del(new /obj/item/clothing/head/helmet(H), slot_head)
+		H.equip_to_slot_or_del(new /obj/item/clothing/head/beret/sec(H), slot_head)
 		H.equip_or_collect(new /obj/item/device/pda/security(H), slot_wear_pda)
 		H.equip_or_collect(new /obj/item/clothing/gloves/color/black(H), slot_gloves)
-		H.equip_or_collect(new /obj/item/weapon/gun/projectile/shotgun/riot(H), slot_l_hand)	//No more tasers. -Mel
+		H.equip_or_collect(new /obj/item/weapon/gun/projectile/shotgun/riot(H), slot_s_store)	//No more tasers. -Mel
 		H.equip_or_collect(new /obj/item/device/flash(H), slot_l_store)
 		if(H.backbag == 1)
 			H.equip_or_collect(new /obj/item/weapon/storage/box/survival(H), slot_r_hand)
 		else
 			H.equip_or_collect(new /obj/item/weapon/storage/box/survival(H.back), slot_in_backpack)
 			H.equip_or_collect(new /obj/item/weapon/restraints/handcuffs(H), slot_in_backpack)
+			H.equip_or_collect(new /obj/item/clothing/head/helmet(H), slot_in_backpack)
 		var/obj/item/weapon/implant/loyalty/L = new/obj/item/weapon/implant/loyalty(H)
 		L.imp_in = H
 		L.implanted = 1
