@@ -75,7 +75,11 @@
 				if(contents.len)
 					var/obj/item/removing = pick(contents)
 					removing.loc = get_turf(user.loc)
-					if(!(user.l_hand && user.r_hand))
+					var/obj/item/organ/O = removing
+					if(istype(O))
+						O.status |= ORGAN_CUT_AWAY
+						O.removed(user)
+					else if(!(user.l_hand && user.r_hand))
 						user.put_in_hands(removing)
 					user.visible_message("<span class='danger'><b>[user]</b> extracts [removing] from [src] with [W]!")
 				else
@@ -190,8 +194,8 @@
 				var/list/obj/item/organ/external/possible_points = list()
 				if(parent)
 					possible_points += parent
-				if(children)
-					possible_points += children
+				if(children) for(var/organ in children)
+					if(organ) possible_points += organ
 				if(forbidden_limbs.len)
 					possible_points -= forbidden_limbs
 				if(possible_points.len)
@@ -201,22 +205,22 @@
 
 	// sync the organ's damage with its wounds
 	src.update_damages()
-
+	var/mob/living/carbon/owner_old = owner //Need to update health, but need a reference in case the below check cuts off a limb.
 	//If limb took enough damage, try to cut or tear it off
 	if(owner && loc == owner)
 		if(!cannot_amputate && config.limbs_can_break && (brute_dam + burn_dam) >= (max_damage * config.organ_health_multiplier))
 			var/dropped
-			if(burn >= 20 && prob(burn))
+			if(burn >= 20 && prob(burn / 2))
 				if(body_part == HEAD) return
 				dropped = 1
 				droplimb(0,DROPLIMB_BURN)
-			if(!dropped && prob(brute))
+			if(!dropped && prob(brute / 2))
 				if(edge)
 					droplimb(0,DROPLIMB_EDGE)
 				else
 					droplimb(0,DROPLIMB_BLUNT)
 
-	owner.updatehealth()
+	if(owner_old) owner_old.updatehealth()
 	return update_icon()
 
 /obj/item/organ/external/proc/heal_damage(brute, burn, internal = 0, robo_repair = 0)
@@ -640,9 +644,10 @@ Note that amputating the affected organ does in fact remove the infection from t
 		parent = null
 
 	spawn(1)
-		victim.updatehealth()
-		victim.UpdateDamageIcon()
-		victim.regenerate_icons()
+		if(victim)
+			victim.updatehealth()
+			victim.UpdateDamageIcon()
+			victim.regenerate_icons()
 		dir = 2
 
 	switch(disintegrate)
@@ -660,8 +665,9 @@ Note that amputating the affected organ does in fact remove the infection from t
 			return
 		if(DROPLIMB_BURN)
 			new /obj/effect/decal/cleanable/ash(get_turf(victim))
+			qdel(src)
 		if(DROPLIMB_BLUNT)
-			var/obj/effect/decal/cleanable/blood/gibs/gore = new owner.species.single_gib_type(get_turf(victim))
+			var/obj/effect/decal/cleanable/blood/gibs/gore = new victim.species.single_gib_type(get_turf(victim))
 			if(victim.species.flesh_color)
 				gore.fleshcolor = victim.species.flesh_color
 			if(victim.species.blood_color)
@@ -669,12 +675,12 @@ Note that amputating the affected organ does in fact remove the infection from t
 			gore.update_icon()
 			gore.throw_at(get_edge_target_turf(src,pick(alldirs)),rand(1,3),30)
 
-			for(var/obj/item/organ/I in internal_organs)
-				I.removed()
+			for(var/obj/item/organ/I in contents)
+				I.loc = loc
 				if(istype(loc,/turf))
 					I.throw_at(get_edge_target_turf(src,pick(alldirs)),rand(1,3),30)
+			qdel(src)
 
-	del(src)
 
 /****************************************************
 			   HELPERS
@@ -764,7 +770,7 @@ Note that amputating the affected organ does in fact remove the infection from t
 /obj/item/organ/external/robotize(var/company)
 	..()
 
-	if(company)
+	if(company && istext(company))
 		model = company
 		var/datum/robolimb/R = all_robolimbs[company]
 		if(R)
@@ -864,14 +870,15 @@ Note that amputating the affected organ does in fact remove the infection from t
 /obj/item/organ/external/proc/disfigure(var/type = "brute")
 	if (disfigured)
 		return
-	if(type == "brute")
-		owner.visible_message("\red You hear a sickening cracking sound coming from \the [owner]'s [name].",	\
-		"\red <b>Your [name] becomes a mangled mess!</b>",	\
-		"\red You hear a sickening crack.")
-	else
-		owner.visible_message("\red \The [owner]'s [name] melts away, turning into mangled mess!",	\
-		"\red <b>Your [name] melts away!</b>",	\
-		"\red You hear a sickening sizzle.")
+	if(owner)
+		if(type == "brute")
+			owner.visible_message("\red You hear a sickening cracking sound coming from \the [owner]'s [name].",	\
+			"\red <b>Your [name] becomes a mangled mess!</b>",	\
+			"\red You hear a sickening crack.")
+		else
+			owner.visible_message("\red \The [owner]'s [name] melts away, turning into mangled mess!",	\
+			"\red <b>Your [name] melts away!</b>",	\
+			"\red You hear a sickening sizzle.")
 	disfigured = 1
 
 /****************************************************
@@ -979,7 +986,7 @@ Note that amputating the affected organ does in fact remove the infection from t
 	can_grasp = 1
 
 /obj/item/organ/external/hand/removed()
-	owner.unEquip(owner.gloves)
+	if(owner) owner.unEquip(owner.gloves)
 	..()
 
 /obj/item/organ/external/hand/right
@@ -1011,6 +1018,8 @@ Note that amputating the affected organ does in fact remove the infection from t
 		owner.unEquip(owner.l_ear)
 		owner.unEquip(owner.r_ear)
 		owner.unEquip(owner.wear_mask)
+		spawn(1)
+			owner.update_hair()
 	..()
 
 /obj/item/organ/external/head/take_damage(brute, burn, sharp, edge, used_weapon = null, list/forbidden_limbs = list())

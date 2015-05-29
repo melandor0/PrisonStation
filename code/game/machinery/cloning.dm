@@ -24,13 +24,13 @@
 	var/speed_coeff
 	var/efficiency
 
-	l_color = "#00FF00"
+	light_color = LIGHT_COLOR_PURE_GREEN
 	power_change()
 		..()
 		if(!(stat & (BROKEN|NOPOWER)))
-			SetLuminosity(2)
+			set_light(2)
 		else
-			SetLuminosity(0)
+			set_light(0)
 
 /obj/machinery/clonepod/New()
 	..()
@@ -165,8 +165,7 @@
 
 /obj/machinery/clonepod/attack_ai(mob/user as mob)
 	return attack_hand(user)
-/obj/machinery/clonepod/attack_paw(mob/user as mob)
-	return attack_hand(user)
+
 /obj/machinery/clonepod/attack_hand(mob/user as mob)
 	if ((isnull(src.occupant)) || (stat & NOPOWER))
 		return
@@ -200,6 +199,11 @@
 					if(M in respawnable_list)
 						break
 				return 0
+
+	if(biomass >= CLONE_BIOMASS)
+		src.biomass -= CLONE_BIOMASS
+	else
+		return 0
 
 	src.attempting = 1 //One at a time!!
 	src.locked = 1
@@ -442,11 +446,9 @@
 	src.occupant.loc = src.loc
 	src.icon_state = "pod_0"
 	src.eject_wait = 0 //If it's still set somehow.
-	domutcheck(src.occupant) //Waiting until they're out before possible monkeyizing.
+	domutcheck(src.occupant) //Waiting until they're out before possible notransform.
 	src.occupant.add_side_effect("Bad Stomach") // Give them an extra side-effect for free.
 	src.occupant = null
-
-	src.biomass -= CLONE_BIOMASS
 
 	return
 

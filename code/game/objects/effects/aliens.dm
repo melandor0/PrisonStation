@@ -21,11 +21,14 @@
 	density = 1
 	opacity = 1
 	anchored = 1
+	canSmoothWith = list(/obj/structure/alien/resin)
 	var/health = 200
 	var/resintype = null
+
 /obj/structure/alien/resin/New(location)
 	relativewall_neighbours()
 	..()
+	air_update_turf(1)
 	return
 
 /obj/structure/alien/resin/Destroy()
@@ -35,7 +38,9 @@
 	..()
 
 /obj/structure/alien/resin/Move()
+	var/turf/T = loc
 	..()
+	move_update_air(T)
 
 /obj/structure/alien/resin/wall
 	name = "resin wall"
@@ -44,8 +49,14 @@
 	resintype = "wall"
 
 /obj/structure/alien/resin/wall/New()
-	relativewall_neighbours()
 	..()
+	relativewall_neighbours()
+
+/obj/structure/alien/resin/wall/shadowling //For chrysalis
+	name = "chrysalis wall"
+	desc = "Some sort of purple substance in an egglike shape. It pulses and throbs from within and seems impenetrable."
+	health = INFINITY
+	icon_state = "wall0"
 
 /obj/structure/alien/resin/membrane
 	name = "resin membrane"
@@ -106,10 +117,6 @@
 		user.visible_message("<span class='danger'>[user] destroys [src]!</span>")
 		health = 0
 		healthcheck()
-
-
-/obj/structure/alien/resin/attack_paw(mob/user)
-	return attack_hand(user)
 
 
 /obj/structure/alien/resin/attack_alien(mob/living/user)
@@ -229,7 +236,7 @@
 		del(src)
 
 
-/obj/structure/alien/weeds/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+/obj/structure/alien/weeds/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	if(exposed_temperature > 300)
 		health -= 5
 		healthcheck()
@@ -264,7 +271,7 @@
 	name = "glowing resin"
 	desc = "Blue bioluminescence shines from beneath the surface."
 	icon_state = "weednode"
-	luminosity = 1
+	light_range = 1
 	var/node_range = NODERANGE
 
 
@@ -303,7 +310,7 @@
 		Grow()
 
 
-/obj/structure/alien/egg/attack_paw(mob/user)
+/obj/structure/alien/egg/attack_alien(mob/user)
 	if(isalien(user))
 		switch(status)
 			if(BURST)
@@ -387,7 +394,7 @@
 			del(src)	//Remove the egg after it has been hit after bursting.
 
 
-/obj/structure/alien/egg/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+/obj/structure/alien/egg/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	if(exposed_temperature > 500)
 		health -= 5
 		healthcheck()

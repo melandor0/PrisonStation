@@ -137,7 +137,7 @@
 		return
 
 	//Is the usr's mob type able to do this?
-	if(ishuman(usr) || ismonkey(usr) || isrobot(usr))
+	if(ishuman(usr) || isrobot(usr))
 
 		//Removing from inventory
 		if(href_list["remove_inv"])
@@ -723,31 +723,13 @@
 
 
 
-/mob/living/simple_animal/parrot/hear_radio(var/message, var/verb="says", var/datum/language/language=null, var/part_a, var/part_b, var/mob/speaker = null, var/hard_to_hear = 0)
+/mob/living/simple_animal/parrot/hear_radio(var/message, var/verb="says", var/datum/language/language=null, var/part_a, var/part_b, var/mob/speaker = null, var/hard_to_hear = 0, var/atom/follow_target)
 	if(prob(50))
 		parrot_hear("[pick(available_channels)] [message]")
-	..(message,verb,language,part_a,part_b,speaker,hard_to_hear)
+	..()
 
 
 /mob/living/simple_animal/parrot/proc/parrot_hear(var/message="")
 	if(!message || stat)
 		return
 	speech_buffer.Add(message)
-
-/mob/living/simple_animal/parrot/attack_paw(var/mob/user, var/damage, var/attack_message)
-
-	var/success = ..()
-
-	if(client)
-		return success
-
-	if(parrot_state == PARROT_PERCH)
-		parrot_sleep_dur = parrot_sleep_max //Reset it's sleep timer if it was perched
-
-	if(!success)
-		return 0
-
-	parrot_interest = user
-	parrot_state = PARROT_SWOOP | PARROT_ATTACK //Attack other animals regardless
-	icon_state = "parrot_fly"
-	return success

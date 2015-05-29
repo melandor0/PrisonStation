@@ -5,14 +5,14 @@
 
 /*
 /mob/living/carbon/human/proc/monkeyize()
-	if (monkeyizing)
+	if (notransform)
 		return
 	for(var/obj/item/W in src)
 		if (W==w_uniform) // will be torn
 			continue
 		unEquip(W)
 	regenerate_icons()
-	monkeyizing = 1
+	notransform = 1
 	canmove = 0
 	stunned = 1
 	icon = null
@@ -62,7 +62,7 @@
 	return ..()
 
 /mob/living/carbon/human/AIize(move=1) // 'move' argument needs defining here too because BYOND is dumb
-	if (monkeyizing)
+	if (notransform)
 		return
 	for(var/t in organs)
 		del(t)
@@ -70,11 +70,11 @@
 	return ..(move)
 
 /mob/living/carbon/AIize()
-	if (monkeyizing)
+	if (notransform)
 		return
 	for(var/obj/item/W in src)
 		unEquip(W)
-	monkeyizing = 1
+	notransform = 1
 	canmove = 0
 	icon = null
 	invisibility = 101
@@ -178,12 +178,12 @@
 
 //human -> robot
 /mob/living/carbon/human/proc/Robotize()
-	if (monkeyizing)
+	if (notransform)
 		return
 	for(var/obj/item/W in src)
 		unEquip(W)
 	regenerate_icons()
-	monkeyizing = 1
+	notransform = 1
 	canmove = 0
 	icon = null
 	invisibility = 101
@@ -228,6 +228,8 @@
 
 	callHook("borgify", list(O))
 
+	O.update_pipe_vision()
+
 	O.Namepick()
 
 	spawn(0)//To prevent the proc from returning null.
@@ -236,12 +238,12 @@
 
 //human -> alien
 /mob/living/carbon/human/proc/Alienize()
-	if (monkeyizing)
+	if (notransform)
 		return
 	for(var/obj/item/W in src)
 		unEquip(W)
 	regenerate_icons()
-	monkeyizing = 1
+	notransform = 1
 	canmove = 0
 	icon = null
 	invisibility = 101
@@ -262,17 +264,18 @@
 	new_xeno.key = key
 
 	new_xeno << "<B>You are now an alien.</B>"
+	new_xeno.update_pipe_vision()
 	spawn(0)//To prevent the proc from returning null.
 		del(src)
 	return
 
 /mob/living/carbon/human/proc/slimeize(adult as num, reproduce as num)
-	if (monkeyizing)
+	if (notransform)
 		return
 	for(var/obj/item/W in src)
 		unEquip(W)
 	regenerate_icons()
-	monkeyizing = 1
+	notransform = 1
 	canmove = 0
 	icon = null
 	invisibility = 101
@@ -297,28 +300,30 @@
 	new_slime.key = key
 
 	new_slime << "<B>You are now a slime. Skreee!</B>"
+	new_slime.update_pipe_vision()
 	spawn(0)//To prevent the proc from returning null.
 		del(src)
 	return
 
 /mob/living/carbon/human/proc/corgize()
-	if (monkeyizing)
+	if (notransform)
 		return
 	for(var/obj/item/W in src)
 		unEquip(W)
 	regenerate_icons()
-	monkeyizing = 1
+	notransform = 1
 	canmove = 0
 	icon = null
 	invisibility = 101
 	for(var/t in organs)	//this really should not be necessary
 		del(t)
 
-	var/mob/living/simple_animal/corgi/new_corgi = new /mob/living/simple_animal/corgi (loc)
+	var/mob/living/simple_animal/pet/corgi/new_corgi = new /mob/living/simple_animal/pet/corgi (loc)
 	new_corgi.a_intent = "harm"
 	new_corgi.key = key
 
 	new_corgi << "<B>You are now a Corgi. Yap Yap!</B>"
+	new_corgi.update_pipe_vision()
 	spawn(0)//To prevent the proc from returning null.
 		del(src)
 	return
@@ -332,13 +337,13 @@
 		usr << "\red Sorry but this mob type is currently unavailable."
 		return
 
-	if(monkeyizing)
+	if(notransform)
 		return
 	for(var/obj/item/W in src)
 		unEquip(W)
 
 	regenerate_icons()
-	monkeyizing = 1
+	notransform = 1
 	canmove = 0
 	icon = null
 	invisibility = 101
@@ -353,6 +358,7 @@
 
 
 	new_mob << "You suddenly feel more... animalistic."
+	new_mob.update_pipe_vision()
 	spawn()
 		del(src)
 	return
@@ -371,6 +377,7 @@
 	new_mob.key = key
 	new_mob.a_intent = "harm"
 	new_mob << "You feel more... animalistic"
+	new_mob.update_pipe_vision()
 
 	del(src)
 
@@ -401,9 +408,9 @@
 		return 0 //Verbs do not appear for players. These constructs should really have their own class simple_animal/construct/subtype
 
 //Good mobs!
-	if(ispath(MP, /mob/living/simple_animal/cat))
+	if(ispath(MP, /mob/living/simple_animal/pet/cat))
 		return 1
-	if(ispath(MP, /mob/living/simple_animal/corgi))
+	if(ispath(MP, /mob/living/simple_animal/pet/corgi))
 		return 1
 	if(ispath(MP, /mob/living/simple_animal/crab))
 		return 1
@@ -423,11 +430,11 @@
 		return 1 //Parrots are no longer unfinished! -Nodrak
 	if(ispath(MP, /mob/living/simple_animal/pony))
 		return 1 // ZOMG PONIES WHEEE
-	if(ispath(MP, /mob/living/simple_animal/fox))
+	if(ispath(MP, /mob/living/simple_animal/pet/fox))
 		return 1
 	if(ispath(MP, /mob/living/simple_animal/chick))
 		return 1
-	if(ispath(MP, /mob/living/simple_animal/pug))
+	if(ispath(MP, /mob/living/simple_animal/pet/pug))
 		return 1
 	if(ispath(MP, /mob/living/simple_animal/butterfly))
 		return 1
@@ -440,9 +447,9 @@
 		return 0	//Sanity, this should never happen.
 
 //Animals!
-	if(ispath(MP, /mob/living/simple_animal/cat))
+	if(ispath(MP, /mob/living/simple_animal/pet/cat))
 		return 1
-	if(ispath(MP, /mob/living/simple_animal/corgi))
+	if(ispath(MP, /mob/living/simple_animal/pet/corgi))
 		return 1
 	if(ispath(MP, /mob/living/simple_animal/crab))
 		return 1
@@ -454,19 +461,17 @@
 		return 1
 	if(ispath(MP, /mob/living/simple_animal/pony))
 		return 1
-	if(ispath(MP, /mob/living/simple_animal/fox))
+	if(ispath(MP, /mob/living/simple_animal/pet/fox))
 		return 1
 	if(ispath(MP, /mob/living/simple_animal/chick))
 		return 1
-	if(ispath(MP, /mob/living/simple_animal/pug))
+	if(ispath(MP, /mob/living/simple_animal/pet/pug))
 		return 1
 	if(ispath(MP, /mob/living/simple_animal/butterfly))
 		return 1
 
 //Antag Creatures!
 /*	if(ispath(MP, /mob/living/simple_animal/hostile/carp) && !jobban_isbanned(src, "Syndicate"))
-		return 1
-	if(ispath(MP, /mob/living/simple_animal/hostile/giant_spider) && !jobban_isbanned(src, "Syndicate"))
 		return 1 */
 	if(ispath(MP, /mob/living/simple_animal/borer) && !jobban_isbanned(src, "alien") && !jobban_isbanned(src, "Syndicate"))
 		return 1
@@ -476,7 +481,7 @@
 		return 1
 
 //Friendly Creatures!
-	if(ispath(MP, /mob/living/carbon/monkey/diona) && !jobban_isbanned(src, "Dionaea"))
+	if(ispath(MP, /mob/living/carbon/primitive/diona) && !jobban_isbanned(src, "Dionaea"))
 		return 1
 
 	//Not in here? Must be untested!

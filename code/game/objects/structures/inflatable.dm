@@ -28,10 +28,10 @@
 
 	New(location)
 		..()
-		update_nearby_tiles(need_rebuild=1)
+		air_update_turf()
 
 	Del()
-		update_nearby_tiles()
+		air_update_turf()
 		..()
 
 	CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
@@ -66,9 +66,6 @@
 	meteorhit()
 	//world << "glass at [x],[y],[z] Mhit"
 		deflate(1)
-
-	attack_paw(mob/user as mob)
-		return attack_generic(user, 15)
 
 	attack_hand(mob/user as mob)
 		add_fingerprint(user)
@@ -184,9 +181,6 @@
 			if(get_dist(user,src) <= 1) //not remotely though
 				return TryToSwitchState(user)
 
-	attack_paw(mob/user as mob)
-		return TryToSwitchState(user)
-
 	attack_hand(mob/user as mob)
 		return TryToSwitchState(user)
 
@@ -217,7 +211,7 @@
 			Close()
 		else
 			Open()
-		update_nearby_tiles()
+		air_update_turf()
 
 	proc/Open()
 		isSwitchingStates = 1

@@ -10,11 +10,11 @@ datum/preferences
 			s_tone = random_skin_tone()
 		h_style = random_hair_style(gender, species)
 		f_style = random_facial_hair_style(gender, species)
-		if(species == "Human" || species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Machine")
+		if(species == "Human" || species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Machine" || species == "Vulpkanin")
 			randomize_hair_color("hair")
 		randomize_hair_color("facial")
 		randomize_eyes_color()
-		if(species == "Unathi" || species == "Tajaran" || species == "Skrell")
+		if(species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Vulpkanin")
 			randomize_skin_color()
 		underwear = rand(1,underwear_m.len)
 		undershirt = rand(1,undershirt_t.len)
@@ -254,10 +254,6 @@ datum/preferences
 			facial_s.Blend(rgb(r_facial, g_facial, b_facial), ICON_ADD)
 			eyes_s.Blend(facial_s, ICON_OVERLAY)
 
-		//Slime People Overlays
-		if(current_species && (current_species.bloodflags & BLOOD_SLIME))
-			var/icon/temp = new/icon("icon" = 'icons/effects/slimemutant.dmi', "icon_state" = "[slime_color]_slime[fat]_[gender]_s")
-			preview_icon.Blend(temp, ICON_OVERLAY)
 
 		var/icon/underwear_s = null
 		if(underwear > 0 && underwear < 7 && current_species.flags & HAS_UNDERWEAR)

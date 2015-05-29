@@ -327,16 +327,6 @@ var/global/list/obj/item/device/pda/PDAs = list()
 /*
  *	The Actual PDA
  */
-/obj/item/device/pda/pickup(mob/user)
-	if(fon)
-		SetLuminosity(0)
-		user.SetLuminosity(user.luminosity + f_lum)
-
-/obj/item/device/pda/dropped(mob/user)
-	if(fon)
-		user.SetLuminosity(user.luminosity - f_lum)
-		SetLuminosity(f_lum)
-
 /obj/item/device/pda/New()
 	..()
 	PDAs += src
@@ -623,12 +613,10 @@ var/global/list/obj/item/device/pda/PDAs = list()
 		if("Light")
 			if(fon)
 				fon = 0
-				if(src in U.contents)	U.SetLuminosity(U.luminosity - f_lum)
-				else					SetLuminosity(0)
+				set_light(0)
 			else
 				fon = 1
-				if(src in U.contents)	U.SetLuminosity(U.luminosity + f_lum)
-				else					SetLuminosity(f_lum)
+				set_light(f_lum)
 		if("Medical Scan")
 			if(scanmode == 1)
 				scanmode = 0
@@ -748,7 +736,7 @@ var/global/list/obj/item/device/pda/PDAs = list()
 		if("Toggle Door")
 			if(cartridge && cartridge.access_remote_door)
 				for(var/obj/machinery/door/poddoor/M in world)
-					if(M.id == cartridge.remote_door_id)
+					if(M.id_tag == cartridge.remote_door_id)
 						if(M.density)
 							M.open()
 						else
@@ -1146,9 +1134,6 @@ var/global/list/obj/item/device/pda/PDAs = list()
 				JFLOG("[user] used the fingerprint scanner on [C]")
 				if (!istype(C:dna, /datum/dna))
 					user << "\blue No fingerprints found on [C]"
-				else if(!istype(C, /mob/living/carbon/monkey))
-					if(!isnull(C:gloves))
-						user << "\blue No fingerprints found on [C]"
 				else
 					user << text("\blue [C]'s Fingerprints: [md5(C:dna.uni_identity)]")
 				if ( !(C:blood_DNA) )
@@ -1223,10 +1208,10 @@ var/global/list/obj/item/device/pda/PDAs = list()
 
 			if (istype(A, /obj/machinery/atmospherics/pipe/tank))
 				var/obj/icon = A
-				for (var/mob/O in viewers(user, null))
-					O << "\red [user] has used [src] on \icon[icon] [A]"
-
 				var/obj/machinery/atmospherics/pipe/tank/T = A
+				for (var/mob/O in viewers(user, null))
+					O << "\red [user] has used [src] on \icon[icon] [T]"
+
 				var/pressure = T.parent.air.return_pressure()
 				var/total_moles = T.parent.air.total_moles()
 

@@ -19,7 +19,7 @@
 
 	if(triggered) return
 
-	if(istype(M, /mob/living/carbon/human) || istype(M, /mob/living/carbon/monkey))
+	if(istype(M, /mob/living/carbon/human))
 		for(var/mob/O in viewers(world.view, src.loc))
 			O << "<font color='red'>[M] triggered the \icon[src] [src]</font>"
 		triggered = 1
@@ -46,35 +46,12 @@
 		del(src)
 
 /obj/effect/mine/proc/triggern2o(obj)
-	//example: n2o triggerproc
-	//note: im lazy
-
-	for (var/turf/simulated/floor/target in range(1,src))
-		if(!target.blocks_air)
-
-			var/datum/gas_mixture/payload = new
-			var/datum/gas/sleeping_agent/trace_gas = new
-
-			trace_gas.moles = 30
-			payload += trace_gas
-
-			target.zone.air.merge(payload)
-
+	atmos_spawn_air(SPAWN_N2O, 360)
 	spawn(0)
 		del(src)
 
 /obj/effect/mine/proc/triggerplasma(obj)
-	for (var/turf/simulated/floor/target in range(1,src))
-		if(!target.blocks_air)
-
-			var/datum/gas_mixture/payload = new
-
-			payload.toxins = 30
-
-			target.zone.air.merge(payload)
-
-			target.hotspot_expose(1000, CELL_VOLUME)
-
+	atmos_spawn_air(SPAWN_HEAT | SPAWN_TOXINS, 360)
 	spawn(0)
 		del(src)
 

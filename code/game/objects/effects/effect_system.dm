@@ -79,6 +79,9 @@ would spawn and follow the beaker, even if it is carried or thrown.
 /obj/effect/effect/water/Bump(atom/A)
 	if(reagents)
 		reagents.reaction(A)
+	if(istype(A,/atom/movable))
+		var/atom/movable/AM = A
+		AM.water_act(life, 310.15, src)
 	return ..()
 
 
@@ -171,7 +174,6 @@ steam.start() -- spawns the effect
 	..()
 	playsound(src.loc, "sparks", 100, 1)
 	var/turf/T = loc
-
 	if (istype(T, /turf))
 		T.hotspot_expose(1000, 100)
 	spawn (100)
@@ -424,6 +426,28 @@ steam.start() -- spawns the effect
 
 	return
 
+// Spores
+/datum/effect/effect/system/chem_smoke_spread/spores
+	var/datum/seed/seed
+
+/datum/effect/effect/system/chem_smoke_spread/spores/New(seed_name)
+	if(seed_name && plant_controller)
+		seed = plant_controller.seeds[seed_name]
+	if(!seed)
+		del(src)
+	..()
+
+
+
+/datum/effect/effect/system/chem_smoke_spread/New()
+	..()
+	chemholder = new/obj()
+	var/datum/reagents/R = new/datum/reagents(500)
+	chemholder.reagents = R
+	R.my_atom = chemholder
+
+
+
 /datum/effect/effect/system/chem_smoke_spread
 	var/total_smoke = 0 // To stop it being spammed and lagging!
 	var/direction
@@ -461,16 +485,20 @@ steam.start() -- spawns the effect
 			var/where = "[A.name] | [location.x], [location.y]"
 			var/whereLink = "<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[location.x];Y=[location.y];Z=[location.z]'>[where]</a>"
 
-			if(carry.my_atom.fingerprintslast)
-				var/mob/M = get_mob_by_key(carry.my_atom.fingerprintslast)
-				var/more = ""
-				if(M)
-					more = "(<A HREF='?_src_=holder;adminmoreinfo=\ref[M]'>?</a>)"
-				msg_admin_attack("A chemical smoke reaction has taken place in ([whereLink])[contained]. Last associated key is [carry.my_atom.fingerprintslast][more].", 0, 1)
-				log_game("A chemical smoke reaction has taken place in ([where])[contained]. Last associated key is [carry.my_atom.fingerprintslast].")
+			if(carry && carry.my_atom)
+				if(carry.my_atom.fingerprintslast)
+					var/mob/M = get_mob_by_key(carry.my_atom.fingerprintslast)
+					var/more = ""
+					if(M)
+						more = "(<A HREF='?_src_=holder;adminmoreinfo=\ref[M]'>?</a>)"
+					msg_admin_attack("A chemical smoke reaction has taken place in ([whereLink])[contained]. Last associated key is [carry.my_atom.fingerprintslast][more].", 0, 1)
+					log_game("A chemical smoke reaction has taken place in ([where])[contained]. Last associated key is [carry.my_atom.fingerprintslast].")
+				else
+					msg_admin_attack("A chemical smoke reaction has taken place in ([whereLink]). No associated key.", 0, 1)
+					log_game("A chemical smoke reaction has taken place in ([where])[contained]. No associated key.")
 			else
-				msg_admin_attack("A chemical smoke reaction has taken place in ([whereLink]). No associated key.", 0, 1)
-				log_game("A chemical smoke reaction has taken place in ([where])[contained]. No associated key.")
+				msg_admin_attack("A chemical smoke reaction has taken place in ([whereLink]). No associated key. CODERS: carry.my_atom may be null.", 0, 1)
+				log_game("A chemical smoke reaction has taken place in ([where])[contained]. No associated key. CODERS: carry.my_atom may be null.")
 
 	start(effect_range = 2)
 		var/i = 0
@@ -483,6 +511,13 @@ steam.start() -- spawns the effect
 				var/mob/living/carbon/C = A
 				if(!(C.wear_mask && (C.internals != null || C.wear_mask.flags & BLOCK_GAS_SMOKE_EFFECT)))
 					chemholder.reagents.copy_to(C, chemholder.reagents.total_volume)
+			if(istype(A, /obj/machinery/portable_atmospherics/hydroponics))
+				var/obj/machinery/portable_atmospherics/hydroponics/tray = A
+				chemholder.reagents.copy_to(tray, chemholder.reagents.total_volume)
+			if(istype(A, /obj/effect/plant))
+				var/obj/effect/plant/plant = A
+				if(chemholder.reagents.has_reagent("atrazine"))
+					plant.die_off()
 		qdel(smokeholder)
 		for(i=0, i<src.number, i++)
 			if(src.total_smoke > 20)
@@ -953,7 +988,7 @@ steam.start() -- spawns the effect
 
 // foam disolves when heated
 // except metal foams
-/obj/effect/effect/foam/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+/obj/effect/effect/foam/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	if(!metal && prob(max(0, exposed_temperature - 475)))
 		flick("[icon_state]-disolve", src)
 
@@ -1040,15 +1075,18 @@ steam.start() -- spawns the effect
 
 	New()
 		..()
-		update_nearby_tiles(1)
-
-
+		air_update_turf(1)
 
 	Destroy()
 
 		density = 0
-		update_nearby_tiles(1)
+		air_update_turf(1)
 		..()
+
+	Move()
+		var/turf/T = loc
+		..()
+		move_update_air(T)
 
 	proc/updateicon()
 		if(metal == 1)
@@ -1066,10 +1104,6 @@ steam.start() -- spawns the effect
 	bullet_act()
 		if(metal==1 || prob(50))
 			del(src)
-
-	attack_paw(var/mob/user)
-		attack_hand(user)
-		return
 
 	attack_hand(var/mob/user)
 		if ((HULK in user.mutations) || (prob(75 - metal*25)))
@@ -1107,6 +1141,9 @@ steam.start() -- spawns the effect
 
 	CanPass(atom/movable/mover, turf/target, height=1.5, air_group = 0)
 		if(air_group) return 0
+		return !density
+
+	CanAtmosPass()
 		return !density
 
 /datum/effect/effect/system/reagents_explosion

@@ -49,8 +49,7 @@
 // DOORS
 
 // Simply updates the visibility of the area when it opens/closes/destroyed.
-/obj/machinery/door/update_nearby_tiles(need_rebuild)
-	. = ..(need_rebuild)
+/obj/machinery/door/proc/update_freelok_sight()
 	// Glass door glass = 1
 	// don't check then?
 	if(!glass && cameranet)
@@ -84,7 +83,7 @@
 	if(src.can_use())
 		cameranet.addCamera(src)
 	else
-		src.SetLuminosity(0)
+		src.set_light(0)
 		cameranet.removeCamera(src)
 
 /obj/machinery/camera/New()

@@ -34,19 +34,19 @@
 	output = /obj/item/weapon/reagent_containers/food/snacks/meatball
 
 /datum/food_processor_process/potato
-	input = /obj/item/weapon/reagent_containers/food/snacks/grown/potato
+	input = "potato"
 	output = /obj/item/weapon/reagent_containers/food/snacks/fries
 
 /datum/food_processor_process/carrot
-	input = /obj/item/weapon/reagent_containers/food/snacks/grown/carrot
+	input = "carrot"
 	output = /obj/item/weapon/reagent_containers/food/snacks/carrotfries
 
 /datum/food_processor_process/soybeans
-	input = /obj/item/weapon/reagent_containers/food/snacks/grown/soybeans
+	input = "soybeans"
 	output = /obj/item/weapon/reagent_containers/food/snacks/soydope
 
 /datum/food_processor_process/wheat
-	input = /obj/item/weapon/reagent_containers/food/snacks/grown/wheat
+	input = "wheat"
 	output = /obj/item/weapon/reagent_containers/food/snacks/flour
 
 /datum/food_processor_process/spaghetti
@@ -79,11 +79,11 @@
 	..()
 
 /datum/food_processor_process/mob/monkey
-	input = /mob/living/carbon/monkey
+	input = /mob/living/carbon/human/monkey
 	output = null
 
 /datum/food_processor_process/mob/monkey/process(loc, what)
-	var/mob/living/carbon/monkey/O = what
+	var/mob/living/carbon/human/monkey/O = what
 	if (O.client) //grief-proof
 		O.loc = loc
 		O.visible_message("<span class='notice'>Suddenly [O] jumps out from the processor!</span>", \
@@ -111,7 +111,11 @@
 /obj/machinery/processor/proc/select_recipe(var/X)
 	for (var/Type in typesof(/datum/food_processor_process) - /datum/food_processor_process - /datum/food_processor_process/mob)
 		var/datum/food_processor_process/P = new Type()
-		if (!istype(X, P.input))
+		if(istype(X, /obj/item/weapon/reagent_containers/food/snacks/grown))
+			var/obj/item/weapon/reagent_containers/food/snacks/grown/G = X
+			if(G.seed.kitchen_tag != P.input)
+				continue
+		else if (!istype(X, P.input))
 			continue
 		return P
 	return 0

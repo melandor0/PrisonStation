@@ -57,7 +57,7 @@
 	var/disabilities = 0	//Carbon
 	var/atom/movable/pulling = null
 	var/next_move = null
-	var/monkeyizing = null	//Carbon
+	var/notransform = null	//Carbon
 	var/other = 0.0
 	var/hand = null
 	var/eye_blind = null	//Carbon
@@ -102,6 +102,7 @@
 	var/drowsyness = 0.0//Carbon
 	var/dizziness = 0//Carbon
 	var/jitteriness = 0//Carbon
+	var/flying = 0
 	var/charges = 0.0
 	var/nutrition = 400.0//Carbon
 
@@ -222,7 +223,7 @@
 	var/player_logged = 0
 
 	var/turf/listed_turf = null  //the current turf being examined in the stat panel
-	var/list/shouldnt_see = list()	//list of objects that this mob shouldn't see in the stat panel. this silliness is needed because of AI alt+click and cult blood runes
+	var/list/shouldnt_see = list(/atom/movable/lighting_overlay)	//list of objects that this mob shouldn't see in the stat panel. this silliness is needed because of AI alt+click and cult blood runes
 
 	var/kills=0
 
@@ -231,3 +232,5 @@
 	var/list/active_genes=list()
 
 	var/last_movement = -100 // Last world.time the mob actually moved of its own accord.
+
+	var/resize = 1 //Badminnery resize

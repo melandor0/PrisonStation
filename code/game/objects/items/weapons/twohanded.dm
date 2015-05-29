@@ -59,11 +59,16 @@
 	unwield()
 
 /obj/item/weapon/twohanded/attack_self(mob/user as mob)
-	if( istype(user,/mob/living/carbon/monkey) )
-		user << "<span class='warning'>It's too heavy for you to wield fully.</span>"
+	..()
+
+	if(istype(user, /mob/living/carbon/human))
+		var/mob/living/carbon/human/H = user
+		if(H.species.is_small)
+			user << "<span class='warning'>It's too heavy for you to wield fully.</span>"
+			return
+	else
 		return
 
-	..()
 	if(wielded) //Trying to unwield it
 		unwield()
 		user << "<span class='notice'>You are now carrying the [name] with one hand.</span>"
@@ -178,14 +183,14 @@ obj/item/weapon/twohanded/
 	if(A && wielded && (istype(A,/obj/structure/window) || istype(A,/obj/structure/grille))) //destroys windows and grilles in one hit
 
 		if(istype(A,/obj/structure/window))
-			var/pdiff=performWallPressureCheck(A.loc)
+		/*	var/pdiff=performWallPressureCheck(A.loc)
 			if(pdiff>0)
 				message_admins("[A] with pdiff [pdiff] fire-axed by [user.real_name] ([formatPlayerPanel(user,user.ckey)]) at [formatJumpTo(A.loc)]!")
-				log_admin("[A] with pdiff [pdiff] fire-axed by [user.real_name] ([user.ckey]) at [A.loc]!")
+				log_admin("[A] with pdiff [pdiff] fire-axed by [user.real_name] ([user.ckey]) at [A.loc]!")*///TODO: Figure out how the hell to remake this proc
 			var/obj/structure/window/W = A
 			W.destroy()
 		else
-			del(A)
+			qdel(A)
 
 
 /*

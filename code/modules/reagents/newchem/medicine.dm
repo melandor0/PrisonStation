@@ -106,7 +106,7 @@ datum/reagent/charcoal
 	id = "charcoal"
 	description = "Activated charcoal helps to absorb toxins."
 	reagent_state = LIQUID
-	color = "#C8A5DC"
+	color = "#000000"
 
 datum/reagent/charcoal/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
@@ -148,6 +148,7 @@ datum/reagent/charcoal/on_mob_life(var/mob/living/M as mob)
 	required_reagents = list("blood" = 1, "carbon" = 1, "styptic_powder" = 1)
 	result_amount = 3
 	mix_message = "The mixture knits together into a fibrous, bloody mass."
+	mix_sound = 'sound/effects/blobattack.ogg'
 
 /datum/chemical_reaction/styptic_powder
 	name = "Styptic Powder"
@@ -883,15 +884,15 @@ datum/reagent/haloperidol
 
 datum/reagent/haloperidol/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
-	M.reagents.remove_reagent("crank",5)
-	M.reagents.remove_reagent("methamphetamine",5)
-	M.reagents.remove_reagent("space_drugs",5)
-	M.reagents.remove_reagent("psilocybin",5)
-	M.reagents.remove_reagent("ephedrine",5)
-	M.reagents.remove_reagent("epinephrine",5)
-	M.reagents.remove_reagent("stimulants",5)
-	M.reagents.remove_reagent("bath_salts",5)
-	M.reagents.remove_reagent("mindbreaker",5)
+	M.reagents.remove_reagent("crank", 5)
+	M.reagents.remove_reagent("methamphetamine", 5)
+	M.reagents.remove_reagent("space_drugs", 5)
+	M.reagents.remove_reagent("psilocybin", 5)
+	M.reagents.remove_reagent("ephedrine", 5)
+	M.reagents.remove_reagent("epinephrine", 5)
+	M.reagents.remove_reagent("stimulants", 5)
+	M.reagents.remove_reagent("bath_salts", 5)
+	M.reagents.remove_reagent("lsd", 5)
 	M.druggy -= 5
 	M.hallucination -= 5
 	M.jitteriness -= 5

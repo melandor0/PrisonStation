@@ -9,7 +9,7 @@
 	heat_protection = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
 	flags_inv = HIDEGLOVES|HIDESHOES|HIDEJUMPSUIT
-	max_heat_protection_temperature = SPACE_SUIT_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_heat_protection_temperature = SPACE_SUIT_MAX_TEMP_PROTECT
 	species_restricted = list("Plasmaman")
 	flags = STOPSPRESSUREDMAGE  | PLASMAGUARD
 
@@ -57,22 +57,22 @@
 		return
 	on = !on
 	icon_state = "[base_state][on]"
-	if(on)	user.SetLuminosity(user.luminosity + brightness_on)
-	else	user.SetLuminosity(user.luminosity - brightness_on)
+	if(on)	user.set_light(user.luminosity + brightness_on)
+	else	user.set_light(user.luminosity - brightness_on)
 	user.update_inv_head()
 
 
 /obj/item/clothing/head/helmet/space/eva/plasmaman/pickup(mob/user)
 	if(on)
-		user.SetLuminosity(user.luminosity + brightness_on)
+		user.set_light(user.luminosity + brightness_on)
 //		user.UpdateLuminosity()
-		SetLuminosity(0)
+		set_light(0)
 
 /obj/item/clothing/head/helmet/space/eva/plasmaman/dropped(mob/user)
 	if(on)
-		user.SetLuminosity(user.luminosity - brightness_on)
+		user.set_light(user.luminosity - brightness_on)
 //		user.UpdateLuminosity()
-		SetLuminosity(brightness_on)
+		set_light(brightness_on)
 
 
 // OTHER
@@ -105,14 +105,14 @@
 	name = "plasmaman atmospheric suit"
 	icon_state = "plasmamanAtmos_suit"
 	armor = list(melee = 10, bullet = 5, laser = 10, energy = 5, bomb = 10, bio = 100, rad = 0)
-	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_heat_protection_temperature = FIRE_SUIT_MAX_TEMP_PROTECT
 
 /obj/item/clothing/head/helmet/space/eva/plasmaman/atmostech
 	name = "plasmaman atmospheric helmet"
 	icon_state = "plasmamanAtmos_helmet0"
 	base_state = "plasmamanAtmos_helmet"
 	armor = list(melee = 10, bullet = 5, laser = 10, energy = 5, bomb = 10, bio = 100, rad = 0)
-	max_heat_protection_temperature = FIRE_HELMET_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_heat_protection_temperature = FIRE_HELM_MAX_TEMP_PROTECT
 
 /obj/item/clothing/suit/space/eva/plasmaman/engineer
 	name = "plasmaman engineer suit"
@@ -128,13 +128,13 @@
 /obj/item/clothing/suit/space/eva/plasmaman/engineer/ce
 	name = "plasmaman chief engineer suit"
 	icon_state = "plasmaman_CE"
-	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_heat_protection_temperature = FIRE_SUIT_MAX_TEMP_PROTECT
 
 /obj/item/clothing/head/helmet/space/eva/plasmaman/engineer/ce
 	name = "plasmaman chief engineer helmet"
 	icon_state = "plasmaman_CE_helmet0"
 	base_state = "plasmaman_CE_helmet"
-	max_heat_protection_temperature = FIRE_HELMET_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_heat_protection_temperature = FIRE_HELM_MAX_TEMP_PROTECT
 
 
 //SERVICE

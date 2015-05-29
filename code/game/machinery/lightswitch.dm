@@ -43,22 +43,18 @@
 		usr << "A light switch. It is [on? "on" : "off"]."
 
 
-/obj/machinery/light_switch/attack_paw(mob/user)
-	src.attack_hand(user)
-
 /obj/machinery/light_switch/attack_hand(mob/user)
 
 	on = !on
 
-	for(var/area/A in area.master.related)
-		A.lightswitch = on
-		A.updateicon()
+	area.lightswitch = on
+	area.updateicon()
 
-		for(var/obj/machinery/light_switch/L in A)
-			L.on = on
-			L.updateicon()
+	for(var/obj/machinery/light_switch/L in area)
+		L.on = on
+		L.updateicon()
 
-	area.master.power_change()
+	area.power_change()
 
 /obj/machinery/light_switch/power_change()
 

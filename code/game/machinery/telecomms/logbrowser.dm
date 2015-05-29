@@ -1,7 +1,7 @@
 //This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:31
 /obj/machinery/computer/telecomms
 
-	l_color = "#50AB00"
+	light_color = LIGHT_COLOR_DARKGREEN
 
 /obj/machinery/computer/telecomms/server
 	name = "Telecommunications Server Monitor"
@@ -82,7 +82,7 @@
 							race = "[H.species.name]"
 
 
-						else if(ismonkey(M))
+						else if(issmall(M))
 							race = "Monkey"
 							language = race
 
@@ -246,7 +246,7 @@
 					del(src)
 		src.updateUsrDialog()
 		return
-		
+
 	emag_act(user as mob)
 		if(!emagged)
 			playsound(src.loc, 'sound/effects/sparks4.ogg', 75, 1)

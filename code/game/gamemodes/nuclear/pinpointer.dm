@@ -329,6 +329,10 @@
 		var/turf/T = get_turf(target)
 		var/turf/L = get_turf(src)
 
+		if((!T) || (!L)) // Someone is no longer in the world...
+			icon_state = "pinonnull"
+			return
+
 		if(T.z != L.z)
 			icon_state = "pinonnull"
 		else
@@ -366,12 +370,16 @@
 		for(var/mob/living/carbon/M in mob_list)
 			if(M.mind in ticker.mode.syndicates)
 				nearest_op = M
+	if(!nearest_op) // There are simply no operatives left to point to
+		active = 0
+		icon_state = "pinoff"
 
 /obj/item/weapon/pinpointer/operative/proc/workop()
 	scan_for_ops()
 	point_at(nearest_op, 0)
-	spawn(5)
-		.()
+	if(active && nearest_op) 
+		spawn(5)
+			.()
 
 /obj/item/weapon/pinpointer/operative/examine(mob/user)
 	..()

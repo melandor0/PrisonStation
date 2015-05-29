@@ -8,7 +8,9 @@
 	active_power_usage = 300
 	var/obj/item/weapon/circuitboard/circuit = null //if circuit==null, computer can't disassembly
 	var/processing = 0
-	luminosity = 2
+
+	var/light_range_on = 3
+	var/light_power_on = 2
 
 /obj/machinery/computer/New()
 	..()
@@ -92,10 +94,10 @@
 /obj/machinery/computer/power_change()
 	..()
 	update_icon()
-	if(!(stat & (BROKEN|NOPOWER)))
-		SetLuminosity(2)
+	if((stat & (BROKEN|NOPOWER)))
+		set_light(0)
 	else
-		SetLuminosity(0)
+		set_light(light_range_on, light_power_on)
 
 
 /obj/machinery/computer/proc/set_broken()
@@ -106,7 +108,7 @@
 	// Adds line breaks
 	text = replacetext(text, "\n", "<BR>")
 	return text
-	
+
 /obj/machinery/computer/attack_ghost(user as mob)
 	return src.attack_hand(user)
 
@@ -114,7 +116,7 @@
 	/* Observers can view computers, but not actually use them via Topic*/
 	if(istype(user, /mob/dead/observer)) return 0
 	return ..()
-	
+
 /obj/machinery/computer/attackby(I as obj, user as mob, params)
 	if(istype(I, /obj/item/weapon/screwdriver) && circuit)
 		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
@@ -138,20 +140,6 @@
 	else
 		src.attack_hand(user)
 	return
-
-/obj/machinery/computer/attack_paw(mob/living/user)
-	user.changeNext_move(CLICK_CD_MELEE)
-	user.do_attack_animation(src)
-	if(circuit)
-		if(prob(10))
-			user.visible_message("<span class='danger'>[user.name] smashes the [src.name] with its paws.</span>",\
-			"<span class='danger'>You smash the [src.name] with your paws.</span>",\
-			"<span class='danger'>You hear a smashing sound.</span>")
-			set_broken()
-			return
-	user.visible_message("<span class='danger'>[user.name] smashes against the [src.name] with its paws.</span>",\
-	"<span class='danger'>You smash against the [src.name] with your paws.</span>",\
-	"<span class='danger'>You hear a clicking sound.</span>")
 
 /obj/machinery/computer/attack_alien(mob/living/user)
 	user.changeNext_move(CLICK_CD_MELEE)

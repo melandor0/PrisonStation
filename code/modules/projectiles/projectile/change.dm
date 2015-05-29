@@ -12,8 +12,8 @@
 
 /obj/item/projectile/change/proc/wabbajack (mob/M as mob in living_mob_list)
 	if(istype(M, /mob/living) && M.stat != DEAD)
-		if(M.monkeyizing)	return
-		M.monkeyizing = 1
+		if(M.notransform)	return
+		M.notransform = 1
 		M.canmove = 0
 		M.icon = null
 		M.overlays.Cut()
@@ -33,11 +33,8 @@
 
 		var/mob/living/new_mob
 
-		var/randomize = pick("monkey","robot","slime","xeno","human")
+		var/randomize = pick("robot","slime","xeno","human")
 		switch(randomize)
-			if("monkey")
-				new_mob = new /mob/living/carbon/monkey(M.loc)
-				new_mob.universal_speak = 1
 			if("robot")
 				new_mob = new /mob/living/silicon/robot(M.loc)
 				new_mob.gender = M.gender
@@ -74,7 +71,7 @@
 				return
 
 		for (var/obj/effect/proc_holder/spell/wizard/S in M.spell_list)
-			new_mob.spell_list += new S.type
+			new_mob.AddSpell(new S.type)
 
 		new_mob.a_intent = "harm"
 		if(M.mind)

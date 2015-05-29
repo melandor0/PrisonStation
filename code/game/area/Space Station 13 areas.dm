@@ -28,8 +28,8 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	icon = 'icons/turf/areas.dmi'
 	icon_state = "unknown"
 	layer = 10
+	luminosity = 1
 	mouse_opacity = 0
-	invisibility = INVISIBILITY_LIGHTING
 	var/lightswitch = 1
 
 	var/eject = null
@@ -50,9 +50,6 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	var/has_gravity = 1
 	var/list/apc = list()
 	var/no_air = null
-	var/area/master				// master area used for power calcluations
-								// (original area before splitting due to sd_DAL)
-	var/list/related			// the other areas of the same type as this
 //	var/list/lights				// list of all lights on this area
 	var/list/all_doors = list()		//Added by Strumpetplaya - Alarm Change - Contains a list of doors adjacent to this area
 	var/air_doors_activated = 0
@@ -113,25 +110,31 @@ var/list/ghostteleportlocs = list()
 /area/admin/
 	name = "\improper Admin Room"
 	icon_state = "start"
-	lighting_use_dynamic = 0
 	requires_power = 0
+	lighting_use_dynamic = 0
 
 
 /area/adminconstruction
 	name = "\improper Admin Testing Area"
 	icon_state = "start"
-	lighting_use_dynamic = 0
 	requires_power = 0
+	lighting_use_dynamic = 0
 
+/area/space
+	icon_state = "space"
+	requires_power = 1
+	always_unpowered = 1
+	power_light = 0
+	power_equip = 0
+	power_environ = 0
+	ambientsounds = list('sound/ambience/ambispace.ogg','sound/music/title2.ogg','sound/music/space.ogg','sound/music/main.ogg','sound/music/traitor.ogg')
 
 //These are shuttle areas, they must contain two areas in a subgroup if you want to move a shuttle from one
 //place to another. Look at escape shuttle for example.
 //All shuttles show now be under shuttle since we have smooth-wall code.
 
-/area/shuttle //DO NOT TURN THE lighting_use_dynamic STUFF ON FOR SHUTTLES. IT BREAKS THINGS.
+/area/shuttle
 	requires_power = 0
-	luminosity = 1
-	lighting_use_dynamic = 0
 
 /area/shuttle/arrival
 	name = "\improper Arrival Shuttle"
@@ -232,29 +235,21 @@ var/list/ghostteleportlocs = list()
 	icon_state = "shuttle"
 	name = "\improper Alien Shuttle Base"
 	requires_power = 1
-	luminosity = 0
-	lighting_use_dynamic = 1
 
 /area/shuttle/alien/mine
 	icon_state = "shuttle"
 	name = "\improper Alien Shuttle Mine"
 	requires_power = 1
-	luminosity = 0
-	lighting_use_dynamic = 1
 
 /area/shuttle/gamma/space
 	icon_state = "shuttle"
 	name = "\improper Gamma Armory"
 	requires_power = 0
-	luminosity = 0
-	lighting_use_dynamic = 1
 
 /area/shuttle/gamma/station
 	icon_state = "shuttle"
 	name = "\improper Gamma Armory Station"
 	requires_power = 0
-	luminosity = 0
-	lighting_use_dynamic = 1
 
 /area/shuttle/prison/
 	name = "\improper Prison Shuttle"
@@ -433,6 +428,7 @@ var/list/ghostteleportlocs = list()
 	name = "\improper Centcom"
 	icon_state = "centcom"
 	requires_power = 0
+	lighting_use_dynamic = 0
 
 /area/centcom/control
 	name = "\improper Centcom Control"
@@ -790,6 +786,8 @@ var/list/ghostteleportlocs = list()
  	icon_state = "atmos"
 
 //Maintenance
+/area/maintenance
+	ambientsounds = list('sound/ambience/ambimaint1.ogg', 'sound/ambience/ambimaint2.ogg', 'sound/ambience/ambimaint3.ogg', 'sound/ambience/ambimaint4.ogg', 'sound/ambience/ambimaint5.ogg')
 
 /area/maintenance/atmos_control
 	name = "Atmospherics Maintenance"
@@ -1081,6 +1079,7 @@ var/list/ghostteleportlocs = list()
 /area/chapel/main
 	name = "\improper Chapel"
 	icon_state = "chapel"
+	ambientsounds = list('sound/ambience/ambicha1.ogg','sound/ambience/ambicha2.ogg','sound/ambience/ambicha3.ogg','sound/ambience/ambicha4.ogg','sound/music/traitor.ogg')
 
 /area/chapel/office
 	name = "\improper Chapel Office"
@@ -1117,7 +1116,6 @@ var/list/ghostteleportlocs = list()
 /area/holodeck
 	name = "\improper Holodeck"
 	icon_state = "Holodeck"
-	luminosity = 1
 	lighting_use_dynamic = 0
 
 /area/holodeck/alphadeck
@@ -1211,6 +1209,8 @@ var/list/ghostteleportlocs = list()
 
 
 //Engineering
+/area/engine
+	ambientsounds = list('sound/ambience/ambisin1.ogg','sound/ambience/ambisin2.ogg','sound/ambience/ambisin3.ogg','sound/ambience/ambisin4.ogg')
 
 /area/engine/engine_smes
 	name = "\improper Engineering SMES"
@@ -1253,7 +1253,6 @@ var/list/ghostteleportlocs = list()
 
 /area/solar
 	requires_power = 0
-	luminosity = 1
 	lighting_use_dynamic = 0
 
 	auxport
@@ -1332,6 +1331,7 @@ var/list/ghostteleportlocs = list()
 	name = "\improper Abandoned Teleporter"
 	icon_state = "teleporter"
 	music = "signal"
+	ambientsounds = list('sound/ambience/ambimalf.ogg')
 
 /area/toxins/telesci
 	name = "\improper Telescience Lab"
@@ -1435,6 +1435,7 @@ var/list/ghostteleportlocs = list()
 /area/medical/morgue
 	name = "\improper Morgue"
 	icon_state = "morgue"
+	ambientsounds = list('sound/ambience/ambimo1.ogg','sound/ambience/ambimo2.ogg','sound/music/main.ogg')
 
 /area/medical/chemistry
 	name = "\improper Chemistry"
@@ -1561,7 +1562,7 @@ var/list/ghostteleportlocs = list()
 	icon_state = "security"
 
 /area/security/warden
-	name = "\improper Warden"
+	name = "\improper Warden's Office"
 	icon_state = "Warden"
 
 /area/security/armoury
@@ -1756,6 +1757,10 @@ area/security/podbay
 	name = "\improper Server Room"
 	icon_state = "server"
 
+/area/toxins/server_coldroom
+	name = "\improper Server Coldroom"
+	icon_state = "servercold"
+
 //Storage
 
 /area/storage/tools
@@ -1895,7 +1900,19 @@ area/security/podbay
 	name = "Derelict EVA Storage"
 	icon_state = "eva"
 
-/area/derelict/ship
+/area/shuttle/derelict/ship/start
+	name = "\improper Abandoned Ship"
+	icon_state = "yellow"
+
+/area/shuttle/derelict/ship/transit
+	name = "\improper Abandoned Ship"
+	icon_state = "yellow"
+
+/area/shuttle/derelict/ship/engipost
+	name = "\improper Abandoned Ship"
+	icon_state = "yellow"
+
+/area/shuttle/derelict/ship/station
 	name = "\improper Abandoned Ship"
 	icon_state = "yellow"
 
@@ -2078,6 +2095,9 @@ area/security/podbay
 	name = "Emergency Storage"
 	icon_state = "storage"
 
+/area/turret_protected/
+	ambientsounds = list('sound/ambience/ambimalf.ogg')
+
 /area/turret_protected/ai_upload
 	name = "\improper AI Upload Chamber"
 	icon_state = "ai_upload"
@@ -2166,6 +2186,9 @@ area/security/podbay
 
 // Telecommunications Satellite
 
+/area/tcommsat
+	ambientsounds = list('sound/ambience/ambisin2.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/ambigen10.ogg')
+
 /area/tcommsat/entrance
 	name = "\improper Telecoms Teleporter"
 	icon_state = "tcomsatentrance"
@@ -2177,18 +2200,22 @@ area/security/podbay
 /area/turret_protected/tcomsat
 	name = "\improper Telecoms Satellite"
 	icon_state = "tcomsatlob"
+	ambientsounds = list('sound/ambience/ambisin2.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/ambigen10.ogg')
 
 /area/turret_protected/tcomfoyer
 	name = "\improper Telecoms Foyer"
 	icon_state = "tcomsatentrance"
+	ambientsounds = list('sound/ambience/ambisin2.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/ambigen10.ogg')
 
 /area/turret_protected/tcomwest
 	name = "\improper Telecommunications Satellite West Wing"
 	icon_state = "tcomsatwest"
+	ambientsounds = list('sound/ambience/ambisin2.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/ambigen10.ogg')
 
 /area/turret_protected/tcomeast
 	name = "\improper Telecommunications Satellite East Wing"
 	icon_state = "tcomsateast"
+	ambientsounds = list('sound/ambience/ambisin2.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/ambigen10.ogg')
 
 /area/tcommsat/computer
 	name = "\improper Telecoms Control Room"
@@ -2297,6 +2324,7 @@ area/security/podbay
 	luminosity = 1
 	lighting_use_dynamic = 0
 	requires_power = 0
+	ambientsounds = list('sound/ambience/shore.ogg', 'sound/ambience/seag1.ogg','sound/ambience/seag2.ogg','sound/ambience/seag2.ogg')
 
 ////////////////////////AWAY AREAS///////////////////////////////////
 

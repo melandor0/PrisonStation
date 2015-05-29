@@ -91,7 +91,7 @@
 		stance_damage = 0
 
 	// standing is poor
-	if(stance_damage >= 4 || (stance_damage >= 2 && prob(5)))
+	if(stance_damage >= 4)
 		if(!(lying || resting))
 			if(species && !(species.flags & NO_PAIN))
 				emote("scream")
@@ -109,7 +109,7 @@
 			continue
 
 		if(E.is_broken())
-			if(E.body_part == HAND_LEFT)
+			if((E.body_part == HAND_LEFT) || (E.body_part == ARM_LEFT))
 				if(!l_hand)
 					continue
 				unEquip(l_hand)
@@ -123,9 +123,13 @@
 
 		else if(E.is_malfunctioning())
 
-			if(E.body_part == HAND_LEFT)
+			if((E.body_part == HAND_LEFT) || (E.body_part == ARM_LEFT))
+				if(!l_hand)
+					continue
 				unEquip(l_hand)
 			else
+				if(!r_hand)
+					continue
 				unEquip(r_hand)
 
 			emote("me", 1, "drops what they were holding, their [E.name] malfunctioning!")

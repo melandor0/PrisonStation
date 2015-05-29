@@ -52,11 +52,6 @@
 
 	var/list/datum/mind/possible_vampires = get_players_for_role(BE_VAMPIRE)
 
-	for(var/datum/mind/player in possible_vampires)
-		for(var/job in restricted_jobs)//Removing robots from the list
-			if(player.assigned_role == job)
-				possible_vampires -= player
-
 	vampire_amount = 1 + round(num_players() / 10)
 
 	if(possible_vampires.len>0)
@@ -65,6 +60,7 @@
 			var/datum/mind/vampire = pick(possible_vampires)
 			possible_vampires -= vampire
 			vampires += vampire
+			vampire.restricted_roles = restricted_jobs
 			modePlayer += vampires
 		return 1
 	else
@@ -291,6 +287,9 @@ You are weak to holy things and starlight. Don't go into space and avoid the Cha
 			src << "\blue <b>You have accumulated [src.mind.vampire.bloodtotal] [src.mind.vampire.bloodtotal > 1 ? "units" : "unit"] of blood[src.mind.vampire.bloodusable != bloodusable ?", and have [src.mind.vampire.bloodusable] left to use" : "."]"
 		check_vampire_upgrade(mind)
 		H.vessel.remove_reagent("blood",25)
+		if(ishuman(src))
+			var/mob/living/carbon/human/V = src
+			V.nutrition = min(450,V.nutrition+(blood/2))
 
 	src.mind.vampire.draining = null
 	src << "\blue You stop draining [H.name] of blood."

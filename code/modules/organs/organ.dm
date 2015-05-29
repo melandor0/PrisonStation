@@ -16,12 +16,18 @@ var/list/organ_cache = list()
 
 	var/parent_organ = "chest"
 	var/robotic = 0 //For being a robot
-	var/rejecting   // Is this organ already being rejected?
 
 	var/list/datum/autopsy_data/autopsy_data = list()
 	var/list/trace_chemicals = list() // traces of chemicals in the organ,
 									  // links chemical IDs to number of ticks for which they'll stay in the blood
 	germ_level = 0
+
+/obj/item/organ/attack_self(mob/user as mob)
+
+	// Convert it to an edible form, yum yum.
+	if(!robotic && user.a_intent == "harm")
+		bitten(user)
+		return
 
 /obj/item/organ/proc/update_health()
 	return
@@ -71,10 +77,11 @@ var/list/organ_cache = list()
 		owner = null
 
 	if(!owner)
-		var/datum/reagent/blood/B = locate(/datum/reagent/blood) in reagents.reagent_list
-		if(B && prob(40))
-			reagents.remove_reagent("blood",0.1)
-			blood_splatter(src,B,1)
+		if(reagents)
+			var/datum/reagent/blood/B = locate(/datum/reagent/blood) in reagents.reagent_list
+			if(B && prob(40))
+				reagents.remove_reagent("blood",0.1)
+				blood_splatter(src,B,1)
 		if(prob(5)) //How about we not have organs become completely useless less than a minute after removal?
 			damage += 1
 
@@ -222,8 +229,8 @@ var/list/organ_cache = list()
 
 	loc = get_turf(owner)
 	processing_objects |= src
-	rejecting = null
-	var/datum/reagent/blood/organ_blood = locate(/datum/reagent/blood) in reagents.reagent_list
+	var/datum/reagent/blood/organ_blood
+	if(reagents) organ_blood = locate(/datum/reagent/blood) in reagents.reagent_list
 	if(!organ_blood || !organ_blood.data["blood_DNA"])
 		owner.vessel.trans_to(src, 5, 1, 1)
 
@@ -258,3 +265,21 @@ var/list/organ_cache = list()
 		target.update_eyes()
 	..()
 
+/obj/item/organ/proc/bitten(mob/user)
+
+	if(robotic)
+		return
+
+	user << "\blue You take a bite out of \the [src]."
+
+	user.unEquip(src)
+	var/obj/item/weapon/reagent_containers/food/snacks/organ/O = new(get_turf(src))
+	O.name = name
+	O.icon_state = dead_icon ? dead_icon : icon_state
+
+	if(fingerprints) O.fingerprints = fingerprints.Copy()
+	if(fingerprintshidden) O.fingerprintshidden = fingerprintshidden.Copy()
+	if(fingerprintslast) O.fingerprintslast = fingerprintslast
+
+	user.put_in_active_hand(O)
+	del(src)

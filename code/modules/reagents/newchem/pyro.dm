@@ -32,7 +32,7 @@
 	id = "clf3"
 	result = "clf3"
 	required_reagents = list("chlorine" = 1, "fluorine" = 3)
-	result_amount = 3
+	result_amount = 2
 	required_temp = 424
 
 /datum/reagent/clf3/on_mob_life(var/mob/living/M as mob)
@@ -45,7 +45,7 @@
 /datum/chemical_reaction/clf3/on_reaction(var/datum/reagents/holder, var/created_volume)
 	var/turf/T = get_turf(holder.my_atom)
 	for(var/turf/turf in range(1,T))
-		new /obj/fire(turf)
+		new /obj/effect/hotspot(turf)
 	return
 
 /datum/reagent/clf3/reaction_turf(var/turf/simulated/T, var/volume)
@@ -58,18 +58,20 @@
 		if(prob(volume/10))
 			F.make_plating()
 		if(istype(F, /turf/simulated/floor/))
-			new /obj/fire(F)
+			new /obj/effect/hotspot(F)
 	if(istype(T, /turf/simulated/wall/))
 		var/turf/simulated/wall/W = T
 		if(prob(volume/10))
 			W.ChangeTurf(/turf/simulated/floor)
+	if(istype(T, /turf/simulated/shuttle/))
+		new /obj/effect/hotspot(T)
 	return
 
 /datum/reagent/clf3/reaction_mob(var/mob/living/M, var/method=TOUCH, var/volume)
 	if(method == TOUCH && isliving(M))
 		M.adjust_fire_stacks(5)
 		M.IgniteMob()
-		new /obj/fire(M.loc)
+		M.bodytemperature += 30
 		return
 
 /datum/reagent/sorium
@@ -144,9 +146,11 @@
 		if(istype(X, /atom/movable))
 			if((X) && !X.anchored)
 				if(setting_type)
+					playsound(T, 'sound/effects/bang.ogg', 25, 1)
 					for(var/i = 0, i < pull_times, i++)
 						step_away(X,T)
 				else
+					playsound(T, 'sound/effects/whoosh.ogg', 25, 1) //credit to Robinhood76 of Freesound.org for this.
 					for(var/i = 0, i < pull_times, i++)
 						step_towards(X,T)
 
@@ -173,29 +177,48 @@
 	required_reagents = list("blackpowder" = 1)
 	result_amount = 1
 	required_temp = 474
-	mix_message = "sparks start flying about."
+	no_message = 1
+	mix_sound = null
+
+datum/reagent/blackpowder/reaction_turf(var/turf/T, var/volume) //oh shit
+	src = null
+	if(volume >= 5)
+		if(!locate(/obj/effect/decal/cleanable/dirt/blackpowder) in get_turf(T)) //let's not have hundreds of decals of black powder on the same turf
+			new /obj/effect/decal/cleanable/dirt/blackpowder(T)
+			return
 
 /datum/chemical_reaction/blackpowder_explosion/on_reaction(var/datum/reagents/holder, var/created_volume)
 	var/location = get_turf(holder.my_atom)
 	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
 	s.set_up(2, 1, location)
 	s.start()
-	sleep(rand(30,50))
+	sleep(rand(20,30))
 	blackpowder_detonate(holder, created_volume)
 	return
 
 /datum/reagent/blackpowder/on_ex_act()
+	var/location = get_turf(holder.my_atom)
+	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
+	s.set_up(2, 1, location)
+	s.start()
+	sleep(rand(10,15))
 	blackpowder_detonate(holder, volume)
+	holder.remove_reagent("blackpowder", volume)
 	return
 
 /proc/blackpowder_detonate(var/datum/reagents/holder, var/created_volume)
 	var/turf/simulated/T = get_turf(holder.my_atom)
 	var/ex_severe = round(created_volume / 100)
 	var/ex_heavy = round(created_volume / 42)
-	var/ex_light = round(created_volume / 21)
+	var/ex_light = round(created_volume / 20)
 	var/ex_flash = round(created_volume / 8)
 	explosion(T,ex_severe,ex_heavy,ex_light,ex_flash, 1)
+	// If this black powder is in a decal, remove the decal, because it just exploded
+	if(istype(holder.my_atom, /obj/effect/decal/cleanable/dirt/blackpowder))
+		spawn(0)
+			qdel(holder.my_atom)
 	return
+
 /datum/reagent/flash_powder
 	name = "Flash Powder"
 	id = "flash_powder"
@@ -207,7 +230,7 @@
 	name = "Flash powder"
 	id = "flash_powder"
 	result = "flash_powder"
-	required_reagents = list("aluminum" = 1, "potassium" = 1, "sulfur" = 1 )
+	required_reagents = list("aluminum" = 1, "potassium" = 1, "sulfur" = 1, "chlorine" = 1)
 	result_amount = 3
 
 /datum/chemical_reaction/flash_powder_flash
@@ -260,7 +283,7 @@
 	id = "smoke_powder"
 	result = "smoke_powder"
 	required_reagents = list("stabilizing_agent" = 1, "potassium" = 1, "sugar" = 1, "phosphorus" = 1)
-	result_amount = 1
+	result_amount = 3
 	mix_message = "The mixture sets into a greyish powder!"
 
 /datum/chemical_reaction/smoke
@@ -283,7 +306,14 @@
 	spawn(0)
 		if(S)
 			S.set_up(holder, 10, 0, location)
-			S.start(created_volume >= 10 ? 3 : 2)
+			if(created_volume < 5)
+				S.start(1)
+			if(created_volume >=5 && created_volume < 10)
+				S.start(2)
+			if(created_volume >= 10 && created_volume < 15)
+				S.start(3)
+			if(created_volume >=15)
+				S.start(4)
 		if(holder && holder.my_atom)
 			holder.clear_reagents()
 	return
@@ -296,6 +326,7 @@
 	secondary = 1
 	result_amount = 1
 	forbidden_reagents = list()
+	mix_sound = null
 
 /datum/reagent/sonic_powder
 	name = "Sonic Powder"
@@ -395,7 +426,7 @@
 		return
 	var/turf/simulated/T = get_turf(holder.my_atom)
 	for(var/turf/simulated/turf in range(created_volume/10,T))
-		new /obj/fire(turf)
+		new /obj/effect/hotspot(turf)
 	return
 
 /datum/reagent/phlogiston/on_mob_life(var/mob/living/M as mob)
@@ -538,7 +569,7 @@ datum/reagent/firefighting_foam/reaction_turf(var/turf/simulated/T, var/volume)
 	src = null
 	if(!istype(T, /turf/space))
 		new /obj/effect/decal/cleanable/flour/foam(T) //foam mess; clears up quickly.
-	var/hotspot = (locate(/obj/fire) in T)
+	var/hotspot = (locate(/obj/effect/hotspot) in T)
 	if(hotspot && !istype(T, /turf/space))
 		var/datum/gas_mixture/lowertemp = T.remove_air( T:air:total_moles() )
 		lowertemp.temperature = max( min(lowertemp.temperature-(CT*1000),lowertemp.temperature / CT) ,0)
@@ -550,7 +581,7 @@ datum/reagent/firefighting_foam/reaction_turf(var/turf/simulated/T, var/volume)
 datum/reagent/firefighting_foam/reaction_obj(var/obj/O, var/volume)
 	src = null
 	var/turf/T = get_turf(O)
-	var/hotspot = (locate(/obj/fire) in T)
+	var/hotspot = (locate(/obj/effect/hotspot) in T)
 	if(hotspot && !istype(T, /turf/space))
 		var/datum/gas_mixture/lowertemp = T.remove_air( T:air:total_moles() )
 		lowertemp.temperature = max( min(lowertemp.temperature-2000,lowertemp.temperature / 2) ,0)

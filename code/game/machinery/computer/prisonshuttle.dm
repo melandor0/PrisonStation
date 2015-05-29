@@ -14,6 +14,7 @@ var/prison_shuttle_timeleft = 0
 	name = "Prison Shuttle Console"
 	icon = 'icons/obj/computer.dmi'
 	icon_state = "shuttle"
+	light_color = LIGHT_COLOR_PURE_CYAN
 	req_access = list(access_security)
 	circuit = "/obj/item/weapon/circuitboard/prison_shuttle"
 	var/temp = null
@@ -29,9 +30,6 @@ var/prison_shuttle_timeleft = 0
 	attack_ai(var/mob/user as mob)
 		return src.attack_hand(user)
 
-
-	attack_paw(var/mob/user as mob)
-		return src.attack_hand(user)
 
 
 	attackby(I as obj, user as mob, params)

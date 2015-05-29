@@ -111,6 +111,9 @@
 	if(!. || !I)
 		return
 
+	var/obj/item/organ/O = I //Organs shouldn't be removed unless you call droplimb.
+	if(istype(O) && O.owner == src)
+		return
 
 	if(I == wear_suit)
 		if(s_store)
@@ -193,8 +196,6 @@
 		l_hand = null
 		update_inv_l_hand()
 
-
-	update_action_buttons()
 
 
 
@@ -343,10 +344,6 @@
 /obj/effect/equip_e/human
 	name = "human"
 	var/mob/living/carbon/human/target = null
-
-/obj/effect/equip_e/monkey
-	name = "monkey"
-	var/mob/living/carbon/monkey/target = null
 
 /obj/effect/equip_e/process()
 	return

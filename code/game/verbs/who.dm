@@ -26,6 +26,20 @@
 							entry += " - <font color='black'><b>DEAD</b></font>"
 					else
 						entry += " - <font color='black'><b>DEAD</b></font>"
+
+			var/age
+			if(isnum(C.player_age))
+				age = C.player_age
+			else
+				age = 0
+
+			if(age <= 1)
+				age = "<font color='#ff0000'><b>[age]</b></font>"
+			else if(age < 10)
+				age = "<font color='#ff8c00'><b>[age]</b></font>"
+
+			entry += " - [age]"
+
 			if(is_special_character(C.mob))
 				entry += " - <b><font color='red'>Antagonist</font></b>"
 			entry += " (<A HREF='?_src_=holder;adminmoreinfo=\ref[C.mob]'>?</A>)"
@@ -55,7 +69,7 @@
 		for(var/client/C in admins)
 			if(R_ADMIN & C.holder.rights || !R_MOD & C.holder.rights)
 
-				if(C.holder.fakekey && !R_ADMIN & holder.rights)		//Mentors/Mods can't see stealthmins
+				if(C.holder.fakekey && !(R_ADMIN & holder.rights))		//Mentors/Mods can't see stealthmins
 					continue
 
 

@@ -49,6 +49,7 @@
 	var/hasShocked = 0 //Prevents multiple shocks from happening
 	var/frozen = 0 //special condition for airlocks that are frozen shut, this will look weird on not normal airlocks because of a lack of special overlays.
 	autoclose = 1
+	explosion_block = 1
 
 /obj/machinery/door/airlock/command
 	name = "Airlock"
@@ -232,36 +233,26 @@
 	return
 
 /obj/machinery/door/airlock/plasma
-	name = "Plasma Airlock"
+	name = "plasma airlock"
 	desc = "No way this can end badly."
 	icon = 'icons/obj/doors/Doorplasma.dmi'
 	mineral = "plasma"
 
-	autoignition_temperature = 300
+/obj/machinery/door/airlock/plasma/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+	if(exposed_temperature > 300)
+		PlasmaBurn(exposed_temperature)
 
-/obj/machinery/door/airlock/plasma/ignite(temperature)
-	PlasmaBurn(temperature)
+/obj/machinery/door/airlock/plasma/proc/ignite(exposed_temperature)
+	if(exposed_temperature > 300)
+		PlasmaBurn(exposed_temperature)
 
 /obj/machinery/door/airlock/plasma/proc/PlasmaBurn(temperature)
-	for(var/turf/simulated/floor/target_tile in range(2,loc))
-//		if(target_tile.parent && target_tile.parent.group_processing) // THESE PROBABLY DO SOMETHING IMPORTANT BUT I DON'T KNOW HOW TO FIX IT - Erthilo
-//			target_tile.parent.suspend_group_processing()
-		var/datum/gas_mixture/napalm = new
-		var/toxinsToDeduce = 35
-		napalm.toxins = toxinsToDeduce
-		napalm.temperature = 400+T0C
-		target_tile.assume_air(napalm)
-		spawn (0) target_tile.hotspot_expose(temperature, 400)
-	for(var/obj/structure/falsewall/plasma/F in range(3,src))//Hackish as fuck, but until temperature_expose works, there is nothing I can do -Sieve
-		var/turf/T = get_turf(F)
-		T.ChangeTurf(/turf/simulated/wall/mineral/plasma/)
-		del (F)
-	for(var/turf/simulated/wall/mineral/plasma/W in range(3,src))
-		W.ignite((temperature/4))//Added so that you can't set off a massive chain reaction with a small flame
-	for(var/obj/machinery/door/airlock/plasma/D in range(3,src))
-		D.ignite(temperature/4)
+	atmos_spawn_air(SPAWN_HEAT | SPAWN_TOXINS, 500)
 	new/obj/structure/door_assembly( src.loc )
 	del (src)
+
+/obj/machinery/door/airlock/plasma/BlockSuperconductivity() //we don't stop the heat~
+	return 0
 
 /obj/machinery/door/airlock/clown
 	name = "Bananium Airlock"
@@ -293,6 +284,7 @@
 	name = "High Tech Security Airlock"
 	icon = 'icons/obj/doors/hightechsecurity.dmi'
 	assembly_type = /obj/structure/door_assembly/door_assembly_highsecurity
+	explosion_block = 2
 
 /obj/machinery/door/airlock/highsecurity/red
 	name = "Secure Armory Airlock"
@@ -614,8 +606,6 @@ About the new airlock wires panel:
 				s.set_up(5, 1, src)
 				s.start()
 	return ..()
-/obj/machinery/door/airlock/attack_paw(mob/user as mob)
-	return src.attack_hand(user)
 
 /obj/machinery/door/airlock/attack_hand(mob/user as mob)
 	if(!istype(user, /mob/living/silicon))
@@ -918,10 +908,9 @@ About the new airlock wires panel:
 		// Do nothing
 	else
 		playsound(src.loc, 'sound/machines/airlock.ogg', 30, 1)
-	for(var/turf/turf in locs)
-		var/obj/structure/window/killthis = (locate(/obj/structure/window) in turf)
-		if(killthis)
-			killthis.ex_act(2)//Smashin windows
+	var/obj/structure/window/killthis = (locate(/obj/structure/window) in get_turf(src))
+	if(killthis)
+		killthis.ex_act(2)//Smashin windows
 
 	if(density)
 		return 1
@@ -935,16 +924,13 @@ About the new airlock wires panel:
 	sleep(5)
 	update_icon()
 	if(visible && !glass)
-		SetOpacity(1)
+		set_opacity(1)
 	operating = 0
-	update_nearby_tiles()
+	air_update_turf(1)
+	update_freelok_sight()
 	if(locate(/mob/living) in get_turf(src))
 		open()
 
-	//I shall not add a check every x ticks if a door has closed over some fire.
-	var/obj/fire/fire = locate() in loc
-	if(fire)
-		del fire
 	return
 
 /obj/machinery/door/airlock/proc/lock(var/forced=0)

@@ -105,12 +105,19 @@
 					F.loc = src.loc
 					del(src)
 
+/obj/machinery/telecomms/proc/formatInput(var/label,var/varname, var/input)
+	var/value = vars[varname]
+	if(!value || value=="")
+		value="-----"
+	return "<b>[label]:</b> <a href=\"?src=\ref[src];input=[varname]\">[value]</a>"
 
 /obj/machinery/telecomms/attack_ai(var/mob/user as mob)
 	attack_hand(user)
 
 /obj/machinery/telecomms/attack_hand(var/mob/user as mob)
+	update_multitool_menu(user)
 
+/obj/machinery/telecomms/multitool_menu(var/mob/user,var/obj/item/device/multitool/P)
 	// You need a multitool to use this, or be silicon
 	if(!issilicon(user))
 		// istype returns false if the value is null
@@ -120,62 +127,62 @@
 	if(stat & (BROKEN|NOPOWER))
 		return
 
-	var/obj/item/device/multitool/P = get_multitool(user)
-
-	user.set_machine(src)
 	var/dat
-	dat = "<font face = \"Courier\"><HEAD><TITLE>[src.name]</TITLE></HEAD><center><H3>[src.name] Access</H3></center>"
-	dat += "<br>[temp]<br>"
-	dat += "<br>Power Status: <a href='?src=\ref[src];input=toggle'>[src.toggled ? "On" : "Off"]</a>"
+
+	dat = {"
+		<p>[temp]</p>
+		<p><b>Power Status:</b> <a href='?src=\ref[src];input=toggle'>[src.toggled ? "On" : "Off"]</a></p>"}
 	if(on && toggled)
-		if(id != "" && id)
-			dat += "<br>Identification String: <a href='?src=\ref[src];input=id'>[id]</a>"
-		else
-			dat += "<br>Identification String: <a href='?src=\ref[src];input=id'>NULL</a>"
-		dat += "<br>Network: <a href='?src=\ref[src];input=network'>[network]</a>"
-		dat += "<br>Prefabrication: [autolinkers.len ? "TRUE" : "FALSE"]"
-		if(hide) dat += "<br>Shadow Link: ACTIVE</a>"
+		dat += {"
+			<p>[formatInput("Identification String","id","id")]</p>
+			<p>[formatInput("Network","network","network")]</p>
+			<p><b>Prefabrication:</b> [autolinkers.len ? "TRUE" : "FALSE"]</p>
+		"}
+		if(hide)
+			dat += "<p>Shadow Link: ACTIVE</p>"
 
 		//Show additional options for certain machines.
 		dat += Options_Menu()
 
-		dat += "<br>Linked Network Entities: <ol>"
-
+		dat += {"<h2>Linked Network Entities:</h2> <ol>"}
 		var/i = 0
 		for(var/obj/machinery/telecomms/T in links)
 			i++
 			if(T.hide && !src.hide)
 				continue
 			dat += "<li>\ref[T] [T.name] ([T.id])  <a href='?src=\ref[src];unlink=[i]'>\[X\]</a></li>"
-		dat += "</ol>"
 
-		dat += "<br>Filtering Frequencies: "
-
+		// AUTOFIXED BY fix_string_idiocy.py
+		// C:\Users\Rob\Documents\Projects\vgstation13\code\game\machinery\telecomms\machine_interactions.dm:140: dat += "</ol>"
+		dat += {"</ol>
+			<h2>Filtering Frequencies:</h2>"}
+		// END AUTOFIX
 		i = 0
 		if(length(freq_listening))
+			dat += "<ul>"
 			for(var/x in freq_listening)
-				i++
-				if(i < length(freq_listening))
-					dat += "[format_frequency(x)] GHz<a href='?src=\ref[src];delete=[x]'>\[X\]</a>; "
-				else
-					dat += "[format_frequency(x)] GHz<a href='?src=\ref[src];delete=[x]'>\[X\]</a>"
+				dat += "<li>[format_frequency(x)] GHz<a href='?src=\ref[src];delete=[x]'>\[X\]</a></li>"
+			dat += "</ul>"
 		else
-			dat += "NONE"
+			dat += "<li>NONE</li>"
 
-		dat += "<br>  <a href='?src=\ref[src];input=freq'>\[Add Filter\]</a>"
-		dat += "<hr>"
 
-		if(P)
-			if(P.buffer)
-				dat += "<br><br>MULTITOOL BUFFER: [P.buffer] ([P.buffer.id]) <a href='?src=\ref[src];link=1'>\[Link\]</a> <a href='?src=\ref[src];flush=1'>\[Flush\]"
-			else
-				dat += "<br><br>MULTITOOL BUFFER: <a href='?src=\ref[src];buffer=1'>\[Add Machine\]</a>"
+		// AUTOFIXED BY fix_string_idiocy.py
+		// C:\Users\Rob\Documents\Projects\vgstation13\code\game\machinery\telecomms\machine_interactions.dm:155: dat += "<br>  <a href='?src=\ref[src];input=freq'>\[Add Filter\]</a>"
+		dat += {"<p><a href='?src=\ref[src];input=freq'>\[Add Filter\]</a></p>
+			<hr />"}
+		// END AUTOFIX
 
-	dat += "</font>"
-	temp = ""
-	user << browse(dat, "window=tcommachine;size=520x500;can_resize=0")
-	onclose(user, "dormitory")
+	return dat
 
+/obj/machinery/telecomms/canLink(var/obj/O)
+	return istype(O,/obj/machinery/telecomms)
+
+/obj/machinery/telecomms/isLinkedWith(var/obj/O)
+	return O != null && O in links
+
+/obj/machinery/telecomms/getLink(var/idx)
+	return (idx >= 1 && idx <= links.len) ? links[idx] : null
 
 // Off-Site Relays
 //
@@ -188,11 +195,11 @@
 	var/turf/position = get_turf(src)
 
 	// Toggle on/off getting signals from the station or the current Z level
-	if(src.listening_level == STATION_Z) // equals the station
+	if(src.listening_level == ZLEVEL_STATION) // equals the station
 		src.listening_level = position.z
 		return 1
-	else if(position.z == TELECOMM_Z)
-		src.listening_level = STATION_Z
+	else if(position.z == ZLEVEL_TELECOMMS)
+		src.listening_level = ZLEVEL_STATION
 		return 1
 	return 0
 
@@ -241,8 +248,8 @@
 
 /obj/machinery/telecomms/relay/Options_Menu()
 	var/dat = ""
-	if(src.z == TELECOMM_Z)
-		dat += "<br>Signal Locked to Station: <A href='?src=\ref[src];change_listening=1'>[listening_level == STATION_Z ? "TRUE" : "FALSE"]</a>"
+	if(src.z == ZLEVEL_TELECOMMS)
+		dat += "<br>Signal Locked to Station: <A href='?src=\ref[src];change_listening=1'>[listening_level == ZLEVEL_STATION ? "TRUE" : "FALSE"]</a>"
 	dat += "<br>Broadcasting: <A href='?src=\ref[src];broadcast=1'>[broadcasting ? "YES" : "NO"]</a>"
 	dat += "<br>Receiving:    <A href='?src=\ref[src];receive=1'>[receiving ? "YES" : "NO"]</a>"
 	return dat
@@ -368,8 +375,8 @@
 
 		if(P)
 			if(P.buffer && P.buffer != src)
-				if(!(src in P.buffer.links))
-					P.buffer.links.Add(src)
+				if(!(src in P.buffer:links))
+					P.buffer:links.Add(src)
 
 				if(!(P.buffer in src.links))
 					src.links.Add(P.buffer)

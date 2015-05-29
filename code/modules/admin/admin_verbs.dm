@@ -63,6 +63,7 @@ var/list/admin_verbs_admin = list(
 	/client/proc/global_man_up,
 	/client/proc/delbook,
 	/client/proc/empty_ai_core_toggle_latejoin,
+	/client/proc/aooc,
 	/client/proc/freeze,
 	/client/proc/freezemecha,
 	/client/proc/alt_check
@@ -74,7 +75,8 @@ var/list/admin_verbs_ban = list(
 	)
 var/list/admin_verbs_sounds = list(
 	/client/proc/play_local_sound,
-	/client/proc/play_sound
+	/client/proc/play_sound,
+	/client/proc/play_server_sound
 	)
 var/list/admin_verbs_event = list(
 	/client/proc/object_talk,
@@ -107,8 +109,8 @@ var/list/admin_verbs_spawn = list(
 	/client/proc/respawn_character
 	)
 var/list/admin_verbs_server = list(
-	/client/proc/Set_Holiday,
 	/client/proc/ToRban,
+	/client/proc/Set_Holiday,
 	/datum/admins/proc/startnow,
 	/datum/admins/proc/restart,
 	/datum/admins/proc/delay,
@@ -128,8 +130,6 @@ var/list/admin_verbs_server = list(
 var/list/admin_verbs_debug = list(
 	/client/proc/cmd_admin_list_open_jobs,
 	/client/proc/Debug2,
-	/client/proc/kill_air,
-	/client/proc/ZASSettings,
 	/client/proc/cmd_debug_make_powernets,
 	/client/proc/debug_controller,
 	/client/proc/cmd_debug_mob_lists,
@@ -145,7 +145,10 @@ var/list/admin_verbs_debug = list(
 	/client/proc/toggledebuglogs,
 	/client/proc/qdel_toggle, // /vg/
 	/client/proc/gc_dump_hdl,
-	/client/proc/debugNatureMapGenerator
+	/client/proc/debugNatureMapGenerator,
+	/client/proc/check_bomb_impacts,
+	/client/proc/test_movable_UI,
+	/client/proc/test_snap_UI
 	)
 var/list/admin_verbs_possess = list(
 	/proc/possess,
@@ -401,8 +404,10 @@ var/list/admin_verbs_mentor = list(
 	set desc = "Gives a spell to a mob."
 	var/obj/effect/proc_holder/spell/wizard/S = input("Choose the spell to give to that guy", "ABRAKADABRA") as null|anything in spells
 	if(!S) return
-	T.spell_list += new S
-	T.update_power_buttons()
+	if(T.mind)
+		T.mind.AddSpell(new S)
+	else
+		T.AddSpell(new S)
 	feedback_add_details("admin_verb","GS") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 	log_admin("[key_name(usr)] gave [key_name(T)] the spell [S].")
 	message_admins("\blue [key_name_admin(usr)] gave [key_name(T)] the spell [S].", 1)
@@ -432,9 +437,10 @@ var/list/admin_verbs_mentor = list(
 		var/mob/living/carbon/human/H = T
 		if (H.species)
 			D.affected_species = list(H.species.name)
-	if(istype(T,/mob/living/carbon/monkey))
-		var/mob/living/carbon/monkey/M = T
-		D.affected_species = list(M.greaterform)
+			if(H.species.primitive_form)
+				D.affected_species |= H.species.primitive_form
+			if(H.species.greater_form)
+				D.affected_species |= H.species.greater_form
 	infect_virus2(T,D,1)
 
 	feedback_add_details("admin_verb","GD2") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!

@@ -1,7 +1,19 @@
+var/global/datum/global_init/init = new ()
+
+/*
+	Pre-map initialization stuff should go here.
+*/
+/datum/global_init/New()
+
+	makeDatumRefLists()
+	load_configuration()
+
+	del(src)
+
 /world
 	mob = /mob/new_player
 	turf = /turf/space
-	area = /area
+	area = /area/space
 	view = "17x17"
 	cache_lifespan = 0	//stops player uploaded stuff from being kept in the rsc past the current session
 
@@ -41,8 +53,11 @@
 
 	sleep_offline = 1
 
+	plant_controller = new()
 	// Create robolimbs for chargen.
 	populate_robolimb_list()
+
+	setup_map_transitions() //Before the MC starts up
 
 	processScheduler = new
 	master_controller = new /datum/controller/game_controller()
@@ -52,11 +67,13 @@
 
 		master_controller.setup()
 
-	spawn(3000)		//so we aren't adding to the round-start lag
-		if(config.ToRban)
-			ToRban_autoupdate()
-		/*if(config.kick_inactive) HANDLED IN PROCESS SCHEDULER
-			KickInactiveClients()*/
+	#ifdef MAP_NAME
+	map_name = "[MAP_NAME]"
+	#else
+	map_name = "Unknown"
+	#endif
+
+
 
 
 #undef RECOMMENDED_VERSION
@@ -118,6 +135,7 @@ var/world_topic_spam_protect_time = world.timeofday
 
 //		if(revdata)	s["revision"] = revdata.revision
 		s["admins"] = admins
+		s["map_name"] = map_name ? map_name : "Unknown"
 
 		return list2params(s)
 
@@ -289,12 +307,13 @@ var/world_topic_spam_protect_time = world.timeofday
 	join_motd = file2text("config/motd.txt")
 
 
-/world/proc/load_configuration()
+/proc/load_configuration()
 	config = new /datum/configuration()
 	config.load("config/config.txt")
 	config.load("config/game_options.txt","game_options")
 	config.loadsql("config/dbconfig.txt")
 	config.loadforumsql("config/forumdbconfig.txt")
+	config.loadoverflowwhitelist("config/ofwhitelist.txt")
 	// apply some settings from config..
 
 /hook/startup/proc/loadMods()

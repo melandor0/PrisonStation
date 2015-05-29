@@ -37,7 +37,7 @@ var/list/image/ghost_darkness_images = list() //this is a list of images for thi
 	verbs += /mob/dead/observer/proc/dead_tele
 
 	// Our new boo spell.
-	spell_list += new /obj/effect/proc_holder/spell/wizard/aoe_turf/boo(src)
+	AddSpell(new /obj/effect/proc_holder/spell/wizard/aoe_turf/boo(src))
 
 	can_reenter_corpse = flags & GHOST_CAN_REENTER
 	started_as_observer = flags & GHOST_IS_OBSERVER
@@ -228,6 +228,9 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	var/area/A = get_area_master(src)
 	if(A)
 		A.Entered(src)
+
+/mob/dead/observer/experience_pressure_difference()
+	return 0
 
 /mob/dead/observer/examine()
 	if(usr)
@@ -496,6 +499,23 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 
 	return ..()
 
+/proc/ghost_follow_link(var/atom/target, var/atom/ghost)
+	if((!target) || (!ghost)) return
+	if(isAI(target)) // AI core/eye follow links
+		var/mob/living/silicon/ai/A = target
+		. = "<a href='byond://?src=\ref[ghost];follow=\ref[A]'>core</a>"
+		if(A.client && A.eyeobj) // No point following clientless AI eyes
+			. += "|<a href='byond://?src=\ref[ghost];follow=\ref[A.eyeobj]'>eye</a>"
+		return
+	else if(istype(target, /mob/dead/observer))
+		var/mob/dead/observer/O = target
+		. = "<a href='byond://?src=\ref[ghost];follow=\ref[target]'>follow</a>"
+		if(O.mind && O.mind.current)
+			. += "|<a href='byond://?src=\ref[ghost];follow=\ref[O.mind.current]'>body</a>"
+		return
+	else
+		return "<a href='byond://?src=\ref[ghost];follow=\ref[target]'>follow</a>"
+
 //BEGIN TELEPORT HREF CODE
 /mob/dead/observer/Topic(href, href_list)
 	if(usr != src)
@@ -503,32 +523,14 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		..()
 
 	if (href_list["track"])
-		var/mob/target = locate(href_list["track"]) in mob_list
+		var/atom/target = locate(href_list["track"])
 		if(target)
 			ManualFollow(target)
 
 	if (href_list["follow"])
-		var/mob/target = locate(href_list["follow"]) in mob_list
-		var/mob/A = usr;
-		A << "You are now following [target]"
-		//var/mob/living/silicon/ai/A = locate(href_list["track2"]) in mob_list
-		if(target && target != usr)
-			following = target
-			spawn(0)
-				var/turf/pos = get_turf(A)
-				while(A.loc == pos)
-
-					var/turf/T = get_turf(target)
-					if(!T)
-						break
-					if(following != target)
-						break
-					if(!client)
-						break
-					A.loc = T
-					pos = A.loc
-					sleep(15)
-				following = null
+		var/atom/target = locate(href_list["follow"])
+		if(target)
+			ManualFollow(target)
 
 	if (href_list["jump"])
 		var/mob/target = locate(href_list["jump"])

@@ -33,6 +33,7 @@
 	var/large = 0
 	var/heat_protection = 0.5
 	var/leaping = 0
+	ventcrawler = 2
 
 /mob/living/carbon/alien/New()
 	verbs += /mob/living/carbon/verb/mob_sleep
@@ -150,6 +151,11 @@
 	if(..())
 		return
 	bodytemperature += BODYTEMP_HEATING_MAX //If you're on fire, you heat up!
+	return
+
+/mob/living/carbon/alien/proc/handle_wetness()
+	if(mob_master.current_cycle%20==2) //dry off a bit once every 20 ticks or so
+		wetlevel = max(wetlevel - 1,0)
 	return
 
 /mob/living/carbon/alien/IsAdvancedToolUser()

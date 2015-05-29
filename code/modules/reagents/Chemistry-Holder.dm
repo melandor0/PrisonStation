@@ -63,7 +63,7 @@ datum
 					if(current_list_element > reagent_list.len) current_list_element = 1
 					var/datum/reagent/current_reagent = reagent_list[current_list_element]
 
-					src.remove_reagent(current_reagent.id, 1)
+					src.remove_reagent(current_reagent.id, min(1, amount - total_transfered))
 
 					current_list_element++
 					total_transfered++
@@ -334,7 +334,8 @@ datum
 
 								var/list/seen = viewers(4, get_turf(my_atom))
 								for(var/mob/M in seen)
-									M << "\blue \icon[my_atom] [C.mix_message]"
+									if(!C.no_message)
+										M << "\blue \icon[my_atom] [C.mix_message]"
 
 							/*	if(istype(my_atom, /obj/item/slime_core))
 									var/obj/item/slime_core/ME = my_atom
@@ -352,7 +353,7 @@ datum
 											ME2.name = "used slime extract"
 											ME2.desc = "This extract has been used up."
 
-								playsound(get_turf(my_atom), 'sound/effects/bubbles.ogg', 80, 1)
+								playsound(get_turf(my_atom), C.mix_sound, 80, 1)
 
 								C.on_reaction(src, created_volume)
 								reaction_occured = 1
@@ -487,7 +488,7 @@ datum
 					R.holder = src
 					R.volume = amount
 //					SetViruses(R, data) // Includes setting data
-					R.data = data
+					if(data) R.data = data
 					//debug
 					//world << "Adding data"
 					//for(var/D in R.data)

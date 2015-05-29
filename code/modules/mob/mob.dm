@@ -898,9 +898,34 @@ var/list/slot_equipment_priority = list( \
 /mob/Stat()
 	..()
 
+	if(listed_turf && client)
+		if(!TurfAdjacent(listed_turf))
+			listed_turf = null
+		else
+			statpanel(listed_turf.name, null, listed_turf)
+			for(var/atom/A in listed_turf)
+				if(A.invisibility > see_invisible)
+					continue
+				if(is_type_in_list(A, shouldnt_see))
+					continue
+				statpanel(listed_turf.name, null, A)
+
+	statpanel("Status") // We only want alt-clicked turfs to come before Status
+
+	if(mind && mind.changeling)
+		add_stings_to_statpanel(mind.changeling.purchasedpowers)
+
+	if(spell_list && spell_list.len)
+		for(var/obj/effect/proc_holder/spell/wizard/S in spell_list)
+			add_spell_to_statpanel(S)
+	if(mind && istype(src, /mob/living) && mind.spell_list && mind.spell_list.len)
+		for(var/obj/effect/proc_holder/spell/wizard/S in mind.spell_list)
+			add_spell_to_statpanel(S)
+
+
 	if(client && client.holder)
 
-		if(statpanel("Status"))	//not looking at that panel
+		if(statpanel("DI"))	//not looking at that panel
 			stat(null, "Location:\t([x], [y], [z])")
 			stat(null, "CPU:\t[world.cpu]")
 			stat(null, "Instances:\t[world.contents.len]")
@@ -976,36 +1001,19 @@ var/list/slot_equipment_priority = list( \
 			else
 				stat(null, "processScheduler is not running.")
 
-	if(listed_turf && client)
-		if(!TurfAdjacent(listed_turf))
-			listed_turf = null
-		else
-			statpanel(listed_turf.name, null, listed_turf)
-			for(var/atom/A in listed_turf)
-				if(A.invisibility > see_invisible)
-					continue
-				if(is_type_in_list(A, shouldnt_see))
-					continue
-				statpanel(listed_turf.name, null, A)
-
-	if(mind && mind.changeling)
-		add_stings_to_statpanel(mind.changeling.purchasedpowers)
-
-	if(spell_list && spell_list.len)
-		for(var/obj/effect/proc_holder/spell/wizard/S in spell_list)
-			switch(S.charge_type)
-				if("recharge")
-					statpanel(S.panel,"[S.charge_counter/10.0]/[S.charge_max/10]",S)
-				if("charges")
-					statpanel(S.panel,"[S.charge_counter]/[S.charge_max]",S)
-				if("holdervar")
-					statpanel(S.panel,"[S.holder_var_type] [S.holder_var_amount]",S)
-
 
 /mob/proc/add_stings_to_statpanel(var/list/stings)
 	for(var/obj/effect/proc_holder/changeling/S in stings)
 		if(S.chemical_cost >=0 && S.can_be_used_by(src))
 			statpanel("[S.panel]",((S.chemical_cost > 0) ? "[S.chemical_cost]" : ""),S)
+/mob/proc/add_spell_to_statpanel(var/obj/effect/proc_holder/spell/wizard/S)
+	switch(S.charge_type)
+		if("recharge")
+			statpanel(S.panel,"[S.charge_counter/10.0]/[S.charge_max/10]",S)
+		if("charges")
+			statpanel(S.panel,"[S.charge_counter]/[S.charge_max]",S)
+		if("holdervar")
+			statpanel(S.panel,"[S.holder_var_type] [S.holder_var_amount]",S)
 	/* // Why have a duplicate set of turfs in the stat panel?
 	if(listed_turf)
 		if(get_dist(listed_turf,src) > 1)
@@ -1026,7 +1034,7 @@ var/list/slot_equipment_priority = list( \
 	if(world.time < client.move_delay)	return 0
 	if(stat==2)							return 0
 	if(anchored)						return 0
-	if(monkeyizing)						return 0
+	if(notransform)						return 0
 	if(restrained())					return 0
 	return 1
 
@@ -1052,7 +1060,7 @@ var/list/slot_equipment_priority = list( \
 	if(istype(buckled, /obj/vehicle))
 		var/obj/vehicle/V = buckled
 		if(stat || weakened || paralysis || resting || sleeping || (status_flags & FAKEDEATH))
-			lying = 1
+			lying = 90
 			canmove = 0
 			pixel_y = V.mob_offset_y - 5
 		else
@@ -1065,13 +1073,13 @@ var/list/slot_equipment_priority = list( \
 		if( istype(buckled,/obj/structure/stool/bed/chair) )
 			lying = 0
 		else
-			lying = 1
+			lying = 90
 	else if(buckled && is_movable)
 		anchored = 0
 		canmove = 1
 		lying = 0
 	else if( stat || weakened || paralysis || resting || sleeping || (status_flags & FAKEDEATH))
-		lying = 1
+		lying = 90
 		canmove = 0
 	else if( stunned )
 		canmove = 0
@@ -1097,9 +1105,8 @@ var/list/slot_equipment_priority = list( \
 	if(update_icon)	//forces a full overlay update
 		update_icon = 0
 		regenerate_icons()
-	else if( lying != lying_prev )
-		update_icons()
-
+	update_transform()
+	lying_prev = lying
 	return canmove
 
 /mob/proc/fall(var/forced)
@@ -1415,6 +1422,10 @@ mob/proc/yank_out_object()
 		usr << "<span class='warning'>You are banned from playing as NPC's.</span>"
 		return
 
+	if(!ticker || ticker.current_state < 3)
+		src << "<span class='warning'>You can't respawn as an NPC before the game starts!</span>"
+		return
+
 	if((usr in respawnable_list) && (stat==2 || istype(usr,/mob/dead/observer)))
 		var/list/creatures = list("Mouse")
 		for(var/mob/living/L in living_mob_list)
@@ -1534,3 +1545,28 @@ mob/proc/yank_out_object()
 			src.visible_message("<span class='warning'>[src] pukes all over \himself!</span>","<span class='warning'>You puke all over yourself!</span>")
 			location.add_vomit_floor(src, 1)
 		playsound(location, 'sound/effects/splat.ogg', 50, 1)
+
+/mob/proc/fakepoop() //for aesthetic craps. Whyyyyy -Fox
+	if(stat==DEAD)
+		return
+	var/turf/location = loc
+	if (istype(location, /turf/simulated))
+		src.visible_message("<span class='warning'>[src] has explosive diarrhea all over the floor!</span>","<span class='warning'>You have explosive diarrhea all over the floor!</span>")
+		location.add_poop_floor()
+		playsound(location, 'sound/effects/splat.ogg', 50, 1)
+
+/mob/proc/AddSpell(var/obj/effect/proc_holder/spell/spell)
+	spell_list += spell
+	if(!spell.action)
+		spell.action = new/datum/action/spell_action
+		spell.action.target = spell
+		spell.action.name = spell.name
+		spell.action.button_icon = spell.action_icon
+		spell.action.button_icon_state = spell.action_icon_state
+		spell.action.background_icon_state = spell.action_background_icon_state
+	if(isliving(src))
+		spell.action.Grant(src)
+	return
+
+/mob/proc/handle_ventcrawl()
+	return // Only living mobs can ventcrawl

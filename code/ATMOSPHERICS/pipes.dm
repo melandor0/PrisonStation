@@ -426,7 +426,7 @@
 		universal_underlays(node2)
 	else
 		universal_underlays(,dir)
-		universal_underlays(dir, -180)
+		universal_underlays(,turn(dir, -180))
 
 /obj/machinery/atmospherics/pipe/simple/visible/universal/update_underlays()
 	..()
@@ -1092,7 +1092,7 @@
 	alpha = 255
 
 	overlays.Cut()
-	overlays += icon_manager.get_atmos_icon("pipe", , pipe_color, "cap")
+	overlays += icon_manager.get_atmos_icon("pipe", , pipe_color, "cap" + icon_connect_type)
 
 /obj/machinery/atmospherics/pipe/cap/initialize()
 	for(var/obj/machinery/atmospherics/target in get_step(src, dir))
@@ -1138,7 +1138,7 @@
 /obj/machinery/atmospherics/pipe/cap/hidden/scrubbers
 	name = "scrubbers pipe endcap"
 	desc = "An endcap for scrubbers pipes"
-	icon_state = "cap-f-scrubbers"
+	icon_state = "cap-scrubbers"
 	connect_types = list(3)
 	layer = 2.38
 	icon_connect_type = "-scrubbers"
@@ -1147,7 +1147,7 @@
 /obj/machinery/atmospherics/pipe/cap/hidden/supply
 	name = "supply pipe endcap"
 	desc = "An endcap for supply pipes"
-	icon_state = "cap-f-supply"
+	icon_state = "cap-supply"
 	connect_types = list(2)
 	layer = 2.39
 	icon_connect_type = "-supply"
@@ -1428,3 +1428,23 @@
 		dir = get_dir(src, node1)
 	else
 		icon_state = "exposed"
+
+/obj/machinery/atmospherics/pipe/vent/attackby(var/obj/item/weapon/W, var/mob/user)
+	if (!istype(W, /obj/item/weapon/wrench))
+		return ..()
+	var/turf/T = get_turf(src)
+	var/datum/gas_mixture/int_air = return_air()
+	var/datum/gas_mixture/env_air = T.return_air()
+	if ((int_air.return_pressure()-env_air.return_pressure()) > 2*ONE_ATMOSPHERE)
+		user << "\red You cannot unwrench this [src], it too exerted due to internal pressure."
+		add_fingerprint(user)
+		return 1
+	playsound(T, 'sound/items/Ratchet.ogg', 50, 1)
+	user << "\blue You begin to unfasten \the [src]..."
+	if (do_after(user, 40))
+		user.visible_message( \
+			"[user] unfastens \the [src].", \
+			"\blue You have unfastened \the [src].", \
+			"You hear ratchet.")
+		new /obj/item/pipe(T, make_from=src)
+		del(src)

@@ -12,9 +12,9 @@
 	range = 7
 	cooldown_min = 30 //30 deciseconds reduction per rank
 	selection_type = "range"
-	var/list/compatible_mobs = list(/mob/living/carbon/human, /mob/living/carbon/monkey)
+	var/list/compatible_mobs = list(/mob/living/carbon/human)
 
-	icon_power_button = "spell_horse"
+	action_icon_state = "spell_horse"
 
 /obj/effect/proc_holder/spell/wizard/targeted/horsemask/cast(list/targets, mob/user = usr)
 	if(!targets.len)

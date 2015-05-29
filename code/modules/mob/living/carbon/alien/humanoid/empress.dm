@@ -10,6 +10,7 @@
 	move_delay_add = 3
 	max_plasma = 1000
 	large = 1
+	ventcrawler = 0
 
 /mob/living/carbon/alien/humanoid/empress/large
 	name = "alien empress"
@@ -19,18 +20,19 @@
 	pixel_x = -32
 
 /mob/living/carbon/alien/humanoid/empress/large/update_icons()
-	lying_prev = lying	//so we don't update overlays for lying/standing unless our stance changes again
+
 	update_hud()		//TODO: remove the need for this to be here
 	overlays.Cut()
-	if(lying)
-		if(resting)					icon_state = "empress_sleep"
-		else						icon_state = "empress_l"
-		for(var/image/I in overlays_lying)
-			overlays += I
+
+	if(stat == DEAD)
+		icon_state = "empress_dead"
+	else if(stat == UNCONSCIOUS || lying || resting)
+		icon_state = "empress_sleep"
 	else
 		icon_state = "empress_s"
-		for(var/image/I in overlays_standing)
-			overlays += I
+
+	for(var/image/I in overlays_standing)
+		overlays += I
 
 /mob/living/carbon/alien/humanoid/empress/New()
 	var/datum/reagents/R = new/datum/reagents(100)
@@ -47,7 +49,6 @@
 
 	real_name = src.name
 	verbs.Add(/mob/living/carbon/alien/humanoid/proc/corrosive_acid,/mob/living/carbon/alien/humanoid/proc/resin)
-	verbs -= /mob/living/carbon/alien/verb/alien_ventcrawl
 	..()
 
 /mob/living/carbon/alien/humanoid/empress

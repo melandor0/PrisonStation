@@ -281,6 +281,23 @@ But you can call procs that are of type /mob/living/carbon/human/proc/ for that 
 	else
 		alert("Invalid mob")
 
+/client/proc/cmd_admin_super(var/mob/M in mob_list)
+	set category = "Event"
+	set name = "Make Superhero"
+
+	if(!ticker)
+		alert("Wait until the game starts")
+		return
+	if(ishuman(M))
+		var/type = input("Pick the Superhero","Superhero") as null|anything in all_superheroes
+		var/datum/superheroes/S = all_superheroes[type]
+		if(S)
+			S.create(M)
+		log_admin("[key_name(src)] has turned [M.key] into a Superhero.")
+		message_admins("\blue [key_name_admin(usr)] made [key_name(M)] into a Superhero.", 1)
+	else
+		alert("Invalid mob")
+
 /*
 /client/proc/cmd_admin_monkeyize(var/mob/M in world)
 	set category = "Event"
@@ -1020,7 +1037,7 @@ But you can call procs that are of type /mob/living/carbon/human/proc/ for that 
 			M.equip_to_slot_or_del(new /obj/item/clothing/head/wizard(M), slot_head)
 			M.equip_to_slot_or_del(new /obj/item/weapon/teleportation_scroll(M), slot_r_store)
 			M.equip_to_slot_or_del(new /obj/item/weapon/spellbook(M), slot_r_hand)
-			M.equip_to_slot_or_del(new /obj/item/weapon/staff(M), slot_l_hand)
+			M.equip_to_slot_or_del(new /obj/item/weapon/twohanded/staff(M), slot_l_hand)
 			M.equip_to_slot_or_del(new /obj/item/weapon/storage/backpack(M), slot_back)
 			M.equip_to_slot_or_del(new /obj/item/weapon/storage/box(M), slot_in_backpack)
 
@@ -1032,7 +1049,7 @@ But you can call procs that are of type /mob/living/carbon/human/proc/ for that 
 			M.equip_to_slot_or_del(new /obj/item/clothing/head/wizard/red(M), slot_head)
 			M.equip_to_slot_or_del(new /obj/item/weapon/teleportation_scroll(M), slot_r_store)
 			M.equip_to_slot_or_del(new /obj/item/weapon/spellbook(M), slot_r_hand)
-			M.equip_to_slot_or_del(new /obj/item/weapon/staff(M), slot_l_hand)
+			M.equip_to_slot_or_del(new /obj/item/weapon/twohanded/staff(M), slot_l_hand)
 			M.equip_to_slot_or_del(new /obj/item/weapon/storage/backpack(M), slot_back)
 			M.equip_to_slot_or_del(new /obj/item/weapon/storage/box(M), slot_in_backpack)
 
@@ -1044,7 +1061,7 @@ But you can call procs that are of type /mob/living/carbon/human/proc/ for that 
 			M.equip_to_slot_or_del(new /obj/item/clothing/head/wizard/marisa(M), slot_head)
 			M.equip_to_slot_or_del(new /obj/item/weapon/teleportation_scroll(M), slot_r_store)
 			M.equip_to_slot_or_del(new /obj/item/weapon/spellbook(M), slot_r_hand)
-			M.equip_to_slot_or_del(new /obj/item/weapon/staff(M), slot_l_hand)
+			M.equip_to_slot_or_del(new /obj/item/weapon/twohanded/staff(M), slot_l_hand)
 			M.equip_to_slot_or_del(new /obj/item/weapon/storage/backpack(M), slot_back)
 			M.equip_to_slot_or_del(new /obj/item/weapon/storage/box(M), slot_in_backpack)
 

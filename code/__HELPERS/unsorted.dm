@@ -542,6 +542,8 @@ Turf and target are seperate in case you want to teleport some distance from a t
 	var/list/sortmob = sortAtom(mob_list)
 	for(var/mob/living/silicon/ai/M in sortmob)
 		moblist.Add(M)
+		if(M.eyeobj)
+			moblist.Add(M.eyeobj)
 	for(var/mob/living/silicon/pai/M in sortmob)
 		moblist.Add(M)
 	for(var/mob/living/silicon/robot/M in sortmob)
@@ -556,16 +558,10 @@ Turf and target are seperate in case you want to teleport some distance from a t
 		moblist.Add(M)
 	for(var/mob/new_player/M in sortmob)
 		moblist.Add(M)
-	for(var/mob/living/carbon/monkey/M in sortmob)
-		moblist.Add(M)
 	for(var/mob/living/carbon/slime/M in sortmob)
 		moblist.Add(M)
 	for(var/mob/living/simple_animal/M in sortmob)
 		moblist.Add(M)
-//	for(var/mob/living/silicon/hivebot/M in world)
-//		mob_list.Add(M)
-//	for(var/mob/living/silicon/hive_mainframe/M in world)
-//		mob_list.Add(M)
 	return moblist
 
 //E = MC^2
@@ -967,13 +963,11 @@ proc/anim(turf/location as turf,target as mob|obj,a_icon,a_icon_state as text,fl
 					X.icon_state = old_icon_state1
 					X.icon = old_icon1 //Shuttle floors are in shuttle.dmi while the defaults are floors.dmi
 
-					var/turf/simulated/ST = T
-					if(istype(ST) && ST.zone)
-						var/turf/simulated/SX = X
-						if(!SX.air)
-							SX.make_air()
-						SX.air.copy_from(ST.zone.air)
-						ST.zone.remove(ST)
+					// Give the new turf our air, if simulated
+					if(istype(X, /turf/simulated) && istype(T, /turf/simulated))
+						var/turf/simulated/sim = X
+						sim.copy_air_with_tile(T)
+
 
 					/* Quick visual fix for some weird shuttle corner artefacts when on transit space tiles */
 					if(direction && findtext(X.icon_state, "swall_s"))
@@ -1021,7 +1015,7 @@ proc/anim(turf/location as turf,target as mob|obj,a_icon,a_icon_state as text,fl
 
 //					if(AR.lighting_use_dynamic)							//TODO: rewrite this code so it's not messed by lighting ~Carn
 //						X.opacity = !X.opacity
-//						X.SetOpacity(!X.opacity)
+//						X.set_opacity(!X.opacity)
 
 					toupdate += X
 
@@ -1034,28 +1028,18 @@ proc/anim(turf/location as turf,target as mob|obj,a_icon,a_icon_state as text,fl
 					refined_trg -= B
 					continue moving
 
-	var/list/doors = new/list()
-
 	if(toupdate.len)
 		for(var/turf/simulated/T1 in toupdate)
-			for(var/obj/machinery/door/D2 in T1)
-				doors += D2
-			/*if(T1.parent)
-				air_master.groups_to_rebuild += T1.parent
-			else
-				air_master.tiles_to_update += T1*/
+			air_master.remove_from_active(T1)
+			T1.CalculateAdjacentTurfs()
+			air_master.add_to_active(T1,1)
 
 	if(fromupdate.len)
 		for(var/turf/simulated/T2 in fromupdate)
-			for(var/obj/machinery/door/D2 in T2)
-				doors += D2
-			/*if(T2.parent)
-				air_master.groups_to_rebuild += T2.parent
-			else
-				air_master.tiles_to_update += T2*/
+			air_master.remove_from_active(T2)
+			T2.CalculateAdjacentTurfs()
+			air_master.add_to_active(T2,1)
 
-	for(var/obj/O in doors)
-		O:update_nearby_tiles(1)
 
 
 
@@ -1189,7 +1173,7 @@ proc/DuplicateObject(obj/original, var/perfectcopy = 0 , var/sameloc = 0)
 
 //					if(AR.lighting_use_dynamic)
 //						X.opacity = !X.opacity
-//						X.sd_SetOpacity(!X.opacity)			//TODO: rewrite this code so it's not messed by lighting ~Carn
+//						X.sd_set_opacity(!X.opacity)			//TODO: rewrite this code so it's not messed by lighting ~Carn
 
 					toupdate += X
 
@@ -1199,22 +1183,10 @@ proc/DuplicateObject(obj/original, var/perfectcopy = 0 , var/sameloc = 0)
 
 
 
-
-	var/list/doors = new/list()
-
 	if(toupdate.len)
 		for(var/turf/simulated/T1 in toupdate)
-			for(var/obj/machinery/door/D2 in T1)
-				doors += D2
-			/*if(T1.parent)
-				air_master.groups_to_rebuild += T1.parent
-			else
-				air_master.tiles_to_update += T1*/
-
-	for(var/obj/O in doors)
-		O:update_nearby_tiles(1)
-
-
+			T1.CalculateAdjacentTurfs()
+			air_master.add_to_active(T1,1)
 
 
 	return copiedobjs
@@ -1287,37 +1259,15 @@ proc/get_mob_with_client_list()
 				return
 
 //Finds the distance between two atoms, in pixels
-/proc/getPixelDistance(var/atom/A, var/atom/B)
+//centered = 0 counts from turf edge to edge
+//centered = 1 counts from turf center to turf center
+//of course mathematically this is just adding world.icon_size on again
+/proc/getPixelDistance(var/atom/A, var/atom/B, var/centered = 1)
 	if(!istype(A)||!istype(B))
 		return 0
-
-	var/_x1 = A.x
-	var/_x2 = B.x
-	var/_y1 = A.y
-	var/_y2 = B.y
-
-	//Ensure _x1 is bigger, simplicity
-	if(_x2 > _x1)
-		var/tx = _x1
-		_x1 = _x2
-		_x2 = tx
-
-	//Ensure _y1 is bigger, simplicity
-	if(_y2 > _y1)
-		var/ty = _y1
-		_y1 = _y2
-		_y2 = ty
-
-	//DY/DX
-	var/dx = _x1 - _x2 + A.pixel_x + B.pixel_x
-	var/dy = _y1 - _y2 + A.pixel_y + B.pixel_y
-
-	//Distance check
-	if(dx == 0 && dy == 0) //No distance, don't bother calculating
-		return 0
-
-	. = sqrt(((dx**2) + (dy**2)))
-
+	. = bounds_dist(A, B) + sqrt((((A.pixel_x+B.pixel_x)**2) + ((A.pixel_y+B.pixel_y)**2)))
+	if(centered)
+		. += world.icon_size
 
 /proc/get(atom/loc, type)
 	while(loc)
@@ -1511,7 +1461,8 @@ var/list/WALLITEMS = list(
 	"/obj/machinery/newscaster", "/obj/machinery/firealarm", "/obj/structure/noticeboard", "/obj/machinery/door_control",
 	"/obj/machinery/computer/security/telescreen", "/obj/machinery/embedded_controller/radio/simple_vent_controller",
 	"/obj/item/weapon/storage/secure/safe", "/obj/machinery/door_timer", "/obj/machinery/flasher", "/obj/machinery/keycard_auth",
-	"/obj/structure/mirror", "/obj/structure/closet/fireaxecabinet", "/obj/machinery/computer/security/telescreen/entertainment"
+	"/obj/structure/mirror", "/obj/structure/closet/fireaxecabinet", "/obj/machinery/computer/security/telescreen/entertainment",
+	"/obj/structure/sign"
 	)
 /proc/gotwallitem(loc, dir)
 	for(var/obj/O in loc)
@@ -1541,7 +1492,7 @@ var/list/WALLITEMS = list(
 	for(var/obj/O in get_step(loc, dir))
 		for(var/item in WALLITEMS)
 			if(istype(O, text2path(item)))
-				if(O.pixel_x == 0 && O.pixel_y == 0)
+				if(abs(O.pixel_x) <= 10 && abs(O.pixel_y) <= 10)
 					return 1
 	return 0
 
@@ -1696,3 +1647,33 @@ atom/proc/GetTypeInAllContents(typepath)
 			step(AM, pick(alldirs))
 		chance = max(chance - (initial_chance / steps), 0)
 		steps--
+
+/proc/get_random_colour(var/simple, var/lower, var/upper)
+	var/colour
+	if(simple)
+		colour = pick(list("FF0000","FF7F00","FFFF00","00FF00","0000FF","4B0082","8F00FF"))
+	else
+		for(var/i=1;i<=3;i++)
+			var/temp_col = "[num2hex(rand(lower,upper))]"
+			if(length(temp_col )<2)
+				temp_col  = "0[temp_col]"
+			colour += temp_col
+	return colour
+
+/proc/get_distant_turf(var/turf/T,var/direction,var/distance)
+	if(!T || !direction || !distance)	return
+
+	var/dest_x = T.x
+	var/dest_y = T.y
+	var/dest_z = T.z
+
+	if(direction & NORTH)
+		dest_y = min(world.maxy, dest_y+distance)
+	if(direction & SOUTH)
+		dest_y = max(0, dest_y-distance)
+	if(direction & EAST)
+		dest_x = min(world.maxy, dest_x+distance)
+	if(direction & WEST)
+		dest_x = max(0, dest_x-distance)
+
+	return locate(dest_x,dest_y,dest_z)

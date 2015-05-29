@@ -84,5 +84,5 @@
 
 	var/frozen = 0 //used for preventing attacks on admin-frozen people
 
-	fire_dmi = 'icons/mob/OnFire.dmi'
-	fire_sprite = "Standing"
+	var/fire_dmi = 'icons/mob/OnFire.dmi'
+	var/fire_sprite = "Standing"

@@ -9,64 +9,6 @@
 #define LIGHT_BROKEN 2
 #define LIGHT_BURNED 3
 
-
-
-/obj/item/light_fixture_frame
-	name = "light fixture frame"
-	desc = "Used for building lights."
-	icon = 'icons/obj/lighting.dmi'
-	icon_state = "tube-construct-item"
-	flags = CONDUCT
-	var/fixture_type = "tube"
-	var/obj/machinery/light/newlight = null
-	var/sheets_refunded = 2
-
-/obj/item/light_fixture_frame/attackby(obj/item/weapon/W as obj, mob/living/user as mob, params)
-	if (istype(W, /obj/item/weapon/wrench))
-		new /obj/item/stack/sheet/metal( get_turf(src.loc), sheets_refunded )
-		del(src)
-		return
-	..()
-
-/obj/item/light_fixture_frame/proc/try_build(turf/on_wall)
-	if (get_dist(on_wall,usr)>1)
-		return
-	var/ndir = get_dir(usr,on_wall)
-	if (!(ndir in cardinal))
-		return
-	var/turf/loc = get_turf_loc(usr)
-	if (!istype(loc, /turf/simulated/floor))
-		usr << "\red [src.name] cannot be placed on this spot."
-		return
-	usr << "Attaching [src] to the wall."
-	playsound(src.loc, 'sound/machines/click.ogg', 75, 1)
-	var/constrdir = usr.dir
-	var/constrloc = usr.loc
-	if (!do_after(usr, 30))
-		return
-	switch(fixture_type)
-		if("bulb")
-			newlight = new /obj/machinery/light_construct/small(constrloc)
-		if("tube")
-			newlight = new /obj/machinery/light_construct(constrloc)
-	newlight.dir = constrdir
-	newlight.fingerprints = src.fingerprints
-	newlight.fingerprintshidden = src.fingerprintshidden
-	newlight.fingerprintslast = src.fingerprintslast
-
-	usr.visible_message("[usr.name] attaches [src] to the wall.", \
-		"You attach [src] to the wall.")
-	del(src)
-
-/obj/item/light_fixture_frame/small
-	name = "small light fixture frame"
-	desc = "Used for building small lights."
-	icon = 'icons/obj/lighting.dmi'
-	icon_state = "bulb-construct-item"
-	flags = CONDUCT
-	fixture_type = "bulb"
-	sheets_refunded = 1
-
 /obj/machinery/light_construct
 	name = "light fixture frame"
 	desc = "A light fixture under construction."
@@ -199,7 +141,9 @@
 	power_channel = LIGHT //Lights are calc'd via area so they dont need to be in the machine list
 	var/on = 0					// 1 if on, 0 if off
 	var/on_gs = 0
-	var/brightness = 8			// luminosity when on, also used in power calculation
+	var/brightness_range = 8	// luminosity when on, also used in power calculation
+	var/brightness_power = 3
+	var/brightness_color = null
 	var/status = LIGHT_OK		// LIGHT_OK, _EMPTY, _BURNED or _BROKEN
 	var/flickering = 0
 	var/light_type = /obj/item/weapon/light/tube		// the type of light item
@@ -215,7 +159,9 @@
 	icon_state = "bulb1"
 	base_state = "bulb"
 	fitting = "bulb"
-	brightness = 4
+	brightness_range = 4
+	brightness_power = 2
+	brightness_color = "#a0a080"
 	desc = "A small lighting fixture."
 	light_type = /obj/item/weapon/light/bulb
 
@@ -236,7 +182,8 @@
 	name = "spotlight"
 	fitting = "large tube"
 	light_type = /obj/item/weapon/light/tube/large
-	brightness = 12
+	brightness_range = 12
+	brightness_power = 4
 
 /obj/machinery/light/built/New()
 	status = LIGHT_EMPTY
@@ -253,13 +200,20 @@
 	..()
 
 	spawn(2)
+		var/area/A = get_area(src)
+		if(A && !A.requires_power)
+			on = 1
+
 		switch(fitting)
 			if("tube")
-				brightness = 8
+				brightness_range = 8
+				brightness_power = 3
 				if(prob(2))
 					broken(1)
 			if("bulb")
-				brightness = 4
+				brightness_range = 4
+				brightness_power = 2
+				brightness_color = "#a0a080"
 				if(prob(5))
 					broken(1)
 		spawn(1)
@@ -293,7 +247,7 @@
 
 	update_icon()
 	if(on)
-		if(luminosity != brightness)
+		if(light_range != brightness_range || light_power != brightness_power || light_color != brightness_color)
 			switchcount++
 			if(rigged)
 				if(status == LIGHT_OK && trigger)
@@ -307,15 +261,15 @@
 					status = LIGHT_BURNED
 					icon_state = "[base_state]-burned"
 					on = 0
-					SetLuminosity(0)
+					set_light(0)
 			else
 				use_power = 2
-				SetLuminosity(brightness)
+				set_light(brightness_range, brightness_power, brightness_color)
 	else
 		use_power = 1
-		SetLuminosity(0)
+		set_light(0)
 
-	active_power_usage = (luminosity * 10)
+	active_power_usage = ((light_range + light_power) * 10)
 	if(on != on_gs)
 		on_gs = on
 
@@ -367,8 +321,9 @@
 				user << "You insert the [L.name]."
 				switchcount = L.switchcount
 				rigged = L.rigged
-				brightness = L.brightness
-				l_color = L.color
+				brightness_range = L.brightness_range
+				brightness_power = L.brightness_power
+				brightness_color = L.brightness_color
 				on = has_power()
 				update()
 
@@ -445,7 +400,7 @@
 // true if area has power and lightswitch is on
 /obj/machinery/light/proc/has_power()
 	var/area/A = src.loc.loc
-	return A.master.lightswitch && A.master.power_light
+	return A.lightswitch && A.power_light
 
 /obj/machinery/light/proc/flicker(var/amount = rand(10, 20))
 	if(flickering) return
@@ -532,8 +487,9 @@
 	var/obj/item/weapon/light/L = new light_type()
 	L.status = status
 	L.rigged = rigged
-	L.brightness = src.brightness
-	L.color = l_color
+	L.brightness_range = brightness_range
+	L.brightness_power = brightness_power
+	L.brightness_color = brightness_color
 
 	// light item inherits the switchcount, then zero it
 	L.switchcount = switchcount
@@ -559,8 +515,9 @@
 	var/obj/item/weapon/light/L = new light_type()
 	L.status = status
 	L.rigged = rigged
-	L.brightness = brightness
-	L.color = l_color
+	L.brightness_range = brightness_range
+	L.brightness_power = brightness_power
+	L.brightness_color = brightness_color
 
 	// light item inherits the switchcount, then zero it
 	L.switchcount = switchcount
@@ -591,7 +548,6 @@
 	if(status == LIGHT_OK)
 		return
 	status = LIGHT_OK
-	brightness = initial(brightness)
 	on = 1
 	update()
 
@@ -604,11 +560,9 @@
 			qdel(src)
 			return
 		if(2.0)
-			if (prob(75))
-				broken()
+			broken()
 		if(3.0)
-			if (prob(50))
-				broken()
+			broken()
 	return
 
 //blob effect
@@ -626,7 +580,7 @@
 /*
 /obj/machinery/light/process()//TODO: remove/add this from machines to save on processing as needed ~Carn PRIORITY
 	if(on)
-		use_power(luminosity * LIGHTING_POWER_FACTOR, LIGHT)
+		use_power(light_range * LIGHTING_POWER_FACTOR, LIGHT)
 */
 
 // called when area power state changes
@@ -637,7 +591,7 @@
 
 // called when on fire
 
-/obj/machinery/light/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+/obj/machinery/light/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
 	if(prob(max(0, exposed_temperature - 673)))   //0% at <400C, 100% at >500C
 		broken()
 
@@ -666,7 +620,9 @@
 	var/switchcount = 0	// number of times switched
 	m_amt = 60
 	var/rigged = 0		// true if rigged to explode
-	var/brightness = 2 //how much light it gives off
+	var/brightness_range = 2 //how much light it gives off
+	var/brightness_power = 1
+	var/brightness_color = null
 
 /obj/item/weapon/light/tube
 	name = "light tube"
@@ -675,12 +631,14 @@
 	base_state = "ltube"
 	item_state = "c_tube"
 	g_amt = 100
-	brightness = 8
+	brightness_range = 8
+	brightness_power = 3
 
 /obj/item/weapon/light/tube/large
 	w_class = 2
 	name = "large light tube"
-	brightness = 15
+	brightness_range = 15
+	brightness_power = 4
 
 /obj/item/weapon/light/bulb
 	name = "light bulb"
@@ -689,7 +647,9 @@
 	base_state = "lbulb"
 	item_state = "contvapour"
 	g_amt = 100
-	brightness = 5
+	brightness_range = 5
+	brightness_power = 2
+	brightness_color = "#a0a080"
 
 /obj/item/weapon/light/throw_impact(atom/hit_atom)
 	..()
@@ -702,7 +662,8 @@
 	base_state = "fbulb"
 	item_state = "egg4"
 	g_amt = 100
-	brightness = 5
+	brightness_range = 5
+	brightness_power = 2
 
 // update the icon state and description of the light
 
@@ -723,9 +684,9 @@
 	..()
 	switch(name)
 		if("light tube")
-			brightness = rand(6,9)
+			brightness_range = rand(6,9)
 		if("light bulb")
-			brightness = rand(4,6)
+			brightness_range = rand(4,6)
 	update()
 
 

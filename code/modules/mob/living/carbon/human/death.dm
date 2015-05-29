@@ -1,7 +1,7 @@
 /mob/living/carbon/human/gib()
 	death(1)
 	var/atom/movable/overlay/animation = null
-	monkeyizing = 1
+	notransform = 1
 	canmove = 0
 	icon = null
 	invisibility = 101
@@ -12,6 +12,11 @@
 		animation.master = src
 
 		playsound(src.loc, 'sound/effects/gib.ogg', 100, 1, 10)
+
+	for(var/obj/item/organ/I in internal_organs)
+		if(istype(loc,/turf))
+			I.removed(src)
+			I.throw_at(get_edge_target_turf(src,pick(alldirs)),rand(1,3),5)
 
 	for(var/obj/item/organ/external/E in src.organs)
 		if(istype(E, /obj/item/organ/external/chest))
@@ -37,7 +42,7 @@
 /mob/living/carbon/human/dust()
 	death(1)
 	var/atom/movable/overlay/animation = null
-	monkeyizing = 1
+	notransform = 1
 	canmove = 0
 	icon = null
 	invisibility = 101
@@ -57,7 +62,7 @@
 /mob/living/carbon/human/melt()
 	death(1)
 	var/atom/movable/overlay/animation = null
-	monkeyizing = 1
+	notransform = 1
 	canmove = 0
 	icon = null
 	invisibility = 101

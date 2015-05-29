@@ -39,7 +39,7 @@
 	*/
 
 	// Grab the info we want.
-	var/DBQuery/query = dbcon.NewQuery("SELECT cuiPath, cuiPropAdjust, cuiJobMask, cuiDescription FROM CustomUserItems WHERE cuiCKey='[M.ckey]' AND (cuiRealName='[M.real_name]' OR cuiRealName='*')")
+	var/DBQuery/query = dbcon.NewQuery("SELECT cuiPath, cuiPropAdjust, cuiJobMask, cuiDescription, cuiItemName FROM CustomUserItems WHERE cuiCKey='[M.ckey]' AND (cuiRealName='[M.real_name]' OR cuiRealName='*')")
 	query.Execute()
 
 	while(query.NextRow())
@@ -49,7 +49,10 @@
 		testing("\[CustomItem\] Setting up [path] for [M.ckey] ([M.real_name]).  jobmask=[jobmask];propadjust=[propadjust]")
 		var/ok=0
 		if(jobmask!="*")
-			var/allowed_jobs = text2list(jobmask,",")
+			var/list/allowed_jobs = text2list(jobmask,",")
+			for(var/i = 1, i <= allowed_jobs.len, i++)
+				if(istext(allowed_jobs[i]))
+					allowed_jobs[i] = trim(allowed_jobs[i])
 			var/alt_blocked=0
 			if(M.mind.role_alt_title)
 				if(!(M.mind.role_alt_title in allowed_jobs))
@@ -61,6 +64,7 @@
 
 		var/obj/item/Item = new path()
 		var/description = query.item[4]
+		var/newname = query.item[5]
 		testing("Adding new custom item [query.item[1]] to [key_name_admin(M)]...")
 		if(istype(Item,/obj/item/weapon/card/id))
 			var/obj/item/weapon/card/id/I = Item
@@ -94,6 +98,8 @@
 					break
 		if(description)
 			Item.desc = description
+		if(newname)
+			Item.name = newname
 
 		//skip:
 		if (ok == 0) // Finally, since everything else failed, place it on the ground

@@ -17,12 +17,14 @@ var/global/list/special_roles = list( //keep synced with the defines BE_* in set
 	"raider" = IS_MODE_COMPILED("heist"),				 // 1024 / 11
 	"vampire" = IS_MODE_COMPILED("vampire"),			 // 2048 / 12
 	"mutineer" = IS_MODE_COMPILED("mutiny"),             // 4096 / 13
-	"blob" = IS_MODE_COMPILED("blob")          	     // 8192 / 14
+	"blob" = IS_MODE_COMPILED("blob"),          	     	// 8192 / 14
+	"shadowling" = IS_MODE_COMPILED("shadowling")		//16384 / 15
 )
 var/global/list/special_role_times = list( //minimum age (in days) for accounts to play these roles
 	num2text(BE_PAI) = 0,
 	num2text(BE_TRAITOR) = 7,
 	num2text(BE_CHANGELING) = 14,
+	num2text(BE_SHADOWLING) = 14,
 	num2text(BE_WIZARD) = 14,
 	num2text(BE_REV) = 14,
 	num2text(BE_VAMPIRE) = 14,
@@ -121,8 +123,6 @@ datum/preferences
 	var/species = "Human"
 	var/language = "None"				//Secondary language
 
-	var/slime_color = "blue" //need this for assigning to chars
-	var/HRslime_color = ""
 
 	var/speciesprefs = 0//I hate having to do this, I really do (Using this for oldvox code, making names universal I guess
 
@@ -352,14 +352,9 @@ datum/preferences
 				dat += "<br><b>Eyes</b><br>"
 				dat += "<a href='?_src_=prefs;preference=eyes;task=input'>Change Color</a> <font face='fixedsys' size='3' color='#[num2hex(r_eyes, 2)][num2hex(g_eyes, 2)][num2hex(b_eyes, 2)]'><table  style='display:inline;' bgcolor='#[num2hex(r_eyes, 2)][num2hex(g_eyes, 2)][num2hex(b_eyes)]'><tr><td>__</td></tr></table></font><br>"
 
-				if(species == "Unathi" || species == "Tajaran" || species == "Skrell")
+				if(species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Slime People" || species == "Vulpkanin")
 					dat += "<br><b>Body Color</b><br>"
 					dat += "<a href='?_src_=prefs;preference=skin;task=input'>Change Color</a> <font face='fixedsys' size='3' color='#[num2hex(r_skin, 2)][num2hex(g_skin, 2)][num2hex(b_skin, 2)]'><table style='display:inline;' bgcolor='#[num2hex(r_skin, 2)][num2hex(g_skin, 2)][num2hex(b_skin)]'><tr><td>__</td></tr></table></font>"
-
-				if(species == "Slime People")
-					HRslime_color = capitalize(slime_color)
-					dat += "<br><b>Slime Color</b><br>"
-					dat += "<a href='?_src_=prefs;preference=slime_color;task=input'>Change Slime Color</a> <b>[HRslime_color]</b>"
 
 				dat += "</td></tr></table><hr><center>"
 
@@ -975,7 +970,7 @@ datum/preferences
 					if("age")
 						age = rand(AGE_MIN, AGE_MAX)
 					if("hair")
-						if(species == "Human" || species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Machine")
+						if(species == "Human" || species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Machine" || species == "Wryn" || species == "Vulpkanin")
 							r_hair = rand(0,255)
 							g_hair = rand(0,255)
 							b_hair = rand(0,255)
@@ -1001,7 +996,7 @@ datum/preferences
 						if(species == "Human")
 							s_tone = random_skin_tone()
 					if("s_color")
-						if(species == "Unathi" || species == "Tajaran" || species == "Skrell")
+						if(species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Slime People" || species == "Wryn" || species == "Vulpkanin")
 							r_skin = rand(0,255)
 							g_skin = rand(0,255)
 							b_skin = rand(0,255)
@@ -1028,7 +1023,7 @@ datum/preferences
 							age = max(min( round(text2num(new_age)), AGE_MAX),AGE_MIN)
 					if("species")
 
-						var/list/new_species = list("Human","Tajaran","Skrell","Unathi","Diona")
+						var/list/new_species = list("Human","Tajaran","Skrell","Unathi","Diona", "Vulpkanin")
 						var/prev_species = species
 //						var/whitelisted = 0
 
@@ -1124,7 +1119,7 @@ datum/preferences
 							b_type = new_b_type
 
 					if("hair")
-						if(species == "Human" || species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Machine")
+						if(species == "Human" || species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Machine" || species == "Vulpkanin")
 							var/input = "Choose your character's hair colour:"
 							if(species == "Machine")
 								input = "Choose your character's frame colour:"
@@ -1207,21 +1202,12 @@ datum/preferences
 							s_tone = 35 - max(min( round(new_s_tone), 220),1)
 
 					if("skin")
-						if(species == "Unathi" || species == "Tajaran" || species == "Skrell")
+						if(species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Slime People"|| species == "Vulpkanin")
 							var/new_skin = input(user, "Choose your character's skin colour: ", "Character Preference") as color|null
 							if(new_skin)
 								r_skin = hex2num(copytext(new_skin, 2, 4))
 								g_skin = hex2num(copytext(new_skin, 4, 6))
 								b_skin = hex2num(copytext(new_skin, 6, 8))
-
-					if("slime_color")
-						var/list/slime_colors
-						slime_colors = slime_colorh
-						if(species == "Slime People")
-							var/new_slime = input(user, "Choose your slime color: ", "Character Preference") as null|anything in slime_colors
-							if(new_slime)
-								slime_color = slime_colors[slime_colors.Find(new_slime)]
-							ShowChoices(user)
 
 
 					if("ooccolor")
@@ -1479,8 +1465,6 @@ datum/preferences
 
 		character.h_style = h_style
 		character.f_style = f_style
-
-		character.slime_color = slime_color
 
 
 		// Destroy/cyborgize organs

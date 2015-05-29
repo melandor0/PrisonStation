@@ -44,8 +44,6 @@
 		..()
 		update_icon()
 
-	attack_paw()
-		return attack_hand()
 
 	attackby(obj/item/I as obj, mob/user as mob, params)
 
@@ -86,7 +84,6 @@
 						user << "\red There is already a blood sample in this syringe"
 						return
 					if(istype(target, /mob/living/carbon))//maybe just add a blood reagent to all mobs. Then you can suck them dry...With hundreds of syringes. Jolly good idea.
-						var/amount = src.reagents.maximum_volume - src.reagents.total_volume
 						var/mob/living/carbon/T = target
 						if(!T.dna)
 							usr << "You are unable to locate any blood. (To be specific, your target seems to be missing their DNA datum)"
@@ -112,6 +109,11 @@
 						if(!do_mob(user, target, time))
 							return
 
+						var/amount = src.reagents.maximum_volume - src.reagents.total_volume
+						if(amount == 0)
+							usr << "<span class='warning'>The syringe is full!</span>"
+							return
+
 						var/datum/reagent/B
 						if(istype(T,/mob/living/carbon/human))
 							var/mob/living/carbon/human/H = T
@@ -123,7 +125,7 @@
 							B = T.take_blood(src,amount)
 
 						if (B)
-							src.reagents.reagent_list += B
+							src.reagents.reagent_list |= B
 							src.reagents.update_total()
 							src.on_reagent_change()
 							src.reagents.handle_reactions()
@@ -158,6 +160,11 @@
 				if(!target.is_open_container() && !ismob(target) && !istype(target, /obj/item/weapon/reagent_containers/food) && !istype(target, /obj/item/slime_extract) && !istype(target, /obj/item/clothing/mask/cigarette) && !istype(target, /obj/item/weapon/storage/fancy/cigarettes))
 					user << "\red You cannot directly fill this object."
 					return
+				if(istype(target, /obj/item/clothing/mask/cigarette))
+					var/obj/item/clothing/mask/cigarette/C = target
+					if(istype(C.loc, /obj/item/weapon/storage/fancy/cigarettes))
+						user << "\red You cannot inject a cigarette while it's still in the pack."
+						return
 				if(target.reagents.total_volume >= target.reagents.maximum_volume)
 					user << "\red [target] is full."
 					return
@@ -352,8 +359,6 @@
 		..()
 		update_icon()
 
-	attack_paw()
-		return attack_hand()
 
 	attackby(obj/item/I as obj, mob/user as mob)
 

@@ -9,7 +9,7 @@
 	set invisibility = 0
 	//set background = 1
 
-	if (src.monkeyizing)
+	if (src.notransform)
 		return
 
 	..()
@@ -41,6 +41,10 @@
 		handle_environment(environment) // Handle temperature/pressure differences between body and environment
 
 	handle_regular_status_updates() // Status updates, death etc.
+
+	handle_actions()
+
+	handle_wetness()
 
 /mob/living/carbon/slime/proc/AIprocess()  // the master AI process
 
@@ -285,6 +289,11 @@
 		else
 			Evolve()
 
+/mob/living/carbon/slime/proc/handle_wetness()
+	if(mob_master.current_cycle%20==2) //dry off a bit once every 20 ticks or so
+		wetlevel = max(wetlevel - 1,0)
+	return
+
 /mob/living/carbon/slime/proc/handle_targets()
 	if(Tempstun)
 		if(!Victim) // not while they're eating!
@@ -345,11 +354,10 @@
 					if(issilicon(L) && (rabid || attacked)) // They can't eat silicons, but they can glomp them in defence
 						targets += L // Possible target found!
 
-					if(istype(L, /mob/living/carbon/human) && dna) //Ignore slime(wo)men
+					if(istype(L, /mob/living/carbon/human)) //Ignore slime(wo)men
 						var/mob/living/carbon/human/H = L
-						if(H.dna)
-							if(H.dna.mutantrace == "slime")
-								continue
+						if(H.species.name == "Slime People")
+							continue
 
 					if(!L.canmove) // Only one slime can latch on at a time.
 						var/notarget = 0
@@ -371,7 +379,7 @@
 									Target = C
 									break
 
-							if(islarva(C) || ismonkey(C))
+							if(islarva(C) || issmall(C))
 								Target = C
 								break
 

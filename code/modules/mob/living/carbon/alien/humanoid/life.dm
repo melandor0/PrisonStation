@@ -20,7 +20,7 @@
 
 		//First, resolve location and get a breath
 
-		if(air_master.current_cycle%4==2)
+		if(mob_master.current_cycle%4==2)
 			//Only try to take a breath every 4 seconds, unless suffocating
 			spawn(0) breathe()
 
@@ -53,8 +53,14 @@
 	//Handle being on fire
 	handle_fire()
 
+	//Decrease wetness over time
+	handle_wetness()
+
 	//Status updates, death etc.
 	handle_regular_status_updates()
+
+	handle_actions()
+
 	update_canmove()
 	update_icons()
 

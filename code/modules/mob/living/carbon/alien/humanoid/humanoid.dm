@@ -136,34 +136,6 @@
 		updatehealth()
 	return
 
-/mob/living/carbon/alien/humanoid/attack_paw(mob/living/carbon/monkey/M as mob)
-	if(!ismonkey(M))	return//Fix for aliens receiving double messages when attacking other aliens.
-
-	if (!ticker)
-		M << "You cannot attack people before the game has started."
-		return
-
-	if (istype(loc, /turf) && istype(loc.loc, /area/start))
-		M << "No attacking people at spawn, you jackass."
-		return
-	..()
-
-	switch(M.a_intent)
-
-		if ("help")
-			help_shake_act(M)
-		else
-			M.do_attack_animation(src)
-			if (istype(src.wear_mask, /obj/item/clothing/mask/muzzle))
-				return
-			playsound(loc, 'sound/weapons/bite.ogg', 50, 1, -1)
-			visible_message("<span class='danger'>[M.name] bites [src]!</span>", \
-					"<span class='userdanger'>[M.name] bites [src]!</span>")
-			if (health > -100)
-				adjustBruteLoss(rand(1, 3))
-				updatehealth()
-	return
-
 
 /mob/living/carbon/alien/humanoid/attack_slime(mob/living/carbon/slime/M as mob)
 	if (!ticker)
@@ -254,18 +226,7 @@
 			help_shake_act(M)
 
 		if ("grab")
-			if (M == src || anchored)
-				return
-			var/obj/item/weapon/grab/G = new /obj/item/weapon/grab(M, src)
-
-			M.put_in_active_hand(G)
-
-			G.synch()
-
-			LAssailant = M
-
-			playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-			visible_message("<span class='warning'>[M] has grabbed [src] passively!</span>")
+			grabbedby(M)
 
 		if ("harm")
 			M.do_attack_animation(src)

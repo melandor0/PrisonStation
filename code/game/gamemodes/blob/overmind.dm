@@ -92,7 +92,7 @@
 
 	for (var/mob/M in dead_mob_list)
 		if(!istype(M,/mob/new_player) && !istype(M,/mob/living/carbon/brain)) //No meta-evesdropping
-			rendered = "<font color=\"#EE4000\"><i><span class='game say'>Blob Telepathy, <span class='name'>[name]</span> (<a href='byond://?src=\ref[M];follow2=\ref[M];follow=\ref[src]'>follow</a>) <span class='message'>[verb] \"[message]\"</span></span></i></font>"
+			rendered = "<font color=\"#EE4000\"><i><span class='game say'>Blob Telepathy, <span class='name'>[name]</span> ([ghost_follow_link(src, ghost=M)]) <span class='message'>[verb] \"[message]\"</span></span></i></font>"
 			M.show_message(rendered, 2)
 
 /mob/camera/blob/emote(var/act,var/m_type=1,var/message = null)
@@ -118,4 +118,5 @@
 	else
 		return 0
 
-
+/mob/camera/experience_pressure_difference()
+	return 0

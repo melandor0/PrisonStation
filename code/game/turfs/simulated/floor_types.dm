@@ -11,7 +11,7 @@
 
 /turf/simulated/floor/light
 	name = "Light floor"
-	luminosity = 5
+	light_range = 5
 	icon_state = "light_on"
 	floor_tile = new/obj/item/stack/tile/light
 
@@ -51,43 +51,68 @@
 	thermal_conductivity = 0.025
 	heat_capacity = 325000
 
+/turf/simulated/floor/engine/New()
+	..()
+	spawn(20) //engine floors tend to have gas on them
+		update_icon()
+
+/turf/simulated/floor/engine/break_tile()
+	return //unbreakable
+
+/turf/simulated/floor/engine/burn_tile()
+	return //unburnable
+
+/turf/simulated/floor/engine/make_plating(var/force = 0)
+	if(force)
+		..()
+	return //unplateable
+
+
 /turf/simulated/floor/engine/attackby(obj/item/weapon/C as obj, mob/user as mob, params)
-	if(!C)
-		return
-	if(!user)
+	if(!C || !user)
 		return
 	if(istype(C, /obj/item/weapon/wrench))
-		user << "\blue Removing rods..."
+		user << "<span class='notice'>You begin removing rods...</span>"
 		playsound(src, 'sound/items/Ratchet.ogg', 80, 1)
 		if(do_after(user, 30))
 			new /obj/item/stack/rods(src, 2)
-			ChangeTurf(/turf/simulated/floor)
-			var/turf/simulated/floor/F = src
-			F.make_plating()
+			ChangeTurf(/turf/simulated/floor/plating)
 			return
+
+/turf/simulated/floor/engine/ex_act(severity,target)
+	switch(severity)
+		if(1.0)
+			if(prob(80))
+				ReplaceWithLattice()
+			else if(prob(50))
+				qdel(src)
+			else
+				make_plating(1)
+		if(2.0)
+			if(prob(50))
+				make_plating(1)
 
 /turf/simulated/floor/engine/cult
 	name = "engraved floor"
 	icon_state = "cult"
 
 
-/turf/simulated/floor/engine/n20
-	New()
-		. = ..()
-		//var/datum/gas_mixture/adding = new
-		var/datum/gas/sleeping_agent/trace_gas = new
+/turf/simulated/floor/engine/n20/New()
+	..()
+	var/datum/gas_mixture/adding = new
+	var/datum/gas/sleeping_agent/trace_gas = new
 
-		air.trace_gases += trace_gas
-		trace_gas.moles = 70000
-		air.oxygen = 0
-		air.nitrogen = 0
-		air.update_values()
+	trace_gas.moles = 6000
+	adding.trace_gases += trace_gas
+	adding.temperature = T20C
+
+	assume_air(adding)
 
 /turf/simulated/floor/engine/vacuum
 	name = "vacuum floor"
 	icon_state = "engine"
 	oxygen = 0
-	nitrogen = 0.001
+	nitrogen = 0
 	temperature = TCMB
 
 /turf/simulated/floor/plating
@@ -120,7 +145,7 @@
 /turf/simulated/floor/greengrid
 	icon = 'icons/turf/floors.dmi'
 	icon_state = "gcircuit"
-	
+
 /turf/simulated/floor/greengrid/airless
 	icon_state = "gcircuit"
 	name = "airless floor"
@@ -154,7 +179,7 @@
 	name = "plating"
 	icon = 'icons/turf/floors.dmi'
 	icon_state = "plating"
-	
+
 /turf/simulated/shuttle/plating/vox	//Vox skipjack plating
 	oxygen = 0
 	nitrogen = MOLES_N2STANDARD + MOLES_O2STANDARD
@@ -162,7 +187,7 @@
 /turf/simulated/shuttle/floor4 // Added this floor tile so that I have a seperate turf to check in the shuttle -- Polymorph
 	name = "Brig floor"        // Also added it into the 2x3 brig area of the shuttle.
 	icon_state = "floor4"
-	
+
 /turf/simulated/shuttle/floor4/vox	//Vox skipjack floors
 	name = "skipjack floor"
 	oxygen = 0
@@ -235,10 +260,10 @@
 	name = "snow"
 	icon = 'icons/turf/snow.dmi'
 	icon_state = "snow"
-	
+
 /turf/simulated/floor/plating/snow/ex_act(severity)
 	return
-	
+
 /turf/simulated/floor/snow
 	name = "snow"
 	icon = 'icons/turf/snow.dmi'
@@ -260,12 +285,11 @@
 	thermal_conductivity = OPEN_HEAT_TRANSFER_COEFFICIENT
 	heat_capacity = 700000
 
-	lighting_lumcount = 4		//starlight
 //	accepts_lighting=0 			// Don't apply overlays
 
 	New()
 		..()
-		// Fucking cockshit dickfuck shitslut
+		set_light(4) //starlight
 		name = "catwalk"
 		update_icon(1)
 

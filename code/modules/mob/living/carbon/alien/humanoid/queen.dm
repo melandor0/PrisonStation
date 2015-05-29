@@ -8,6 +8,7 @@
 	heal_rate = 5
 	plasma_rate = 20
 	large = 1
+	ventcrawler = 0
 
 /mob/living/carbon/alien/humanoid/queen/New()
 	var/datum/reagents/R = new/datum/reagents(100)
@@ -24,7 +25,6 @@
 
 	real_name = src.name
 	verbs.Add(/mob/living/carbon/alien/humanoid/proc/corrosive_acid,/mob/living/carbon/alien/humanoid/proc/neurotoxin,/mob/living/carbon/alien/humanoid/proc/resin)
-	verbs -= /mob/living/carbon/alien/verb/alien_ventcrawl
 	..()
 
 
@@ -78,18 +78,18 @@
 	large = 1
 
 /mob/living/carbon/alien/humanoid/queen/large/update_icons()
-	lying_prev = lying	//so we don't update overlays for lying/standing unless our stance changes again
 	update_hud()		//TODO: remove the need for this to be here
 	overlays.Cut()
-	if(lying)
-		if(resting)					icon_state = "queen_sleep"
-		else						icon_state = "queen_l"
-		for(var/image/I in overlays_lying)
-			overlays += I
+
+	if(stat == DEAD)
+		icon_state = "queen_dead"
+	else if(stat == UNCONSCIOUS || lying || resting)
+		icon_state = "queen_sleep"
 	else
 		icon_state = "queen_s"
-		for(var/image/I in overlays_standing)
-			overlays += I
+
+	for(var/image/I in overlays_standing)
+		overlays += I
 
 
 /*

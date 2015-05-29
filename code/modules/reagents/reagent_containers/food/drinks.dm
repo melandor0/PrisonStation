@@ -46,7 +46,7 @@
 
 			var/mob/living/carbon/human/H = M
 			if(H.species.flags & IS_SYNTHETIC)
-				H << "\red They have a monitor for a head, where do you think you're going to put that?"
+				user << "\red They have a monitor for a head, where do you think you're going to put that?"
 				return
 
 			for(var/mob/O in viewers(world.view, user))
@@ -83,6 +83,13 @@
 
 	afterattack(obj/target, mob/user, proximity)
 		if(!proximity) return
+
+		// Moved from the can code; not necessary since closed cans aren't open containers now, but, eh.
+		if (istype(target, /obj/item/weapon/reagent_containers/food/drinks/cans))
+			var/obj/item/weapon/reagent_containers/food/drinks/cans/cantarget = target
+			if(cantarget.canopened == 0)
+				user << "<span class='notice'>You need to open the drink you want to pour into!</span>"
+				return
 
 		if(istype(target, /obj/structure/reagent_dispensers)) //A dispenser. Transfer FROM it TO us.
 
@@ -235,6 +242,8 @@
 	New()
 		..()
 		reagents.add_reagent("tea", 30)
+		if(prob(20))
+			reagents.add_reagent("mugwort", 3)
 		src.pixel_x = rand(-10.0, 10)
 		src.pixel_y = rand(-10.0, 10)
 
@@ -301,6 +310,8 @@
 	New()
 		..()
 		reagents.add_reagent("dry_ramen", 30)
+		if(prob(20))
+			reagents.add_reagent("enzyme", 3)
 		src.pixel_x = rand(-10.0, 10)
 		src.pixel_y = rand(-10.0, 10)
 
@@ -366,210 +377,29 @@
 	icon_state = "britcup"
 	volume = 30
 
-////Stinkeye///   Holy buns don't ever drink this -Fox
+/obj/item/weapon/reagent_containers/food/drinks/flask/hand_made
+	name = "handmade flask"
+	desc = "A wooden flask with a silver lid and bottom. It has a matte, dark blue paint on it with the initials \"W.H.\" etched in black."
+	icon = 'icons/obj/custom_items.dmi'
+	icon_state = "williamhackett"
 
-/obj/item/weapon/reagent_containers/food/drinks/stinkeye
-	name = "Stinkeye's Special Reserve"
-	desc = "An old bottle labelled 'The Good Stuff'. This probably has enough kick to knock an elephant on its ass."
-	icon_state = "whiskeybottle"
-	volume = 250
-	New()
-		..()
-		reagents.add_reagent("beer", 30)
-		reagents.add_reagent("wine", 30)
-		reagents.add_reagent("cider", 30)
-		reagents.add_reagent("vodka", 30)
-		reagents.add_reagent("ethanol", 30)
-		reagents.add_reagent("eyenewt", 30)
+/obj/item/weapon/reagent_containers/food/drinks/flask/thermos
+	name = "vintage thermos"
+	desc = "An older thermos with a faint shine."
+	icon = 'icons/obj/custom_items.dmi'
+	icon_state = "johann_erzatz_1"
+	volume = 50
 
-////Discount Dan's Soup//////       May God have mercy on your souls---and stomachs.    -Fox
+/obj/item/weapon/reagent_containers/food/drinks/flask/shiny
+	name = "shiny flask"
+	desc = "A shiny metal flask. It appears to have a Greek symbol inscribed on it."
+	icon = 'icons/obj/custom_items.dmi'
+	icon_state = "shinyflask"
+	volume = 50
 
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup
-	name = "Discount Dan's Quik-Noodles"
-	desc = "A self-heating cup of noodles. There's enough sodium in these to put the Dead Sea to shame."
-	icon_state = "dansoup"
-	volume = 65
-	var/selfheat = 0
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/attack_self(mob/user as mob) //self-heating action!
-	if(selfheat)
-		return
-	else
-		selfheat = 1
-		user << "<span class='notice'>You twist the bottom of the cup. The cup emits a soft clack as the heater triggers.</span>"
-		reagents.add_reagent("pyrosium", 2)
-		reagents.add_reagent("oxygen", 2)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/random
-	New()
-		..()
-		var/list/list = typesof(/obj/item/weapon/reagent_containers/food/drinks/dansoup) - list(/obj/item/weapon/reagent_containers/food/drinks/dansoup,/obj/item/weapon/reagent_containers/food/drinks/dansoup/random)
-		var/T = pick(list)
-		new T(loc)
-		spawn(0)
-			del src
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/bbq
-	name = "Devil Dan's Quik-Noodles - Brimstone BBQ Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("soybeanoil", 1)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("sulfur", 5)
-		reagents.add_reagent("beff", 5)
-//		reagents.add_reagent("ghostchili", 5)      uncomment once ghost chili juice is added
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/macaroni
-	name = "Discount Dan's Quik-Noodles - Macaroni and Imitation Processed Cheese Product Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("soybeanoil", 9)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("fake_cheese", 2)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/beef
-	name = "Comrade Dan's Quik-Noodles - Beef Perestroikanoff Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("soybeanoil", 1)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("milk", 3)
-		reagents.add_reagent("enzyme", 3)
-		reagents.add_reagent("beff", 4)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/teriyaki
-	name = "Discount Deng's Quik-Noodles - Teriyaki TVP Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("hydrogenated_soybeanoil", 1)
-		reagents.add_reagent("msg", 14)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("synthflesh", 5)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/gamer
-	name = "Dan's Quik-Noodles - Gamer Grubs Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("soybeanoil", 1)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("????", 10)
-		reagents.add_reagent("potassium", 5)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/mushroom
-	name = "Frycook Dan's Quik-Noodles - Mushroom-Swiss Burger-Bake Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("soybeanoil", 1)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("beff", 2)
-		reagents.add_reagent("weird_cheese", 2)
-		reagents.add_reagent("psilocybin", 6)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/ketchup
-	name = "Frycook Dan's Quik-Noodles - Curly Fry Ketchup Hoedown Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("hydrogenated_soybeanoil", 1)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("tomatojuice", 4)
-		reagents.add_reagent("mugwort", 3)
-		reagents.add_reagent("capsaicin", 3)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/sundae
-	name = "Dessert Dan's Quik-Noodles - Sweet Sundae Noodle Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("soybeanoil", 1)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("vhfcs", 10)
-		reagents.add_reagent("chocolate", 2)
-		reagents.add_reagent("cream", 2)
-		reagents.add_reagent("chocolate_milk", 6)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/tuna
-	name = "Descuento Danito's Quik-Noodles - Tuna Melt Taco Fiesta Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("soybeanoil", 1)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("fake_cheese", 3)
-		reagents.add_reagent("mercury", 3)
-		reagents.add_reagent("capsaicin", 4)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/lomein
-	name = "Discount Deng's Quik-Noodles - Sweet and Sour Lo Mein Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("soybeanoil", 1)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("sacid", 3)
-		reagents.add_reagent("vhfcs", 7)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/crab
-	name = "Pirate Dan's Quik-Noodles - Spicy Imitation Crab Meat Paste Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("soybeanoil", 1)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("synthflesh", 3)
-		reagents.add_reagent("saltpetre", 3)
-		reagents.add_reagent("capsaicin", 14)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/sausage
-	name = "Morning Dan's Quik-Noodles - Mechanically Reclaimed Sausage Biscuit Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("hydrogenated_soybeanoil", 4)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("ammonia", 3)
-		reagents.add_reagent("gravy", 4)
-		reagents.add_reagent("coffee", 3)
-
-/obj/item/weapon/reagent_containers/food/drinks/dansoup/italian
-	name = "Sconto Danilo's Quik-Noodles - Italian Strozzapreti Lunare Flavor"
-	New()
-		..()
-		reagents.add_reagent("chicken_soup", 10)
-		reagents.add_reagent("soybeanoil", 1)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("sodiumchloride", 10)
-		reagents.add_reagent("nicotine", 8)
-		reagents.add_reagent("tomatojuice", 4)
-		reagents.add_reagent("wine", 2)
-		reagents.add_reagent("water", 2)
+/obj/item/weapon/reagent_containers/food/drinks/flask/lithium
+	name = "Lithium Flask"
+	desc = "A flask with a Lithium Atom symbol on it."
+	icon = 'icons/obj/custom_items.dmi'
+	icon_state = "lithiumflask"
+	volume = 50

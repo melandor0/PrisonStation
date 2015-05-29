@@ -73,7 +73,7 @@ datum/reagent/acetone
 	name = "carpet"
 	id = "carpet"
 	result = "carpet"
-	required_reagents = list("space_drugs" = 1, "blood" = 1)
+	required_reagents = list("fungus" = 1, "blood" = 1)
 	result_amount = 2
 	mix_message = "The substance turns thick and stiff, yet soft."
 
@@ -101,6 +101,8 @@ datum/reagent/acetone
 	required_reagents = list("oil" = 1)
 	result_amount = 0.5
 	required_temp = 480
+	mix_sound = null
+	no_message = 1
 
 datum/reagent/colorful_reagent
 	name = "Colorful Reagent"
@@ -118,7 +120,7 @@ datum/reagent/colorful_reagent
 	mix_message = "The substance flashes multiple colors and emits the smell of a pocket protector."
 
 datum/reagent/colorful_reagent/reaction_mob(var/mob/living/simple_animal/M, var/method=TOUCH, var/volume)
-    if(M)
+    if(M && istype(M))
         M.color = pick(random_color_list)
     ..()
     return
@@ -151,7 +153,7 @@ datum/reagent/corgium
 
 /datum/chemical_reaction/corgium/on_reaction(var/datum/reagents/holder, var/created_volume)
 	var/location = get_turf(holder.my_atom)
-	new /mob/living/simple_animal/corgi(location)
+	new /mob/living/simple_animal/pet/corgi(location)
 	..()
 	return
 
@@ -163,6 +165,7 @@ datum/reagent/corgium
 	required_reagents = list("egg" = 1, "colorful_reagent" = 1, "chicken_soup" = 1, "strange_reagent" = 1, "blood" = 1)
 	result_amount = 5
 	required_temp = 374
+	mix_message = "The substance turns an airy sky-blue and foams up into a new shape."
 
 /datum/chemical_reaction/flaptonium/on_reaction(var/datum/reagents/holder, var/created_volume)
 	var/location = get_turf(holder.my_atom)

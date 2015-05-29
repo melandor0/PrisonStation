@@ -24,13 +24,12 @@
 
 /obj/item/weapon/flamethrower/Destroy()
 	if(weldtool)
-		del(weldtool)
+		qdel(weldtool)
 	if(igniter)
-		del(igniter)
+		qdel(igniter)
 	if(ptank)
-		del(ptank)
+		qdel(ptank)
 	..()
-	return
 
 
 /obj/item/weapon/flamethrower/process()
@@ -60,8 +59,8 @@
 		item_state = "flamethrower_0"
 	return
 
-/obj/item/weapon/flamethrower/afterattack(atom/target, mob/user, proximity)
-	if(!proximity) return
+/obj/item/weapon/flamethrower/afterattack(atom/target, mob/user, flag)
+	if(flag) return // too close
 	// Make sure our user is still holding us
 	if(user && user.get_active_hand() == src)
 		var/turf/target_turf = get_turf(target)
@@ -83,7 +82,7 @@
 			ptank.loc = T
 			ptank = null
 		new /obj/item/stack/rods(T)
-		del(src)
+		qdel(src)
 		return
 
 	if(isscrewdriver(W) && igniter && !lit)
@@ -163,7 +162,6 @@
 	usr.set_machine(src)
 	if(href_list["light"])
 		if(!ptank)	return
-		if(ptank.air_contents.toxins < 1)	return
 		if(!status)	return
 		lit = !lit
 		if(lit)
@@ -184,22 +182,26 @@
 	update_icon()
 	return
 
+/obj/item/weapon/flamethrower/CheckParts()
+	weldtool = locate(/obj/item/weapon/weldingtool) in contents
+	igniter = locate(/obj/item/device/assembly/igniter) in contents
+	update_icon()
 
 //Called from turf.dm turf/dblclick
 /obj/item/weapon/flamethrower/proc/flame_turf(turflist)
 	if(!lit || operating)	return
 	operating = 1
-	for(var/turf/T in turflist)
-		if(T.density || istype(T, /turf/space))
+	var/turf/previousturf = get_turf(src)
+	for(var/turf/simulated/T in turflist)
+		if(!T.air)
 			break
-		if(!previousturf && length(turflist)>1)
-			previousturf = get_turf(src)
+		if(T == previousturf)
 			continue	//so we don't burn the tile we be standin on
-		if(previousturf && LinkBlocked(previousturf, T))
+		if(!T.CanAtmosPass(previousturf))
 			break
 		ignite_turf(T)
 		sleep(1)
-	previousturf = null
+		previousturf = T
 	operating = 0
 	for(var/mob/M in viewers(1, loc))
 		if((M.client && M.machine == src))
@@ -210,23 +212,28 @@
 /obj/item/weapon/flamethrower/proc/ignite_turf(turf/target)
 	//TODO: DEFERRED Consider checking to make sure tank pressure is high enough before doing this...
 	//Transfer 5% of current tank air contents to turf
-	var/datum/gas_mixture/air_transfer = ptank.air_contents.remove_ratio(0.02*(throw_amount/100))
-	//air_transfer.toxins = air_transfer.toxins * 5 // This is me not comprehending the air system. I realize this is retarded and I could probably make it work without fucking it up like this, but there you have it. -- TLE
-	new/obj/effect/decal/cleanable/liquid_fuel/flamethrower_fuel(target,air_transfer.toxins,get_dir(loc,target))
-	air_transfer.toxins = 0
+	var/datum/gas_mixture/air_transfer = ptank.air_contents.remove_ratio(0.05)
+	air_transfer.toxins = air_transfer.toxins * 5 // This is me not comprehending the air system. I realize this is retarded and I could probably make it work without fucking it up like this, but there you have it. -- TLE
 	target.assume_air(air_transfer)
 	//Burn it based on transfered gas
-	//target.hotspot_expose(part4.air_contents.temperature*2,300)
 	target.hotspot_expose((ptank.air_contents.temperature*2) + 380,500) // -- More of my "how do I shot fire?" dickery. -- TLE
 	//location.hotspot_expose(1000,500,1)
+	air_master.add_to_active(target, 0)
 	return
+
 
 /obj/item/weapon/flamethrower/full/New(var/loc)
 	..()
-	weldtool = new /obj/item/weapon/weldingtool(src)
+	if(!weldtool)
+		weldtool = new /obj/item/weapon/weldingtool(src)
 	weldtool.status = 0
-	igniter = new /obj/item/device/assembly/igniter(src)
+	if(!igniter)
+		igniter = new /obj/item/device/assembly/igniter(src)
 	igniter.secured = 0
 	status = 1
 	update_icon()
-	return
+
+/obj/item/weapon/flamethrower/full/tank/New(var/loc)
+	..()
+	ptank = new /obj/item/weapon/tank/plasma/full(src)
+	update_icon()

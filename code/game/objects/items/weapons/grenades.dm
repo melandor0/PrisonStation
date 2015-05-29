@@ -30,7 +30,7 @@
 		B1.reagents.add_reagent("blood",60)
 		if(prob(5))
 			B1.reagents.add_reagent("blood",1) // Quality control problems, causes a mess
-		B2.reagents.add_reagent("clonexadone",30)
+		B2.reagents.add_reagent("cryoxadone",30)
 
 		beakers += B1
 		beakers += B2
@@ -59,7 +59,7 @@
 		var/obj/item/weapon/reagent_containers/glass/beaker/large/B2 = new(src)
 
 		B1.reagents.add_reagent("space_drugs", 25)
-		B1.reagents.add_reagent("mindbreaker", 25)
+		B1.reagents.add_reagent("lsd", 25)
 		B1.reagents.add_reagent("potassium", 25)
 		B2.reagents.add_reagent("phosphorus", 25)
 		B2.reagents.add_reagent("sugar", 25)
@@ -385,11 +385,11 @@
 /obj/item/weapon/grenade/clusterbuster/monkey
 	name = "Barrel of Monkeys"
 	desc = "Not really that much fun."
-	payload = /mob/living/carbon/monkey
+	payload = /mob/living/carbon/human/monkey
 /obj/item/weapon/grenade/clusterbuster/fluffy
 	name = "Fluffy Love Bomb"
 	desc = "Exactly as snuggly as it sounds."
-	payload = /mob/living/simple_animal/corgi/puppy
+	payload = /mob/living/simple_animal/pet/corgi/puppy
 
 /obj/item/weapon/grenade/clusterbuster/prime()
 	var/numspawned = rand(4,8)

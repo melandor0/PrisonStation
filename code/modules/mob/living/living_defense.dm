@@ -199,45 +199,25 @@
 
 		return
 
-//This is called when the mob is thrown into a dense turf
-/mob/living/proc/turf_collision(var/turf/T, var/speed)
-	src.take_organ_damage(speed*5)
-
-/mob/living/proc/near_wall(var/direction,var/distance=1)
-	var/turf/T = get_step(get_turf(src),direction)
-	var/turf/last_turf = src.loc
-	var/i = 1
-
-	while(i>0 && i<=distance)
-		if(T.density) //Turf is a wall!
-			return last_turf
-		i++
-		last_turf = T
-		T = get_step(T,direction)
-
-	return 0
-
-// End BS12 momentum-transfer code.
-
 //Mobs on Fire
 /mob/living/proc/IgniteMob()
-	if(fire_stacks > 0)
+	if(fire_stacks > 0 && !on_fire)
 		on_fire = 1
-		src.AddLuminosity(3)
+		set_light(light_range + 3,l_color = "#ED9200")
 		update_fire()
 
 /mob/living/proc/ExtinguishMob()
 	if(on_fire)
 		on_fire = 0
 		fire_stacks = 0
-		src.AddLuminosity(-3)
+		set_light(max(0,light_range - 3))
 		update_fire()
 
 /mob/living/proc/update_fire()
 	return
 
 /mob/living/proc/adjust_fire_stacks(add_fire_stacks) //Adjusting the amount of fire_stacks we have on person
-	fire_stacks = Clamp(fire_stacks + add_fire_stacks, min = -20, max = 20)
+    fire_stacks = Clamp(fire_stacks + add_fire_stacks, min = -20, max = 20)
 
 /mob/living/proc/handle_fire()
 	if(fire_stacks < 0)
@@ -258,13 +238,131 @@
 
 //Mobs on Fire end
 
+/mob/living/water_act(volume, temperature)
+	if(volume >= 20)	fire_stacks -= 0.5
+	if(volume >= 50)	fire_stacks -= 1
+
+/mob/living/regular_hud_updates()
+	..()
+	update_action_buttons()
+
+/mob/living/proc/handle_actions()
+	//Pretty bad, i'd use picked/dropped instead but the parent calls in these are nonexistent
+	for(var/datum/action/A in actions)
+		if(A.CheckRemoval(src))
+			A.Remove(src)
+	for(var/obj/item/I in src)
+		if(istype(I,/obj/item/clothing/under))
+			var/obj/item/clothing/under/U = I
+			for(var/obj/item/IU in U)
+				if(istype(IU, /obj/item/clothing/accessory))
+					var/obj/item/clothing/accessory/A = IU
+					if(A.action_button_name)
+						if(!A.action)
+							if(A.action_button_is_hands_free)
+								A.action = new/datum/action/item_action/hands_free
+							else
+								A.action = new/datum/action/item_action
+							A.action.name = A.action_button_name
+							A.action.target = A
+						A.action.check_flags &= ~AB_CHECK_INSIDE
+						A.action.Grant(src)
+		if(I.action_button_name)
+			if(!I.action)
+				if(I.action_button_is_hands_free)
+					I.action = new/datum/action/item_action/hands_free
+				else
+					I.action = new/datum/action/item_action
+				I.action.name = I.action_button_name
+				I.action.target = I
+			I.action.Grant(src)
+	return
+
+/mob/living/update_action_buttons()
+	if(!hud_used) return
+	if(!client) return
+
+	if(hud_used.hud_shown != 1)	//Hud toggled to minimal
+		return
+
+	client.screen -= hud_used.hide_actions_toggle
+	for(var/datum/action/A in actions)
+		if(A.button)
+			client.screen -= A.button
+
+	if(hud_used.action_buttons_hidden)
+		if(!hud_used.hide_actions_toggle)
+			hud_used.hide_actions_toggle = new(hud_used)
+			hud_used.hide_actions_toggle.UpdateIcon()
+
+		if(!hud_used.hide_actions_toggle.moved)
+			hud_used.hide_actions_toggle.screen_loc = hud_used.ButtonNumberToScreenCoords(1)
+			//hud_used.SetButtonCoords(hud_used.hide_actions_toggle,1)
+
+		client.screen += hud_used.hide_actions_toggle
+		return
+
+	var/button_number = 0
+	for(var/datum/action/A in actions)
+		button_number++
+		if(A.button == null)
+			var/obj/screen/movable/action_button/N = new(hud_used)
+			N.owner = A
+			A.button = N
+
+		var/obj/screen/movable/action_button/B = A.button
+
+		B.UpdateIcon()
+
+		B.name = A.UpdateName()
+
+		client.screen += B
+
+		if(!B.moved)
+			B.screen_loc = hud_used.ButtonNumberToScreenCoords(button_number)
+			//hud_used.SetButtonCoords(B,button_number)
+
+	if(button_number > 0)
+		if(!hud_used.hide_actions_toggle)
+			hud_used.hide_actions_toggle = new(hud_used)
+			hud_used.hide_actions_toggle.InitialiseIcon(src)
+		if(!hud_used.hide_actions_toggle.moved)
+			hud_used.hide_actions_toggle.screen_loc = hud_used.ButtonNumberToScreenCoords(button_number+1)
+			//hud_used.SetButtonCoords(hud_used.hide_actions_toggle,button_number+1)
+		client.screen += hud_used.hide_actions_toggle
+
+//This is called when the mob is thrown into a dense turf
+/mob/living/proc/turf_collision(var/turf/T, var/speed)
+	src.take_organ_damage(speed*5)
+
+/mob/living/proc/near_wall(var/direction,var/distance=1)
+	var/turf/T = get_step(get_turf(src),direction)
+	var/turf/last_turf = src.loc
+	var/i = 1
+
+	while(i>0 && i<=distance)
+		if(T.density) //Turf is a wall!
+			return last_turf
+		i++
+		last_turf = T
+		T = get_step(T,direction)
+
+	return 0
+
+// End BS12 momentum-transfer code.
+
 /mob/living/proc/grabbedby(mob/living/carbon/user,var/supress_message = 0)
 	if(user == src || anchored)
 		return 0
 	if(!(status_flags & CANPUSH))
 		return 0
 
-	add_logs(user, src, "grabbed", addition="passively")
+	for(var/obj/item/weapon/grab/G in src.grabbed_by)
+		if(G.assailant == user)
+			user << "<span class='notice'>You already grabbed [src].</span>"
+			return
+
+	add_logs(src, user, "grabbed", addition="passively")
 
 	var/obj/item/weapon/grab/G = new /obj/item/weapon/grab(user, src)
 	if(buckled)
@@ -276,5 +374,11 @@
 	LAssailant = user
 
 	playsound(src.loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
+	/*if(user.dir == src.dir)
+		G.state = GRAB_AGGRESSIVE
+		G.last_upgrade = world.time
+		if(!supress_message)
+			visible_message("<span class='warning'>[user] has grabbed [src] from behind!</span>")
+	else*///This is an example of how you can make special types of grabs simply based on direction.
 	if(!supress_message)
 		visible_message("<span class='warning'>[user] has grabbed [src] passively!</span>")

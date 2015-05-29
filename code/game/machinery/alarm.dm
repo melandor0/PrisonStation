@@ -95,11 +95,10 @@
 
 /obj/machinery/alarm/proc/apply_preset(var/no_cycle_after=0)
 	// Propogate settings.
-	for (var/area/A in alarm_area.related)
-		for (var/obj/machinery/alarm/AA in A)
-			if ( !(AA.stat & (NOPOWER|BROKEN)) && !AA.shorted && AA.preset != src.preset)
-				AA.preset=preset
-				apply_preset(1) // Only this air alarm should send a cycle.
+	for (var/obj/machinery/alarm/AA in alarm_area)
+		if ( !(AA.stat & (NOPOWER|BROKEN)) && !AA.shorted && AA.preset != src.preset)
+			AA.preset=preset
+			apply_preset(1) // Only this air alarm should send a cycle.
 
 	TLV["oxygen"] =			list(16, 19, 135, 140) // Partial pressure, kpa
 	TLV["nitrogen"] =		list(-1, -1,  -1,  -1) // Partial pressure, kpa
@@ -151,8 +150,6 @@
 
 /obj/machinery/alarm/proc/first_run()
 	alarm_area = get_area(src)
-	if (alarm_area.master)
-		alarm_area = alarm_area.master
 	area_uid = alarm_area.uid
 	if (name == "alarm")
 		name = "[alarm_area.name] Air Alarm"
@@ -188,42 +185,43 @@
 	//Handle temperature adjustment here.
 	if(environment.temperature < target_temperature - 2 || environment.temperature > target_temperature + 2 || regulating_temperature)
 		//If it goes too far, we should adjust ourselves back before stopping.
-		if(get_danger_level(target_temperature, TLV["temperature"]))
-			return
+		if(!get_danger_level(target_temperature, TLV["temperature"]))
 
-		if(!regulating_temperature)
-			regulating_temperature = 1
-			visible_message("\The [src] clicks as it starts [environment.temperature > target_temperature ? "cooling" : "heating"] the room.",\
-			"You hear a click and a faint electronic hum.")
+			if(!regulating_temperature)
+				regulating_temperature = 1
+				visible_message("\The [src] clicks as it starts [environment.temperature > target_temperature ? "cooling" : "heating"] the room.",\
+				"You hear a click and a faint electronic hum.")
 
-		if(target_temperature > T0C + MAX_TEMPERATURE)
-			target_temperature = T0C + MAX_TEMPERATURE
+			if(target_temperature > T0C + MAX_TEMPERATURE)
+				target_temperature = T0C + MAX_TEMPERATURE
 
-		if(target_temperature < T0C + MIN_TEMPERATURE)
-			target_temperature = T0C + MIN_TEMPERATURE
+			if(target_temperature < T0C + MIN_TEMPERATURE)
+				target_temperature = T0C + MIN_TEMPERATURE
 
-		var/datum/gas_mixture/gas = location.remove_air(0.25*environment.total_moles)
-		var/heat_capacity = gas.heat_capacity()
-		var/energy_used = max( abs( heat_capacity*(gas.temperature - target_temperature) ), MAX_ENERGY_CHANGE)
+			var/datum/gas_mixture/gas = location.remove_air(0.25*environment.total_moles())
+			var/heat_capacity = gas.heat_capacity()
+			var/energy_used = max( abs( heat_capacity*(gas.temperature - target_temperature) ), MAX_ENERGY_CHANGE)
 
-		//Use power.  Assuming that each power unit represents 1000 watts....
-		use_power(energy_used/1000, ENVIRON)
+			//Use power.  Assuming that each power unit represents 1000 watts....
+			use_power(energy_used/1000, ENVIRON)
 
-		//We need to cool ourselves.
-		if(environment.temperature > target_temperature)
-			gas.temperature -= energy_used/heat_capacity
-		else
-			gas.temperature += energy_used/heat_capacity
+			//We need to cool ourselves.
+			if(environment.temperature > target_temperature)
+				gas.temperature -= energy_used/heat_capacity
+			else
+				gas.temperature += energy_used/heat_capacity
 
-		environment.merge(gas)
+			environment.merge(gas)
 
-		if(abs(environment.temperature - target_temperature) <= 0.5)
-			regulating_temperature = 0
-			visible_message("\The [src] clicks quietly as it stops [environment.temperature > target_temperature ? "cooling" : "heating"] the room.",\
-			"You hear a click as a faint electronic humming stops.")
+			if(abs(environment.temperature - target_temperature) <= 0.5)
+				regulating_temperature = 0
+				visible_message("\The [src] clicks quietly as it stops [environment.temperature > target_temperature ? "cooling" : "heating"] the room.",\
+				"You hear a click as a faint electronic humming stops.")
+
 
 	var/old_level = local_danger_level
 	var/new_danger = calculate_local_danger_level()
+
 	if(new_danger < old_level)
 		danger_averted_confidence++
 	// Only change danger level if:
@@ -296,11 +294,10 @@
 
 
 /obj/machinery/alarm/proc/elect_master()
-	for (var/area/A in alarm_area.related)
-		for (var/obj/machinery/alarm/AA in A)
-			if (!(AA.stat & (NOPOWER|BROKEN)))
-				alarm_area.master_air_alarm = AA
-				return 1
+	for (var/obj/machinery/alarm/AA in alarm_area)
+		if (!(AA.stat & (NOPOWER|BROKEN)))
+			alarm_area.master_air_alarm = AA
+			return 1
 	return 0
 
 /obj/machinery/alarm/proc/get_danger_level(var/current_value, var/list/danger_levels)
@@ -471,9 +468,9 @@
 
 /obj/machinery/alarm/proc/air_doors_close(manual)
 	var/area/A = get_area(src)
-	if(!A.master.air_doors_activated)
-		A.master.air_doors_activated = 1
-		for(var/obj/machinery/door/E in A.master.all_doors)
+	if(!A.air_doors_activated)
+		A.air_doors_activated = 1
+		for(var/obj/machinery/door/E in A.all_doors)
 			if(istype(E,/obj/machinery/door/firedoor))
 				if(!E:blocked)
 					if(E.operating)
@@ -507,9 +504,9 @@
 
 /obj/machinery/alarm/proc/air_doors_open(manual)
 	var/area/A = get_area(loc)
-	if(A.master.air_doors_activated)
-		A.master.air_doors_activated = 0
-		for(var/obj/machinery/door/E in A.master.all_doors)
+	if(A.air_doors_activated)
+		A.air_doors_activated = 0
+		for(var/obj/machinery/door/E in A.all_doors)
 			if(istype(E, /obj/machinery/door/firedoor))
 				if(!E:blocked)
 					if(E.operating)
@@ -724,7 +721,7 @@
 			return
 
 
-	if(wiresexposed && !istype(user, /mob/living/silicon))
+	if(wiresexposed && !istype(user, /mob/living/silicon/ai))
 		wires.Interact(user)
 	if(!shorted)
 		ui_interact(user)
@@ -1014,10 +1011,9 @@
 
 			else if(istype(W, /obj/item/weapon/wrench))
 				user << "You remove the fire alarm assembly from the wall!"
-				var/obj/item/alarm_frame/frame = new /obj/item/alarm_frame()
-				frame.loc = user.loc
+				new /obj/item/mounted/frame/alarm_frame(get_turf(user))
 				playsound(get_turf(src), 'sound/items/Ratchet.ogg', 50, 1)
-				del(src)
+				qdel(src)
 
 	return 0
 
@@ -1048,50 +1044,6 @@ Just a object used in constructing air alarms
 	w_class = 2.0
 	m_amt = 50
 	g_amt = 50
-
-
-/*
-AIR ALARM ITEM
-Handheld air alarm frame, for placing on walls
-Code shamelessly copied from apc_frame
-*/
-/obj/item/alarm_frame
-	name = "air alarm frame"
-	desc = "Used for building Air Alarms"
-	icon = 'icons/obj/monitors.dmi'
-	icon_state = "alarm_bitem"
-	flags = CONDUCT
-
-/obj/item/alarm_frame/attackby(obj/item/weapon/W as obj, mob/user as mob, params)
-	if (istype(W, /obj/item/weapon/wrench))
-		new /obj/item/stack/sheet/metal( get_turf(src.loc), 2 )
-		del(src)
-		return
-	..()
-
-/obj/item/alarm_frame/proc/try_build(turf/on_wall)
-	if (get_dist(on_wall,usr)>1)
-		return
-
-	var/ndir = get_dir(on_wall,usr)
-	if (!(ndir in cardinal))
-		return
-
-	var/turf/loc = get_turf_loc(usr)
-	var/area/A = loc.loc
-	if (!istype(loc, /turf/simulated/floor))
-		usr << "\red Air Alarm cannot be placed on this spot."
-		return
-	if (A.requires_power == 0 || A.name == "Space")
-		usr << "\red Air Alarm cannot be placed in this area."
-		return
-
-	if(gotwallitem(loc, ndir))
-		usr << "\red There's already an item on this wall!"
-		return
-
-	new /obj/machinery/alarm(loc, ndir, 1)
-	del(src)
 
 /*
 FIRE ALARM
@@ -1144,7 +1096,7 @@ FIRE ALARM
 	else
 		icon_state = "fire0"
 
-/obj/machinery/firealarm/fire_act(datum/gas_mixture/air, temperature, volume)
+/obj/machinery/firealarm/temperature_expose(datum/gas_mixture/air, temperature, volume)
 	if(src.detecting)
 		if(temperature > T0C+200)
 			src.alarm()			// added check of detector status here
@@ -1157,8 +1109,6 @@ FIRE ALARM
 /obj/machinery/firealarm/bullet_act(BLAH)
 	return src.alarm()
 
-/obj/machinery/firealarm/attack_paw(mob/user as mob)
-	return src.attack_hand(user)
 
 /obj/machinery/firealarm/emp_act(severity)
 	if(prob(50/severity)) alarm()
@@ -1175,17 +1125,26 @@ FIRE ALARM
 	if(wiresexposed)
 		switch(buildstage)
 			if(2)
-				if (istype(W, /obj/item/device/multitool))
+				if(istype(W, /obj/item/device/multitool))
 					src.detecting = !( src.detecting )
 					if (src.detecting)
 						user.visible_message("\red [user] has reconnected [src]'s detecting unit!", "You have reconnected [src]'s detecting unit.")
 					else
 						user.visible_message("\red [user] has disconnected [src]'s detecting unit!", "You have disconnected [src]'s detecting unit.")
+
+				else if(istype(W, /obj/item/weapon/wirecutters))  // cutting the wires out
+					user << "<span class='warning'>You cut the wires!</span>"
+					playsound(src.loc, 'sound/items/Wirecutter.ogg', 50, 1)
+					var/obj/item/stack/cable_coil/new_coil = new /obj/item/stack/cable_coil()
+					new_coil.amount = 5
+					new_coil.loc = user.loc
+					buildstage = 1
+					update_icon()
 			if(1)
 				if(istype(W, /obj/item/stack/cable_coil))
 					var/obj/item/stack/cable_coil/coil = W
 					if(coil.amount < 5)
-						user << "You need more cable for this!"
+						user << "<span class='warning'>You cut the wires!</span>"
 						return
 
 					coil.amount -= 5
@@ -1193,11 +1152,11 @@ FIRE ALARM
 						del(coil)
 
 					buildstage = 2
-					user << "You wire \the [src]!"
+					user << "<span class='notice'>You wire \the [src]!</span>"
 					update_icon()
 
 				else if(istype(W, /obj/item/weapon/crowbar))
-					user << "You pry out the circuit!"
+					user << "<span class='warning'>You pry out the circuit!</span>"
 					playsound(get_turf(src), 'sound/items/Crowbar.ogg', 50, 1)
 					spawn(20)
 						var/obj/item/weapon/firealarm_electronics/circuit = new /obj/item/weapon/firealarm_electronics()
@@ -1206,15 +1165,14 @@ FIRE ALARM
 						update_icon()
 			if(0)
 				if(istype(W, /obj/item/weapon/firealarm_electronics))
-					user << "You insert the circuit!"
+					user << "<span class='notice'>You insert the circuit!</span>"
 					del(W)
 					buildstage = 1
 					update_icon()
 
 				else if(istype(W, /obj/item/weapon/wrench))
-					user << "You remove the fire alarm assembly from the wall!"
-					var/obj/item/firealarm_frame/frame = new /obj/item/firealarm_frame()
-					frame.loc = user.loc
+					user << "<span class='warning'>You remove the fire alarm assembly from the wall!</span>"
+					new /obj/item/mounted/frame/firealarm(get_turf(user))
 					playsound(get_turf(src), 'sound/items/Ratchet.ogg', 50, 1)
 					del(src)
 		return
@@ -1237,7 +1195,7 @@ FIRE ALARM
 		src.updateDialog()
 	last_process = world.timeofday
 
-	if(locate(/obj/fire) in loc)
+	if(locate(/obj/effect/hotspot) in loc)
 		alarm()
 
 	return
@@ -1364,7 +1322,7 @@ FIRE ALARM
 		pixel_x = (dir & 3)? 0 : (dir == 4 ? -24 : 24)
 		pixel_y = (dir & 3)? (dir ==1 ? -24 : 24) : 0
 
-	if(z == 1 || z == 5)
+	if(z == ZLEVEL_STATION || ZLEVEL_ASTEROID == 5)
 		if(security_level)
 			src.overlays += image('icons/obj/monitors.dmi', "overlay_[get_security_level()]")
 		else
@@ -1384,52 +1342,6 @@ Just a object used in constructing fire alarms
 	w_class = 2.0
 	m_amt = 50
 	g_amt = 50
-
-
-/*
-FIRE ALARM ITEM
-Handheld fire alarm frame, for placing on walls
-Code shamelessly copied from apc_frame
-*/
-/obj/item/firealarm_frame
-	name = "fire alarm frame"
-	desc = "Used for building Fire Alarms"
-	icon = 'icons/obj/monitors.dmi'
-	icon_state = "fire_bitem"
-	flags = CONDUCT
-
-/obj/item/firealarm_frame/attackby(obj/item/weapon/W as obj, mob/user as mob, params)
-	if (istype(W, /obj/item/weapon/wrench))
-		new /obj/item/stack/sheet/metal( get_turf(src.loc), 2 )
-		del(src)
-		return
-	..()
-
-/obj/item/firealarm_frame/proc/try_build(turf/on_wall)
-	if (get_dist(on_wall,usr)>1)
-		return
-
-	var/ndir = get_dir(on_wall,usr)
-	if (!(ndir in cardinal))
-		return
-
-	var/turf/loc = get_turf_loc(usr)
-	var/area/A = loc.loc
-	if (!istype(loc, /turf/simulated/floor))
-		usr << "\red Fire Alarm cannot be placed on this spot."
-		return
-	if (A.requires_power == 0 || A.name == "Space")
-		usr << "\red Fire Alarm cannot be placed in this area."
-		return
-
-	if(gotwallitem(loc, ndir))
-		usr << "\red There's already an item on this wall!"
-		return
-
-	new /obj/machinery/firealarm(loc, ndir, 1)
-
-	del(src)
-
 
 /obj/machinery/partyalarm
 	name = "\improper PARTY BUTTON"
@@ -1454,9 +1366,6 @@ Code shamelessly copied from apc_frame
 		return
 	master_area=A
 
-/obj/machinery/partyalarm/attack_paw(mob/user as mob)
-	return attack_hand(user)
-
 /obj/machinery/partyalarm/attack_hand(mob/user as mob)
 	if((user.stat && !isobserver(user)) || stat & (NOPOWER|BROKEN))
 		return
@@ -1464,8 +1373,6 @@ Code shamelessly copied from apc_frame
 	user.machine = src
 	var/area/A = get_area(src)
 	ASSERT(isarea(A))
-	if(A.master)
-		A = A.master
 	var/d1
 	var/d2
 	if (istype(user, /mob/living/carbon/human) || istype(user, /mob/living/silicon/ai))
@@ -1504,8 +1411,6 @@ Code shamelessly copied from apc_frame
 		return
 	var/area/A = get_area(src)
 	ASSERT(isarea(A))
-	if(A.master)
-		A = A.master
 	A.partyreset()
 	return
 
@@ -1514,8 +1419,6 @@ Code shamelessly copied from apc_frame
 		return
 	var/area/A = get_area(src)
 	ASSERT(isarea(A))
-	if(A.master)
-		A = A.master
 	A.partyalert()
 	return
 

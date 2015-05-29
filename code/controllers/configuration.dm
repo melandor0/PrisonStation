@@ -62,6 +62,7 @@
 	var/automute_on = 0					//enables automuting/spam prevention
 	var/jobs_have_minimal_access = 0	//determines whether jobs use minimal access or expanded access.
 
+	var/reactionary_explosions = 0 //If we use reactionary explosions, explosions that react to walls and doors
 
 	var/assistantlimit = 0 //enables assistant limiting
 	var/assistantratio = 2 //how many assistants to security members
@@ -80,7 +81,7 @@
 	var/forumurl = "http://baystation12.net/forums/"
 
 	var/media_base_url = "http://nanotrasen.se/media" // http://ss13.nexisonline.net/media
-
+	var/overflow_server_url
 	var/forbid_singulo_possession = 0
 
 	//game_options.txt configs
@@ -152,6 +153,11 @@
 	// The upper delay until next event
 	// 15, 45, 70 minutes respectively
 	var/list/event_delay_upper = list(EVENT_LEVEL_MUNDANE = 9000,	EVENT_LEVEL_MODERATE = 27000,	EVENT_LEVEL_MAJOR = 42000)
+
+	var/starlight = 0	// Whether space turfs have ambient light or not
+	var/allow_holidays = 0
+	var/player_overflow_cap = 0 //number of players before the server starts rerouting
+	var/list/overflow_whitelist = list() //whitelist for overflow
 
 /datum/configuration/New()
 	var/list/L = typesof(/datum/game_mode) - /datum/game_mode
@@ -342,6 +348,9 @@
 				if("protect_roles_from_antagonist")
 					config.protect_roles_from_antagonist = 1
 
+				if("reactionary_explosions")
+					config.reactionary_explosions	= 1
+
 				if ("probability")
 					var/prob_pos = findtext(value, " ")
 					var/prob_name = null
@@ -373,7 +382,7 @@
 					config.popup_admin_pm = 1
 
 				if("allow_holidays")
-					Holiday = 1
+					config.allow_holidays = 1
 
 				if("use_irc_bot")
 					use_irc_bot = 1
@@ -498,6 +507,17 @@
 					config.event_delay_upper[EVENT_LEVEL_MUNDANE] = MinutesToTicks(values[1])
 					config.event_delay_upper[EVENT_LEVEL_MODERATE] = MinutesToTicks(values[2])
 					config.event_delay_upper[EVENT_LEVEL_MAJOR] = MinutesToTicks(values[3])
+
+				if("starlight")
+					var/vvalue = text2num(value)
+					config.starlight = vvalue >= 0 ? vvalue : 0
+
+				if("player_reroute_cap")
+					var/vvalue = text2num(value)
+					config.player_overflow_cap = vvalue >= 0 ? vvalue : 0
+
+				if("overflow_server_url")
+					config.overflow_server_url = value
 
 				else
 					diary << "Unknown setting in configuration: '[name]'"
@@ -637,6 +657,19 @@
 				forum_authenticated_group = value
 			else
 				diary << "Unknown setting in configuration: '[name]'"
+
+/datum/configuration/proc/loadoverflowwhitelist(filename)
+	var/list/Lines = file2list(filename)
+	for(var/t in Lines)
+		if(!t)	continue
+
+		t = trim(t)
+		if (length(t) == 0)
+			continue
+		else if (copytext(t, 1, 2) == "#")
+			continue
+
+		config.overflow_whitelist += t
 
 /datum/configuration/proc/pick_mode(mode_name)
 	// I wish I didn't have to instance the game modes in order to look up

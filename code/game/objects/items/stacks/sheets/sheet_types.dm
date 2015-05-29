@@ -25,6 +25,10 @@ var/global/list/datum/stack_recipe/metal_recipes = list ( \
 		new/datum/stack_recipe("brown comfy chair", /obj/structure/stool/bed/chair/comfy/brown, 2, one_per_turf = 1, on_floor = 1), \
 		new/datum/stack_recipe("lime comfy chair", /obj/structure/stool/bed/chair/comfy/lime, 2, one_per_turf = 1, on_floor = 1), \
 		new/datum/stack_recipe("teal comfy chair", /obj/structure/stool/bed/chair/comfy/teal, 2, one_per_turf = 1, on_floor = 1), \
+		new/datum/stack_recipe("red comfy chair", /obj/structure/stool/bed/chair/comfy/red, 2, one_per_turf = 1, on_floor = 1), \
+		new/datum/stack_recipe("blue comfy chair", /obj/structure/stool/bed/chair/comfy/blue, 2, one_per_turf = 1, on_floor = 1), \
+		new/datum/stack_recipe("purple comfy chair", /obj/structure/stool/bed/chair/comfy/purp, 2, one_per_turf = 1, on_floor = 1), \
+		new/datum/stack_recipe("green comfy chair", /obj/structure/stool/bed/chair/comfy/green, 2, one_per_turf = 1, on_floor = 1), \
 		), 2), \
 	null, \
 	new/datum/stack_recipe("table parts", /obj/item/weapon/table_parts, 2), \
@@ -63,13 +67,16 @@ var/global/list/datum/stack_recipe/metal_recipes = list ( \
 		new/datum/stack_recipe("multi-tile airlock assembly", /obj/structure/door_assembly/multi_tile, 4, time = 50, one_per_turf = 1, on_floor = 1), \
 		), 4), \
 	null, \
-	new/datum/stack_recipe("grenade casing", /obj/item/weapon/grenade/chem_grenade), \
-	new/datum/stack_recipe("light fixture frame", /obj/item/light_fixture_frame, 2), \
-	new/datum/stack_recipe("small light fixture frame", /obj/item/light_fixture_frame/small, 1), \
+	new/datum/stack_recipe("mass driver button frame", /obj/item/mounted/frame/driver_button, 1, time = 50, one_per_turf = 0, on_floor = 1), \
 	null, \
-	new/datum/stack_recipe("apc frame", /obj/item/apc_frame, 2), \
-	new/datum/stack_recipe("air alarm frame", /obj/item/alarm_frame, 2), \
-	new/datum/stack_recipe("fire alarm frame", /obj/item/firealarm_frame, 2), \
+	new/datum/stack_recipe("grenade casing", /obj/item/weapon/grenade/chem_grenade), \
+	new/datum/stack_recipe("light fixture frame", /obj/item/mounted/frame/light_fixture, 2), \
+	new/datum/stack_recipe("small light fixture frame", /obj/item/mounted/frame/light_fixture/small, 1), \
+	null, \
+	new/datum/stack_recipe("apc frame", /obj/item/mounted/frame/apc_frame, 2), \
+	new/datum/stack_recipe("air alarm frame", /obj/item/mounted/frame/alarm_frame, 2), \
+	new/datum/stack_recipe("fire alarm frame", /obj/item/mounted/frame/firealarm, 2), \
+	new/datum/stack_recipe("intercom frame", /obj/item/mounted/frame/intercom, 2), \
 	null, \
 )
 
@@ -108,6 +115,7 @@ var/global/list/datum/stack_recipe/plasteel_recipes = list ( \
 	new/datum/stack_recipe("AI core", /obj/structure/AIcore, 4, time = 50, one_per_turf = 1), \
 	new/datum/stack_recipe("Surgery Table", /obj/machinery/optable, 5, time = 50, one_per_turf = 1, on_floor = 1), \
 	new/datum/stack_recipe("Metal crate", /obj/structure/closet/crate, 10, time = 50, one_per_turf = 1), \
+	new/datum/stack_recipe("Mass Driver frame", /obj/machinery/mass_driver_frame, 3, time = 50, one_per_turf = 1), \
 //	new/datum/stack_recipe("RUST fuel assembly port frame", /obj/item/rust_fuel_assembly_port_frame, 12, time = 50, one_per_turf = 1), \
 //	new/datum/stack_recipe("RUST fuel compressor frame", /obj/item/rust_fuel_compressor_frame, 12, time = 50, one_per_turf = 1), \
 

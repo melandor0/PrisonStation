@@ -11,7 +11,7 @@
 		total_burn += O.burn_dam
 	health = 100 - getOxyLoss() - getToxLoss() - getCloneLoss() - total_burn - total_brute
 	//TODO: fix husking
-	if( (((100 - total_burn) < config.health_threshold_dead) && stat == DEAD) && (!species.flags & IS_SYNTHETIC))//100 only being used as the magic human max health number, feel free to change it if you add a var for it -- Urist
+	if( (((100 - total_burn) < config.health_threshold_dead) && stat == DEAD) && (!(species.flags & IS_SYNTHETIC)))//100 only being used as the magic human max health number, feel free to change it if you add a var for it -- Urist
 		ChangeToHusk()
 	if (species.flags & IS_SYNTHETIC)
 		var/obj/item/organ/external/head/H = organs_by_name["head"]
@@ -245,7 +245,7 @@
 This function restores the subjects blood to max.
 */
 /mob/living/carbon/human/proc/restore_blood()
-	if(!species.flags & NO_BLOOD)
+	if(!(species.flags & NO_BLOOD))
 		var/blood_volume = vessel.get_reagent_amount("blood")
 		vessel.add_reagent("blood",560.0-blood_volume)
 
@@ -310,17 +310,21 @@ This function restores all organs.
 				damage = damage*species.brute_mod
 			if(organ.take_damage(damage, 0, sharp, edge, used_weapon))
 				UpdateDamageIcon()
-			var/list/attack_bubble_recipients = list()
-			var/mob/living/user
-			for(var/mob/O in viewers(user, src))
-				if (O.client && !( O.blinded ))
-					attack_bubble_recipients.Add(O.client)
-			spawn(0)
-				var/image/dmgIcon = image('icons/mob/hit_blips.dmi', src, "dmg[rand(1,2)]",MOB_LAYER+1)
-				dmgIcon.pixel_x = (!lying) ? rand(-3,3) : rand(-11,12)
-				dmgIcon.pixel_y = (!lying) ? rand(-11,9) : rand(-10,1)
-				//world << "x: [dmgIcon.pixel_x] AND y: [dmgIcon.pixel_y]"
-				flick_overlay(dmgIcon, attack_bubble_recipients, 9)
+			if(LAssailant && ishuman(LAssailant))
+				var/mob/living/carbon/human/H = LAssailant
+				if(H.mind && H.mind in (ticker.mode.superheroes || ticker.mode.supervillains || ticker.mode.greyshirts))
+					var/list/attack_bubble_recipients = list()
+					var/mob/living/user
+					for(var/mob/O in viewers(user, src))
+						if (O.client && !( O.blinded ))
+							attack_bubble_recipients.Add(O.client)
+					spawn(0)
+						var/image/dmgIcon = image('icons/effects/hit_blips.dmi', src, "dmg[rand(1,2)]",MOB_LAYER+1)
+						dmgIcon.pixel_x = (!lying) ? rand(-3,3) : rand(-11,12)
+						dmgIcon.pixel_y = (!lying) ? rand(-11,9) : rand(-10,1)
+						//world << "x: [dmgIcon.pixel_x] AND y: [dmgIcon.pixel_y]"
+						flick_overlay(dmgIcon, attack_bubble_recipients, 9)
+			receive_damage()
 		if(BURN)
 			damageoverlaytemp = 20
 			if(species && species.burn_mod)

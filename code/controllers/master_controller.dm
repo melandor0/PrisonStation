@@ -74,6 +74,7 @@ datum/controller/game_controller/proc/setup()
 
 	color_windows_init()
 	setup_objects()
+	setup_starlight()
 	setupgenetics()
 	setupfactions()
 	setup_economy()
@@ -83,7 +84,6 @@ datum/controller/game_controller/proc/setup()
 		make_mining_asteroid_secret()
 
 	populate_spawn_points()
-
 /* MOVED TO SCHEDULER
 
 	spawn(0)
@@ -120,11 +120,16 @@ datum/controller/game_controller/proc/setup_objects()
 
 
 	//Set up roundstart seed list.
-	populate_seed_list()
+	//populate_seed_list()
 
 	world << "\red \b Initializations complete."
 	sleep(-1)
 
+datum/controller/game_controller/proc/setup_starlight()
+	world << "\red \b Initializing Starlight"
+	for(var/turf/space/S in world)
+		S.update_starlight()
+	world << "\red \b Starlight Initilization Complete"
 
 datum/controller/game_controller/proc/process()
 	processing = 1
@@ -152,13 +157,13 @@ datum/controller/game_controller/proc/process()
 
 					air_master.current_cycle++
 //					if(!air_master.tick()) Runtimed.
-					if(!air_master.Tick())
+					if(!air_master.process())
 						air_master.failed_ticks++
 						if(air_master.failed_ticks > 5)
 							world << "<font color='red'><b>RUNTIMES IN ATMOS TICKER.  Killing air simulation!</font></b>"
-							world.log << "### ZAS SHUTDOWN"
-							message_admins("ZASALERT: unable to run [air_master.tick_progress], shutting down!")
-							log_admin("ZASALERT: unable run zone/process() -- [air_master.tick_progress]")
+							world.log << "### LINDA SHUTDOWN"
+							message_admins("LINDAALERT: unable to run [air_master.tick_progress], shutting down!")
+							log_admin("LINDAALERT: unable run zone/process() -- [air_master.tick_progress]")
 							air_processing_killed = 1
 							air_master.failed_ticks = 0
 				air_cost = (world.timeofday - timer) / 10
@@ -357,4 +362,3 @@ datum/controller/game_controller/proc/Recover()		//Mostly a placeholder for now.
 				else
 					msg += "\t [varname] = [varval]\n"
 	world.log << msg
-

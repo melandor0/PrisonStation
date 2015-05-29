@@ -65,6 +65,7 @@
 	R.add_language("Gutter", 0)
 	R.add_language("Sinta'unathi", 0)
 	R.add_language("Siik'tajr", 0)
+	R.add_language("Canilunzt", 0)
 	R.add_language("Skrellian", 0)
 	R.add_language("Vox-pidgin", 0)
 	R.add_language("Rootspeak", 0)
@@ -100,7 +101,7 @@
 	New()
 		src.modules += new /obj/item/device/flashlight(src)
 		src.modules += new /obj/item/device/flash/cyborg(src)
-		src.modules += new /obj/item/device/healthanalyzer(src)
+		src.modules += new /obj/item/device/healthanalyzer/advanced(src)
 		src.modules += new /obj/item/device/reagent_scanner/adv(src)
 		src.modules += new /obj/item/weapon/borg_defib(src)
 		src.modules += new /obj/item/roller_holder(src)
@@ -142,7 +143,7 @@
 		/obj/item/stack/sheet/metal = 50,
 		/obj/item/stack/sheet/glass = 50,
 		/obj/item/stack/sheet/rglass = 50,
-		/obj/item/stack/cable_coil = 50,
+		/obj/item/stack/cable_coil/cyborg = 50,
 		/obj/item/stack/rods = 15,
 		/obj/item/stack/tile/plasteel = 15
 		)
@@ -179,7 +180,7 @@
 		G.amount = 50
 		src.modules += G
 
-		var/obj/item/stack/cable_coil/W = new /obj/item/stack/cable_coil(src)
+		var/obj/item/stack/cable_coil/cyborg/W = new /obj/item/stack/cable_coil/cyborg(src)
 		W.amount = 50
 		src.modules += W
 
@@ -241,6 +242,7 @@
 		src.modules += new /obj/item/weapon/pen(src)
 		src.modules += new /obj/item/weapon/razor(src)
 		src.modules += new /obj/item/device/violin(src)
+		src.modules += new /obj/item/device/guitar(src)
 
 		var/obj/item/weapon/rsf/M = new /obj/item/weapon/rsf(src)
 		M.matter = 30
@@ -274,6 +276,7 @@
 	R.add_language("Gutter", 1)
 	R.add_language("Sinta'unathi", 1)
 	R.add_language("Siik'tajr", 1)
+	R.add_language("Canilunzt", 1)
 	R.add_language("Skrellian", 1)
 	R.add_language("Vox-pidgin", 1)
 	R.add_language("Rootspeak", 1)
@@ -334,7 +337,8 @@
 	src.modules += new /obj/item/device/flash/cyborg(src)
 	src.modules += new /obj/item/device/flashlight(src)
 	src.modules += new /obj/item/weapon/melee/energy/sword/cyborg(src)
-	src.modules += new /obj/item/weapon/gun/energy/kinetic_accelerator/crossbow/large/cyborg(src)
+	src.modules += new /obj/item/weapon/gun/energy/printer(src)
+	src.modules += new /obj/item/weapon/gun/projectile/revolver/grenadelauncher/multi/cyborg(src)
 	src.modules += new /obj/item/weapon/card/emag(src)
 	src.modules += new /obj/item/weapon/tank/jetpack/carbondioxide(src)
 	src.modules += new /obj/item/weapon/crowbar(src)
@@ -389,7 +393,7 @@
 		/obj/item/stack/tile/plasteel = 15,
 		/obj/item/stack/sheet/metal = 20,
 		/obj/item/stack/sheet/glass = 20,
-		/obj/item/stack/cable_coil = 30
+		/obj/item/stack/cable_coil/cyborg = 30
 		)
 
 	New()

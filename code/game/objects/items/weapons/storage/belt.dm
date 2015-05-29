@@ -101,6 +101,31 @@
 		"/obj/item/device/sensor_device"
 	)
 
+/obj/item/weapon/storage/belt/botany
+	name = "botanist belt"
+	desc = "Can hold various botanical supplies."
+	icon_state = "botanybelt"
+	item_state = "botany"
+	can_hold = list(
+		"/obj/item/device/analyzer/plant_analyzer",
+		"/obj/item/weapon/minihoe",
+		"/obj/item/weapon/hatchet",
+		"/obj/item/weapon/reagent_containers/glass/fertilizer",
+		"/obj/item/weapon/reagent_containers/glass/bottle",
+		"/obj/item/weapon/plantspray",
+		"/obj/item/weapon/reagent_containers/syringe",
+		"/obj/item/weapon/reagent_containers/glass/beaker",
+		"/obj/item/weapon/lighter/zippo",
+		"/obj/item/weapon/storage/fancy/cigarettes",
+		"obj/item/weapon/rollingpaperpack",
+		"/obj/item/weapon/shovel/spade",
+		"/obj/item/device/flashlight/pen",
+		"/obj/item/seeds",
+		"/obj/item/weapon/wirecutters",
+        "/obj/item/weapon/wrench",
+		"/obj/item/weapon/disk/botany",
+	)
+
 
 /obj/item/weapon/storage/belt/security
 	name = "security belt"
@@ -127,13 +152,12 @@
 		"/obj/item/weapon/melee/telebaton"
 		)
 
-/obj/item/weapon/storage/belt/security/New()
+/obj/item/weapon/storage/belt/security/sec/New()
 	..()
 	new /obj/item/device/flashlight/seclite(src)
 
 /obj/item/weapon/storage/belt/security/response_team/New()
 	..()
-	contents.Cut()
 	new /obj/item/weapon/kitchenknife/combat(src)
 	new /obj/item/weapon/melee/baton/loaded(src)
 	new /obj/item/device/flash(src)
@@ -191,7 +215,7 @@
 		"/obj/item/weapon/soap",
 		"/obj/item/weapon/holosign_creator"
 		)
-		
+
 /obj/item/weapon/storage/belt/janitor/full/New()
 	..()
 	new /obj/item/device/lightreplacer(src)
@@ -346,22 +370,63 @@
 	desc = "Sometimes people choose justice.  Sometimes, justice chooses you..."
 	icon_state = "securitybelt"
 	item_state = "security"
-	storage_slots = 14
+	storage_slots = 6
 	max_w_class = 3
-	max_combined_w_class = 28 // = 14 * 2
+	max_combined_w_class = 18
 	origin_tech = "bluespace=4;syndicate=2"
 	allow_quick_empty = 1
-	can_hold = list()
-	New()
-		..()
-		new /obj/item/clothing/mask/gas/owl_mask(src)
-		new /obj/item/clothing/under/owl(src)
-		new /obj/item/weapon/grenade/smokebomb(src)
-		new /obj/item/weapon/grenade/smokebomb(src)
-		new /obj/item/device/detective_scanner(src)
+	can_hold = list(
+		"/obj/item/weapon/grenade/smokebomb",
+		"/obj/item/weapon/legcuffs/bolas"
+		)
+
+	flags = NODROP
+	var/smokecount = 0
+	var/bolacount = 0
+	var/cooldown = 0
 
 
 
+/obj/item/weapon/storage/belt/bluespace/owlman/New()
+	..()
+	new /obj/item/weapon/grenade/smokebomb(src)
+	new /obj/item/weapon/grenade/smokebomb(src)
+	new /obj/item/weapon/grenade/smokebomb(src)
+	new /obj/item/weapon/grenade/smokebomb(src)
+	new /obj/item/weapon/legcuffs/bolas(src)
+	new /obj/item/weapon/legcuffs/bolas(src)
+	processing_objects.Add(src)
+	cooldown = world.time
+
+/obj/item/weapon/storage/belt/bluespace/owlman/process()
+	if(cooldown < world.time - 600)
+		smokecount = 0
+		var/obj/item/weapon/grenade/smokebomb/S
+		for(S in src)
+			smokecount++
+		bolacount = 0
+		var/obj/item/weapon/legcuffs/bolas/B
+		for(B in src)
+			bolacount++
+		if(smokecount < 4)
+			while(smokecount < 4)
+				new /obj/item/weapon/grenade/smokebomb(src)
+				smokecount++
+		if(bolacount < 2)
+			while(bolacount < 2)
+				new /obj/item/weapon/legcuffs/bolas(src)
+				bolacount++
+		cooldown = world.time
+		update_icon()
+		orient2hud()
+		if(ishuman(loc))
+			var/mob/living/carbon/human/H = loc
+			if(H.belt && H.belt == src)
+				if(H.s_active && H.s_active == src)
+					H.s_active.show_to(H)
+
+
+/* DEPRECATED DUE TO SUPERHERO CODE AND NODROP
  // As a last resort, the belt can be used as a plastic explosive with a fixed timer (15 seconds).  Naturally, you'll lose all your gear...
  // Of course, it could be worse.  It could spawn a singularity!
 /obj/item/weapon/storage/belt/bluespace/owlman/afterattack(atom/target as obj|turf, mob/user as mob, flag)
@@ -400,6 +465,8 @@
 						del(target)
 				if (src)
 					del(src)
+*/
+
 /obj/item/weapon/storage/belt/bluespace/attack(mob/M as mob, mob/user as mob, def_zone)
 	return
 

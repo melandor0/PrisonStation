@@ -154,13 +154,6 @@ datum
 					if(self.data["virus2"])
 						blood_prop.virus2 = virus_copylist(self.data["virus2"])
 
-
-				else if(istype(self.data["donor"], /mob/living/carbon/monkey))
-					var/obj/effect/decal/cleanable/blood/blood_prop = locate() in T
-					if(!blood_prop)
-						blood_prop = new(T)
-						blood_prop.blood_DNA["Non-Human DNA"] = "A+"
-
 				else if(istype(self.data["donor"], /mob/living/carbon/alien))
 					var/obj/effect/decal/cleanable/blood/xeno/blood_prop = locate() in T
 					if(!blood_prop)
@@ -202,6 +195,16 @@ datum
 				return
 */
 
+		// Ported from Bay as part of the Botany Update
+		// Allows you to make planks from any plant that has this reagent in it.
+		// Also vines with this reagent are considered dense.
+		woodpulp
+			name = "Wood Pulp"
+			id = "woodpulp"
+			description = "A mass of wood fibers."
+			reagent_state = LIQUID
+			color = "#B97A57"
+
 		water
 			name = "Water"
 			id = "water"
@@ -223,7 +226,6 @@ datum
 
 			reaction_turf(var/turf/simulated/T, var/volume)
 				if (!istype(T)) return
-				var/CT = cooling_temperature
 				src = null
 				if(volume >= 3)
 					if(T.wet >= 1) return
@@ -245,10 +247,10 @@ datum
 				for(var/mob/living/carbon/slime/M in T)
 					M.apply_water()
 
-				var/hotspot = (locate(/obj/fire) in T)
+				var/hotspot = (locate(/obj/effect/hotspot) in T)
 				if(hotspot && !istype(T, /turf/space))
 					var/datum/gas_mixture/lowertemp = T.remove_air( T:air:total_moles() )
-					lowertemp.temperature = max( min(lowertemp.temperature-(CT*1000),lowertemp.temperature / CT) ,0)
+					lowertemp.temperature = max( min(lowertemp.temperature-2000,lowertemp.temperature / 2) ,0)
 					lowertemp.react()
 					T.assume_air(lowertemp)
 					qdel(hotspot)
@@ -257,17 +259,21 @@ datum
 			reaction_obj(var/obj/O, var/volume)
 				src = null
 				var/turf/T = get_turf(O)
-				var/hotspot = (locate(/obj/fire) in T)
+				var/hotspot = (locate(/obj/effect/hotspot) in T)
 				if(hotspot && !istype(T, /turf/space))
 					var/datum/gas_mixture/lowertemp = T.remove_air( T:air:total_moles() )
 					lowertemp.temperature = max( min(lowertemp.temperature-2000,lowertemp.temperature / 2) ,0)
 					lowertemp.react()
 					T.assume_air(lowertemp)
-					del(hotspot)
+					qdel(hotspot)
 				if(istype(O,/obj/item/weapon/reagent_containers/food/snacks/monkeycube))
 					var/obj/item/weapon/reagent_containers/food/snacks/monkeycube/cube = O
 					if(!cube.wrapped)
 						cube.Expand()
+				// Dehydrated carp
+				if(istype(O,/obj/item/toy/carpplushie/dehy_carp))
+					var/obj/item/toy/carpplushie/dehy_carp/dehy = O
+					dehy.Swell() // Makes a carp
 				return
 
 		hellwater
@@ -317,6 +323,19 @@ datum
 				..()
 				return
 
+		spider_venom
+			name = "Spider venom"
+			id = "spidertoxin"
+			description = "A toxic venom injected by spacefaring arachnids."
+			reagent_state = LIQUID
+			color = "#CF3600" // rgb: 207, 54, 0
+
+			on_mob_life(var/mob/living/M as mob)
+				if(!M) M = holder.my_atom
+				M.adjustToxLoss(1.5)
+				..()
+				return
+
 		plasticide
 			name = "Plasticide"
 			id = "plasticide"
@@ -355,15 +374,16 @@ datum
 				if(!M) M = holder.my_atom
 				if(ishuman(M))
 					var/mob/living/carbon/human/human = M
-					if(human.dna.mutantrace == null)
+					if(human.species.name != "Shadow")
 						M << "\red Your flesh rapidly mutates!"
 						M << "<b>You are now a Shadow Person, a mutant race of darkness-dwelling humanoids.</b>"
 						M << "\red Your body reacts violently to light. \green However, it naturally heals in darkness."
 						M << "Aside from your new traits, you are mentally unchanged and retain your prior obligations."
-						human.dna.mutantrace = "shadow"
-						human.update_mutantrace()
+						human.set_species("Shadow")
 				..()
 				return
+
+
 
 		aslimetoxin
 			name = "Advanced Mutation Toxin"
@@ -376,8 +396,8 @@ datum
 				if(!M) M = holder.my_atom
 				if(istype(M, /mob/living/carbon) && M.stat != DEAD)
 					M << "\red Your flesh rapidly mutates!"
-					if(M.monkeyizing)	return
-					M.monkeyizing = 1
+					if(M.notransform)	return
+					M.notransform = 1
 					M.canmove = 0
 					M.icon = null
 					M.overlays.Cut()
@@ -458,7 +478,7 @@ datum
 			reaction_mob(var/mob/living/M, var/method=TOUCH, var/volume)
 				// Vampires have their powers weakened by holy water applied to the skin.
 				if(ishuman(M))
-					if((M.mind in ticker.mode.vampires))
+					if((M.mind in ticker.mode.vampires) && !(VAMP_FULL in M.mind.vampire.powers))
 						var/mob/living/carbon/human/H=M
 						if(method == TOUCH)
 							if(H.wear_mask)
@@ -1117,6 +1137,7 @@ datum
 				M.adjustToxLoss(3*REM)
 				..()
 				return
+
 			reaction_mob(var/mob/living/M, var/method=TOUCH, var/volume)//Splashing people with plasma is stronger than fuel!
 				if(!istype(M, /mob/living))
 					return
@@ -1124,23 +1145,6 @@ datum
 					M.adjust_fire_stacks(volume / 5)
 					..()
 					return
-
-		cryptobiolin
-			name = "Cryptobiolin"
-			id = "cryptobiolin"
-			description = "Cryptobiolin causes confusion and dizzyness."
-			reagent_state = LIQUID
-			color = "#FFD1DC" // rgb: 255, 209, 220
-
-			on_mob_life(var/mob/living/M as mob)
-				if(!M) M = holder.my_atom
-				M.Dizzy(1)
-				if(!M.confused) M.confused = 1
-				M.confused = max(M.confused, 20)
-				holder.remove_reagent(src.id, 0.5 * REAGENTS_METABOLISM)
-				..()
-				return
-
 		lexorin
 			name = "Lexorin"
 			id = "lexorin"
@@ -1269,25 +1273,11 @@ datum
 
 			on_mob_life(var/mob/living/M as mob)
 				if(!M) M = holder.my_atom
-				if(M.bodytemperature < 170)
-					M.adjustCloneLoss(-1)
+				if(M.bodytemperature < 265)
+					M.adjustCloneLoss(-4)
 					M.adjustOxyLoss(-10)
 					M.heal_organ_damage(12,12)
 					M.adjustToxLoss(-3)
-				..()
-				return
-
-		clonexadone
-			name = "Clonexadone"
-			id = "clonexadone"
-			description = "A liquid compound similar to that used in the cloning process. Can be used to 'finish' clones that get ejected early when used in conjunction with a cryo tube."
-			reagent_state = LIQUID
-			color = "#0000C8" // rgb: 200, 165, 220
-
-			on_mob_life(var/mob/living/M as mob)
-				if(!M) M = holder.my_atom
-				if(M.bodytemperature < 170)
-					M.adjustCloneLoss(-3)
 					M.status_flags &= ~DISFIGURED
 				..()
 				return
@@ -1322,9 +1312,9 @@ datum
 		spaceacillin
 			name = "Spaceacillin"
 			id = "spaceacillin"
-			description = "An all-purpose antiviral agent."
+			description = "An all-purpose antibiotic agent extracted from space fungus."
 			reagent_state = LIQUID
-			color = "#228B22" // rgb: 34, 139, 34
+			color = "#0AB478"
 
 			on_mob_life(var/mob/living/M as mob)
 				..()
@@ -1356,12 +1346,12 @@ datum
 				data = max(data - 1, 3)
 				..()
 
-		mindbreaker
-			name = "Mindbreaker Toxin"
-			id = "mindbreaker"
-			description = "A powerful hallucinogen. Not a thing to be messed with."
+		lsd
+			name = "Lysergic acid diethylamide"
+			id = "lsd"
+			description = "A highly potent hallucinogenic substance. Far out, maaaan."
 			reagent_state = LIQUID
-			color = "#B31008" // rgb: 139, 166, 233
+			color = "#0000D8"
 
 			on_mob_life(var/mob/living/M)
 				if(!M) M = holder.my_atom
@@ -1370,11 +1360,24 @@ datum
 				return
 
 
+		spores
+			name = "Spore Toxin"
+			id = "spores"
+			description = "A toxic spore cloud which blocks vision when ingested."
+			color = "#9ACD32"
+
+			on_mob_life(var/mob/living/M as mob)
+				M.adjustToxLoss(0.5)
+				M.damageoverlaytemp = 60
+				M.eye_blurry = max(M.eye_blurry, 3)
+				..()
+				return
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-		nanites
+		nanomachines
 			name = "Nanomachines"
-			id = "nanites"
+			id = "nanomachines"
 			description = "Microscopic construction robots."
 			reagent_state = LIQUID
 			color = "#535E66" // rgb: 83, 94, 102
@@ -1475,18 +1478,66 @@ datum
 /////////////////////////Food Reagents////////////////////////////
 // Part of the food code. Nutriment is used instead of the old "heal_amt" code. Also is where all the food
 // 	condiments, additives, and such go.
-		nutriment
+		nutriment		// Pure nutriment, universally digestable and thus slightly less effective
 			name = "Nutriment"
 			id = "nutriment"
-			description = "All the vitamins, minerals, and carbohydrates the body needs in pure form."
+			description = "A questionable mixture of various pure nutrients commonly found in processed foods."
+			reagent_state = SOLID
+			nutriment_factor = 12 * REAGENTS_METABOLISM
+			color = "#664330" // rgb: 102, 67, 48
+
+			on_mob_life(var/mob/living/M as mob)
+				if(!M) M = holder.my_atom
+				if(!(M.mind in ticker.mode.vampires))
+					if(ishuman(M))
+						var/mob/living/carbon/human/H = M
+						if(H.species && H.species.dietflags)	//Make sure the species has it's dietflag set, otherwise it can't digest any nutrients
+							H.nutrition += nutriment_factor	// For hunger and fatness
+							if(prob(50)) M.heal_organ_damage(1,0)
+					if(istype(M,/mob/living/simple_animal))		//Any nutrients can heal simple animals
+						if(prob(50)) M.heal_organ_damage(1,0)
+				..()
+				return
+
+		protein			// Meat-based protein, digestable by carnivores and omnivores, worthless to herbivores
+			name = "Protein"
+			id = "protein"
+			description = "Various essential proteins and fats commonly found in animal flesh and blood."
 			reagent_state = SOLID
 			nutriment_factor = 15 * REAGENTS_METABOLISM
 			color = "#664330" // rgb: 102, 67, 48
 
 			on_mob_life(var/mob/living/M as mob)
 				if(!M) M = holder.my_atom
-				if(prob(50)) M.heal_organ_damage(1,0)
-				M.nutrition += nutriment_factor	// For hunger and fatness
+				if(!(M.mind in ticker.mode.vampires))
+					if(ishuman(M))
+						var/mob/living/carbon/human/H = M
+						if(H.species && H.species.dietflags && !(H.species.dietflags & DIET_HERB))	//Make sure the species has it's dietflag set, and that it is not a herbivore
+							H.nutrition += nutriment_factor	// For hunger and fatness
+							if(prob(50)) M.heal_organ_damage(1,0)
+					if(istype(M,/mob/living/simple_animal))		//Any nutrients can heal simple animals
+						if(prob(50)) M.heal_organ_damage(1,0)
+				..()
+				return
+
+		plantmatter		// Plant-based biomatter, digestable by herbivores and omnivores, worthless to carnivores
+			name = "Plant-matter"
+			id = "plantmatter"
+			description = "Vitamin-rich fibers and natural sugars commonly found in fresh produce."
+			reagent_state = SOLID
+			nutriment_factor = 15 * REAGENTS_METABOLISM
+			color = "#664330" // rgb: 102, 67, 48
+
+			on_mob_life(var/mob/living/M as mob)
+				if(!M) M = holder.my_atom
+				if(!(M.mind in ticker.mode.vampires))
+					if(ishuman(M))
+						var/mob/living/carbon/human/H = M
+						if(H.species && H.species.dietflags && !(H.species.dietflags & DIET_CARN))	//Make sure the species has it's dietflag set, and that it is not a carnivore
+							H.nutrition += nutriment_factor	// For hunger and fatness
+							if(prob(50)) M.heal_organ_damage(1,0)
+					if(istype(M,/mob/living/simple_animal))		//Any nutrients can heal simple animals
+						if(prob(50)) M.heal_organ_damage(1,0)
 				..()
 				return
 
@@ -1765,13 +1816,13 @@ datum
 						if(T.wet_overlay)
 							T.overlays -= T.wet_overlay
 							T.wet_overlay = null
-				var/hotspot = (locate(/obj/fire) in T)
+				var/hotspot = (locate(/obj/effect/hotspot) in T)
 				if(hotspot)
 					var/datum/gas_mixture/lowertemp = T.remove_air( T:air:total_moles() )
 					lowertemp.temperature = max( min(lowertemp.temperature-2000,lowertemp.temperature / 2) ,0)
 					lowertemp.react()
 					T.assume_air(lowertemp)
-					del(hotspot)
+					qdel(hotspot)
 
 		enzyme
 			name = "Denatured Enzyme"
@@ -2389,10 +2440,12 @@ datum
 			reagent_state = LIQUID
 			nutriment_factor = 0 //So alcohol can fill you up! If they want to.
 			color = "#404030" // rgb: 64, 64, 48
+			var/datum/martial_art/drunk_brawling/F = new
 			var/dizzy_adj = 3
 			var/slurr_adj = 3
 			var/confused_adj = 2
 			var/slur_start = 65			//amount absorbed after which mob starts slurring
+			var/brawl_start = 75		//amount absorbed after which mob switches to drunken brawling as a fighting style
 			var/confused_start = 130	//amount absorbed after which mob starts confusing directions
 			var/vomit_start = 180	//amount absorbed after which mob starts vomitting
 			var/blur_start = 260	//amount absorbed after which mob starts getting blurred vision
@@ -2422,6 +2475,12 @@ datum
 				if(d >= slur_start && d < pass_out)
 					if (!M:slurring) M:slurring = 1
 					M:slurring += slurr_adj/sober_str
+				if(d >= brawl_start && ishuman(M))
+					var/mob/living/carbon/human/H = M
+					F.teach(H,1)
+					if(src.volume < 3)
+						if(H.martial_art == F)
+							F.remove(H)
 				if(d >= confused_start && prob(33))
 					if (!M:confused) M:confused = 1
 					M.confused = max(M:confused+(confused_adj/sober_str),0)
@@ -2495,6 +2554,7 @@ datum
 				description = "Just when you thought regular station whiskey was good... This silky, amber goodness has to come along and ruin everything."
 				color = "#664300" // rgb: 102, 67, 0
 				slur_start = 30		//amount absorbed after which mob starts slurring
+				brawl_start = 40
 
 			gin
 				name = "Gin"
@@ -2511,6 +2571,7 @@ datum
 				overdose_threshold = 30
 				dizzy_adj = 5
 				slur_start = 25
+				brawl_start = 40
 				confused_start = 100
 
 				//copy paste from LSD... shoot me
@@ -2537,6 +2598,12 @@ datum
 					if(volume > overdose_threshold)
 						M:adjustToxLoss(1)
 					return
+
+			mojito
+				name = "Mojito"
+				id = "mojito"
+				description = "If it's good enough for Spesscuba, it's good enough for you."
+				color = "#664300" // rgb: 102, 67, 0
 
 			vodka
 				name = "Vodka"
@@ -2588,6 +2655,7 @@ datum
 				slurr_adj = 20
 				confused_adj = 3
 				slur_start = 15
+				brawl_start = 25
 				confused_start = 40
 				blur_start = 60
 				pass_out = 80

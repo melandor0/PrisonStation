@@ -45,7 +45,7 @@
 	//Set species_restricted list
 	switch(target_species)
 		if("Human", "Skrell")	//humanoid bodytypes
-			species_restricted = list("exclude","Unathi","Tajaran","Diona","Vox")
+			species_restricted = list("exclude","Unathi","Tajaran","Diona","Vox","Wryn")
 		else
 			species_restricted = list(target_species)
 
@@ -161,7 +161,7 @@ BLIND     // can't see anything
 	var/transfer_prints = FALSE
 	var/pickpocket = 0 //Master pickpocket?
 	var/clipped = 0
-	species_restricted = list("exclude","Unathi","Tajaran")
+	species_restricted = list("exclude","Unathi","Tajaran","Wryn")
 
 /obj/item/clothing/gloves/attackby(obj/item/weapon/W, mob/user, params)
 	if(istype(W, /obj/item/weapon/wirecutters))
@@ -295,7 +295,7 @@ BLIND     // can't see anything
 
 	permeability_coefficient = 0.50
 	slowdown = SHOES_SLOWDOWN
-	species_restricted = list("exclude","Unathi","Tajaran")
+	species_restricted = list("exclude","Unathi","Tajaran","Wryn")
 
 /obj/item/proc/negates_gravity()
 	return 0
@@ -324,11 +324,11 @@ BLIND     // can't see anything
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 100, rad = 50)
 	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE
 	cold_protection = HEAD
-	min_cold_protection_temperature = SPACE_HELMET_MIN_COLD_PROTECTION_TEMPERATURE
+	min_cold_protection_temperature = SPACE_HELM_MIN_TEMP_PROTECT
 	heat_protection = HEAD
-	max_heat_protection_temperature = SPACE_HELMET_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_heat_protection_temperature = SPACE_HELM_MAX_TEMP_PROTECT
 	siemens_coefficient = 0.9
-	species_restricted = list("exclude","Diona","Vox")
+	species_restricted = list("exclude","Diona","Vox","Wryn")
 	loose = 0 // What kind of idiot designs a pressurized suit where the helmet can fall off?
 	flash_protect = 2
 
@@ -347,11 +347,11 @@ BLIND     // can't see anything
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 100, rad = 50)
 	flags_inv = HIDEGLOVES|HIDESHOES|HIDEJUMPSUIT||HIDETAIL
 	cold_protection = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS | HANDS
-	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECTION_TEMPERATURE
+	min_cold_protection_temperature = SPACE_SUIT_MIN_TEMP_PROTECT
 	heat_protection = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS | HANDS
-	max_heat_protection_temperature = SPACE_SUIT_MAX_HEAT_PROTECTION_TEMPERATURE
+	max_heat_protection_temperature = SPACE_SUIT_MAX_TEMP_PROTECT
 	siemens_coefficient = 0.9
-	species_restricted = list("exclude","Diona","Vox")
+	species_restricted = list("exclude","Diona","Vox","Wryn")
 
 //Under clothing
 /obj/item/clothing/under
@@ -413,13 +413,13 @@ BLIND     // can't see anything
 			A.attack_hand(user)
 		return
 
-	if ((ishuman(usr) || ismonkey(usr)) && src.loc == user)	//make it harder to accidentally undress yourself
+	if (ishuman(usr) && src.loc == user)	//make it harder to accidentally undress yourself
 		return
 
 	..()
 
 /obj/item/clothing/under/MouseDrop(obj/over_object as obj)
-	if (ishuman(usr) || ismonkey(usr))
+	if (ishuman(usr))
 		//makes sure that the clothing is equipped so that we can't drag it into our hand from miles away.
 		if (!(src.loc == usr))
 			return

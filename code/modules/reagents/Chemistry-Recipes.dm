@@ -16,6 +16,8 @@ datum
 		var/list/secondary_results = list()		//additional reagents produced by the reaction
 		var/required_temp = 0
 		var/mix_message = "The solution begins to bubble."
+		var/mix_sound = 'sound/effects/bubbles.ogg'
+		var/no_message = 0
 
 
 		proc
@@ -30,6 +32,8 @@ datum
 			result = null
 			required_reagents = list("water" = 1, "potassium" = 1)
 			result_amount = 2
+			mix_message = "The mixture explodes!"
+
 			on_reaction(var/datum/reagents/holder, var/created_volume)
 				var/datum/effect/effect/system/reagents_explosion/e = new()
 				e.set_up(round (created_volume/10, 1), holder.my_atom, 0, 0)
@@ -109,8 +113,8 @@ datum
 			name = "mitocholide"
 			id = "mitocholide"
 			result = "mitocholide"
-			required_reagents = list("synthflesh" = 1, "clonexadone" = 1)
-			result_amount = 2
+			required_reagents = list("synthflesh" = 1, "cryoxadone" = 1, "plasma" = 1)
+			result_amount = 3
 
 		holy_water
 			name = "Holy Water"
@@ -120,13 +124,6 @@ datum
 			result_amount = 3
 			mix_message = "The water somehow seems purified. Or maybe defiled."
 
-		cryptobiolin
-			name = "Cryptobiolin"
-			id = "cryptobiolin"
-			result = "cryptobiolin"
-			required_reagents = list("potassium" = 1, "oxygen" = 1, "sugar" = 1)
-			result_amount = 3
-
 		cryoxadone
 			name = "Cryoxadone"
 			id = "cryoxadone"
@@ -135,20 +132,13 @@ datum
 			result_amount = 4
 			mix_message = "The solution bubbles softly."
 
-		clonexadone
-			name = "Clonexadone"
-			id = "clonexadone"
-			result = "clonexadone"
-			required_reagents = list("cryoxadone" = 1, "sodium" = 1)
-			required_catalysts = list("plasma" = 5)
-			result_amount = 2
-
 		spaceacillin
 			name = "Spaceacillin"
 			id = "spaceacillin"
 			result = "spaceacillin"
-			required_reagents = list("cryptobiolin" = 1, "epinephrine" = 1)
+			required_reagents = list("fungus" = 1, "ethanol" = 1)
 			result_amount = 2
+			mix_message = "The solvent extracts an antibiotic compound from the fungus."
 
 		Audioline
 			name = "Audioline"
@@ -190,15 +180,16 @@ datum
 			name = "Rezadone"
 			id = "rezadone"
 			result = "rezadone"
-			required_reagents = list("carpotoxin" = 1, "cryptobiolin" = 1, "copper" = 1)
+			required_reagents = list("carpotoxin" = 1, "spaceacillin" = 1, "copper" = 1)
 			result_amount = 3
 
-		mindbreaker
-			name = "Mindbreaker Toxin"
-			id = "mindbreaker"
-			result = "mindbreaker"
-			required_reagents = list("silicon" = 1, "hydrogen" = 1, "charcoal" = 1)
-			result_amount = 5
+		lsd
+			name = "Lysergic acid diethylamide"
+			id = "lsd"
+			result = "lsd"
+			required_reagents = list("diethylamine" = 1, "fungus" = 1)
+			result_amount = 3
+			mix_message = "The mixture turns a rather unassuming color and settles."
 
 		plastication
 			name = "Plastic"
@@ -381,6 +372,7 @@ datum
 			mix_message = "The mixture gives off a sharp acidic tang."
 
 ///////Changeling Blood Test/////////////
+/*
 		changeling_test
 			name = "Changeling blood test"
 			id = "changelingblood"
@@ -405,6 +397,7 @@ datum
 						M.show_message( "<span class ='notice'>The blood seems to break apart in the fuel.</span>", 1)
 				holder.del_reagent("blood")
 				return
+*/
 
 /////////////////////////////////////////////NEW SLIME CORE REACTIONS/////////////////////////////////////////////
 
@@ -643,19 +636,13 @@ datum
 			required_container = /obj/item/slime_extract/orange
 			required_other = 1
 			on_reaction(var/datum/reagents/holder)
-				for(var/mob/O in viewers(get_turf_loc(holder.my_atom), null))
+				feedback_add_details("slime_cores_used","[replacetext(name," ","_")]")
+				for(var/mob/O in viewers(get_turf(holder.my_atom), null))
 					O.show_message(text("\red The slime extract begins to vibrate violently !"), 1)
 				sleep(50)
-				var/turf/location = get_turf(holder.my_atom.loc)
-				for(var/turf/simulated/floor/target_tile in range(0,location))
-
-					var/datum/gas_mixture/napalm = new
-
-					napalm.toxins = 25
-					napalm.temperature = 1400
-
-					target_tile.assume_air(napalm)
-					spawn (0) target_tile.hotspot_expose(700, 400)
+				var/turf/simulated/T = get_turf(holder.my_atom)
+				if(istype(T))
+					T.atmos_spawn_air(SPAWN_HEAT | SPAWN_TOXINS, 50)
 
 //Yellow
 		slimeoverload
@@ -969,8 +956,8 @@ datum
 			name = "Soy Sauce"
 			id = "soysauce"
 			result = "soysauce"
-			required_reagents = list("soymilk" = 4, "sacid" = 1)
-			result_amount = 5
+			required_reagents = list("soymilk" = 2, "flour" = 1, "sodiumchloride" = 1, "water" = 3)
+			result_amount = 7
 
 		cheesewheel
 			name = "Cheesewheel"
@@ -988,7 +975,7 @@ datum
 			name = "Syntiflesh"
 			id = "syntiflesh"
 			result = null
-			required_reagents = list("blood" = 5, "clonexadone" = 1)
+			required_reagents = list("blood" = 5, "cryoxadone" = 1)
 			result_amount = 1
 			on_reaction(var/datum/reagents/holder, var/created_volume)
 				var/location = get_turf(holder.my_atom)
@@ -1097,18 +1084,25 @@ datum
 			name = "Sake"
 			id = "sake"
 			result = "sake"
-			required_reagents = list("rice" = 10)
+			required_reagents = list("rice" = 10,"water" = 5)
 			required_catalysts = list("enzyme" = 5)
-			result_amount = 10
+			result_amount = 15
 
 		kahlua
 			name = "Kahlua"
 			id = "kahlua"
 			result = "kahlua"
-			required_reagents = list("coffee" = 5, "sugar" = 5)
+			required_reagents = list("coffee" = 5, "sugar" = 5, "rum" = 5)
 			required_catalysts = list("enzyme" = 5)
 			result_amount = 5
-
+		
+		kahluaVodka
+			name = "KahluaVodka"
+			id = "kahlauVodka"
+			result = "kahlua"
+			required_reagents = list("coffee" = 5, "sugar" = 5, "vodka" = 5)
+			required_catalysts = list("enzyme" = 5)
+			result_amount = 5
 		gin_tonic
 			name = "Gin and Tonic"
 			id = "gintonic"
@@ -1123,6 +1117,13 @@ datum
 			result = "cubalibre"
 			required_reagents = list("rum" = 2, "cola" = 1)
 			result_amount = 3
+
+		mojito
+			name = "Mojito"
+			id = "mojito"
+			result = "mojito"
+			required_reagents = list("rum" = 1, "sugar" = 1, "limejuice" = 1, "sodawater" = 1)
+			result_amount = 4
 
 		martini
 			name = "Classic Martini"

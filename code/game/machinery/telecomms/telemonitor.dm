@@ -19,8 +19,8 @@
 
 	var/temp = ""				// temporary feedback messages
 	circuit = "/obj/item/weapon/circuitboard/comm_monitor"
-	
-	l_color = "#50AB00"
+
+	light_color = LIGHT_COLOR_DARKGREEN
 
 	attack_hand(mob/user as mob)
 		if(stat & (BROKEN|NOPOWER))

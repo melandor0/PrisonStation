@@ -26,9 +26,6 @@
 	item_state = "syringe_kit"
 	foldable = /obj/item/stack/sheet/cardboard	//BubbleWrap
 
-	autoignition_temperature = 522 // Kelvin
-
-
 /obj/item/weapon/storage/box/large
 	name = "large box"
 	desc = "You could build a fort with this."
@@ -38,8 +35,6 @@
 	foldable = /obj/item/stack/sheet/cardboard  //BubbleWrap
 	storage_slots = 21
 	max_combined_w_class = 42 // 21*2
-
-	autoignition_temperature = 530 // Kelvin
 
 /obj/item/weapon/storage/box/survival
 	New()
@@ -415,6 +410,19 @@
 		..()
 		for(var/i = 1; i <= 5; i++)
 			new /obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/neaeracube(src)
+
+
+/obj/item/weapon/storage/box/wolpincubes
+	name = "wolpin cube box"
+	desc = "Drymate brand wolpin cubes. Just add water!"
+	icon = 'icons/obj/food.dmi'
+	icon_state = "monkeycubebox"
+	storage_slots = 7
+	can_hold = list("/obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/wolpincube")
+	New()
+		..()
+		for(var/i = 1; i <= 5; i++)
+			new /obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/wolpincube(src)
 
 
 /obj/item/weapon/storage/box/permits

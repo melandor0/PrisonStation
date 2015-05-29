@@ -17,13 +17,13 @@
 	var/current_heat_capacity = 50
 	var/efficiency
 
-	l_color = "#FFFFFF"
+	light_color = LIGHT_COLOR_WHITE
 	power_change()
 		..()
 		if(!(stat & (BROKEN|NOPOWER)))
-			SetLuminosity(2)
+			set_light(2)
 		else
-			SetLuminosity(0)
+			set_light(0)
 
 /obj/machinery/atmospherics/unary/cryo_cell/New()
 	..()
@@ -60,10 +60,9 @@
 
 /obj/machinery/atmospherics/unary/cryo_cell/initialize()
 	if(node) return
-	var/node_connect = dir
-	for(var/obj/machinery/atmospherics/target in get_step(src,node_connect))
-		if(target.initialize_directions & get_dir(target,src))
-			node = target
+	for(var/cdir in cardinal)
+		node = findConnecting(cdir)
+		if(node)
 			break
 
 /obj/machinery/atmospherics/unary/cryo_cell/Destroy()
@@ -400,7 +399,7 @@
 	expel_gas = air_contents.remove(remove_amount)
 	expel_gas.temperature = T20C // Lets expel hot gas and see if that helps people not die as they are removed
 	loc.assume_air(expel_gas)
-	update_nearby_tiles()
+	air_update_turf()
 
 /obj/machinery/atmospherics/unary/cryo_cell/proc/go_out()
 	if(!( occupant ))

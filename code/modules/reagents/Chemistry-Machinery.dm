@@ -177,6 +177,10 @@
 
 			R.add_reagent(href_list["dispense"], min(amount, energy * 10, space))
 			energy = max(energy - min(amount, energy * 10, space) / 10, 0)
+			overlays.Cut()
+			icon_beaker = image('icons/obj/chemical.dmi', src, "disp_beaker") //randomize beaker overlay position.
+			icon_beaker.pixel_x = rand(-10,5)
+			overlays += icon_beaker
 
 	if(href_list["remove"])
 		if(beaker)
@@ -246,9 +250,6 @@
 /obj/machinery/chem_dispenser/attack_ai(mob/user as mob)
 	return src.attack_hand(user)
 
-/obj/machinery/chem_dispenser/attack_paw(mob/user as mob)
-	return src.attack_hand(user)
-
 /obj/machinery/chem_dispenser/attack_hand(mob/user as mob)
 	if(stat & BROKEN)
 		return
@@ -274,7 +275,7 @@
 	energy = 100
 	max_energy = 100
 	desc = "A technological marvel, supposedly able to mix just the mixture you'd like to drink the moment you ask for one."
-	dispensable_reagents = list("ice","cream","beer","kahlua","whiskey","wine","vodka","gin","rum","tequilla","vermouth","cognac","ale","mead")
+	dispensable_reagents = list("ice","cream", "cider", "beer","kahlua","whiskey","wine","vodka","gin","rum","tequilla","vermouth","cognac","ale","mead")
 	hack_message = "You disable the 'nanotrasen-are-cheap-bastards' lock, enabling hidden and very expensive boozes."
 	unhack_message = "You re-enable the 'nanotrasen-are-cheap-bastards' lock, disabling hidden and very expensive boozes."
 	hacked_reagents = list("goldschlager","patron", "absinthe", "ethanol", "nothing")
@@ -289,11 +290,11 @@
 	energy = 5
 	max_energy = 5
 	amount = 5
-	recharge_delay = 30
+	recharge_delay = 10
 	dispensable_reagents = list()
-	var/list/special_reagents = list(list("hydrogen", "oxygen", "silicon", "phosphorus", "sulfur", "carbon", "nitrogen"),
-						 		list("lithium", "sugar", "water", "copper", "mercury", "sodium"),
-								list("ethanol", "chlorine", "potassium", "aluminum","plasma", "radium", "fluorine", "iron"))
+	var/list/special_reagents = list(list("hydrogen", "oxygen", "silicon", "phosphorus", "sulfur", "carbon", "nitrogen", "tungsten", "water"),
+						 		list("lithium", "sugar", "copper", "mercury", "sodium","iodine","bromine"),
+								list("ethanol", "chlorine", "potassium", "aluminum","plasma", "radium", "fluorine", "iron", "silver"))
 
 /obj/machinery/chem_dispenser/constructable/New()
 	..()
@@ -319,7 +320,7 @@
 		time += C.rating
 	for(var/obj/item/weapon/stock_parts/cell/P in component_parts)
 		time += round(P.maxcharge, 10000) / 10000
-	recharge_delay /= time/2         //delay between recharges, double the usual time on lowest 50% less than usual on highest
+	recharge_delay = 10 / (time/2)         //delay between recharges, double the usual time on lowest 33% less than usual on highest
 	for(var/obj/item/weapon/stock_parts/manipulator/M in component_parts)
 		for(i=1, i<=M.rating, i++)
 			dispensable_reagents = sortList(dispensable_reagents | special_reagents[i])
@@ -630,9 +631,6 @@
 	return
 
 /obj/machinery/chem_master/attack_ai(mob/user as mob)
-	return src.attack_hand(user)
-
-/obj/machinery/chem_master/attack_paw(mob/user as mob)
 	return src.attack_hand(user)
 
 /obj/machinery/chem_master/attack_hand(mob/user as mob)
@@ -1004,18 +1002,7 @@
 		/obj/item/stack/sheet/mineral/clown = list("banana" = 20),
 		/obj/item/stack/sheet/mineral/silver = list("silver" = 20),
 		/obj/item/stack/sheet/mineral/gold = list("gold" = 20),
-		/obj/item/weapon/grown/nettle = list("sacid" = 0),
-		/obj/item/weapon/grown/deathnettle = list("facid" = 0),
 		/obj/item/weapon/grown/novaflower = list("capsaicin" = 0),
-
-		//Blender Stuff
-		/obj/item/weapon/reagent_containers/food/snacks/grown/soybeans = list("soymilk" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/tomato = list("ketchup" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/corn = list("cornoil" = 0),
-		///obj/item/weapon/reagent_containers/food/snacks/grown/wheat = list("flour" = -5),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/ricestalk = list("rice" = -5),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/cherries = list("cherryjelly" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/plastellium = list("plasticide" = 5),
 
 
 		//archaeology!
@@ -1028,20 +1015,33 @@
 		/obj/item/weapon/reagent_containers/food = list()
 	)
 
-	var/list/juice_items = list (
+	var/list/blend_tags = list (
+		"nettle" = list("sacid" = 0),
+		"deathnettle" = list("facid" = 0),
+		"soybeans" = list("soymilk" = 0),
+		"tomato" = list("ketchup" = 0),
+		///obj/item/weapon/reagent_containers/food/snacks/grown/wheat = list("flour" = -5),
+		"ricestalk" = list("rice" = 5),
+		"cherries" = list("cherryjelly" = 0),
+		"plastellium" = list("plasticide" = 5),
+	)
 
-		//Juicer Stuff
-		/obj/item/weapon/reagent_containers/food/snacks/grown/tomato = list("tomatojuice" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/carrot = list("carrotjuice" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/berries = list("berryjuice" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/banana = list("banana" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/potato = list("potato" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/lemon = list("lemonjuice" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/orange = list("orangejuice" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/lime = list("limejuice" = 0),
+	var/list/juice_items = list (
 		/obj/item/weapon/reagent_containers/food/snacks/watermelonslice = list("watermelonjuice" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/poisonberries = list("poisonberryjuice" = 0),
-		/obj/item/weapon/reagent_containers/food/snacks/grown/grapes = list("grapejuice" = 0),
+	)
+
+	var/list/juice_tags = list (
+		"tomato" = list("tomatojuice" = 0),
+		"carrot" = list("carrotjuice" = 0),
+		"berries" = list("berryjuice" = 0),
+		"banana" = list("banana" = 0),
+		"potato" = list("potato" = 0),
+		"lemon" = list("lemonjuice" = 0),
+		"orange" = list("orangejuice" = 0),
+		"lime" = list("limejuice" = 0),
+		"poisonberries" = list("poisonberryjuice" = 0),
+		"grapes" = list("grapejuice" = 0),
+		"corn" = list("cornoil" = 0),
 	)
 
 
@@ -1107,9 +1107,6 @@
 	holdingitems += O
 	src.updateUsrDialog()
 	return 0
-
-/obj/machinery/reagentgrinder/attack_paw(mob/user as mob)
-	return src.attack_hand(user)
 
 /obj/machinery/reagentgrinder/attack_ai(mob/user as mob)
 	return 0
@@ -1219,9 +1216,19 @@
 			return blend_items[i]
 
 /obj/machinery/reagentgrinder/proc/get_allowed_juice_by_id(var/obj/item/weapon/reagent_containers/food/snacks/O)
-	for(var/i in juice_items)
+	for(var/i in juice_tags)
 		if(istype(O, i))
 			return juice_items[i]
+
+/obj/machinery/reagentgrinder/proc/get_allowed_snack_by_tag(var/obj/item/weapon/reagent_containers/food/snacks/grown/O)
+	for(var/i in blend_tags)
+		if(O.seed.kitchen_tag == i)
+			return blend_tags[i]
+
+/obj/machinery/reagentgrinder/proc/get_allowed_juice_by_tag(var/obj/item/weapon/reagent_containers/food/snacks/grown/O)
+	for(var/i in juice_tags)
+		if(O.seed.kitchen_tag == i)
+			return juice_tags[i]
 
 /obj/machinery/reagentgrinder/proc/get_grownweapon_amount(var/obj/item/weapon/grown/O)
 	if (!istype(O))
@@ -1259,7 +1266,11 @@
 		if (beaker.reagents.total_volume >= beaker.reagents.maximum_volume)
 			break
 
-		var/allowed = get_allowed_juice_by_id(O)
+		var/allowed = null
+		if(istype(O, /obj/item/weapon/reagent_containers/food/snacks/grown))
+			allowed = get_allowed_juice_by_tag(O)
+		else
+			allowed = get_allowed_juice_by_id(O)
 		if(isnull(allowed))
 			break
 
@@ -1292,7 +1303,11 @@
 		if (beaker.reagents.total_volume >= beaker.reagents.maximum_volume)
 			break
 
-		var/allowed = get_allowed_snack_by_id(O)
+		var/allowed = null
+		if(istype(O, /obj/item/weapon/reagent_containers/food/snacks/grown))
+			allowed = get_allowed_snack_by_tag(O)
+		else
+			allowed = get_allowed_snack_by_id(O)
 		if(isnull(allowed))
 			break
 

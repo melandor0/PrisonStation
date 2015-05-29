@@ -16,6 +16,8 @@
 	var/area_uid
 	var/id_tag = null
 
+	req_one_access_txt = "24;10"
+
 	var/on = 0
 	var/pump_direction = 1 //0 = siphoning, 1 = releasing
 
@@ -36,10 +38,12 @@
 
 	var/frequency = 1439
 	var/datum/radio_frequency/radio_connection
+	Mtoollink = 1
+	var/advcontrol = 0//does this device listen to the AAC
 
 	var/radio_filter_out
 	var/radio_filter_in
-	
+
 	connect_types = list(1,2) //connects to regular and supply pipes
 
 /obj/machinery/atmospherics/unary/vent_pump/on
@@ -56,8 +60,6 @@
 /obj/machinery/atmospherics/unary/vent_pump/New()
 	icon = null
 	initial_loc = get_area(loc)
-	if (initial_loc.master)
-		initial_loc = initial_loc.master
 	area_uid = initial_loc.uid
 	if (!id_tag)
 		assign_uid()
@@ -80,7 +82,7 @@
 		return
 
 	overlays.Cut()
-	
+
 	var/vent_icon = "vent"
 
 	var/turf/T = get_turf(src)
@@ -89,7 +91,7 @@
 
 	if(T.intact && node && node.level == 1 && istype(node, /obj/machinery/atmospherics/pipe))
 		vent_icon += "h"
-		
+
 	if(welded)
 		vent_icon += "weld"
 	else if(!powered())
@@ -148,6 +150,7 @@
 				var/datum/gas_mixture/removed = air_contents.remove(transfer_moles)
 
 				loc.assume_air(removed)
+				air_update_turf()
 
 				if(network)
 					network.update = 1
@@ -168,6 +171,7 @@
 					return
 
 				air_contents.merge(removed)
+				air_update_turf()
 
 				if(network)
 					network.update = 1
@@ -181,6 +185,12 @@
 	frequency = new_frequency
 	if(frequency)
 		radio_connection = radio_controller.add_object(src, frequency,radio_filter_in)
+	if(frequency != 1439)
+		initial_loc.air_vent_info -= id_tag
+		initial_loc.air_vent_names -= id_tag
+		name = "Vent Pump"
+	else
+		broadcast_status()
 
 /obj/machinery/atmospherics/unary/vent_pump/proc/broadcast_status()
 	if(!radio_connection)
@@ -202,12 +212,12 @@
 		"timestamp" = world.time,
 		"sigtype" = "status"
 	)
-
-	if(!initial_loc.air_vent_names[id_tag])
-		var/new_name = "[initial_loc.name] Vent Pump #[initial_loc.air_vent_names.len+1]"
-		initial_loc.air_vent_names[id_tag] = new_name
-		src.name = new_name
-	initial_loc.air_vent_info[id_tag] = signal.data
+	if(frequency == 1439)//We're on the frequency the air alarms and stuff use
+		if(!initial_loc.air_vent_names[id_tag])
+			var/new_name = "[initial_loc.name] Vent Pump #[initial_loc.air_vent_names.len+1]"
+			initial_loc.air_vent_names[id_tag] = new_name
+			src.name = new_name
+		initial_loc.air_vent_info[id_tag] = signal.data
 
 	radio_connection.post_signal(src, signal, radio_filter_out)
 
@@ -227,14 +237,14 @@
 	if(stat & (NOPOWER|BROKEN))
 		return
 	//log_admin("DEBUG \[[world.timeofday]\]: /obj/machinery/atmospherics/unary/vent_pump/receive_signal([signal.debug_print()])")
-	if(!signal.data["tag"] || (signal.data["tag"] != id_tag) || (signal.data["sigtype"]!="command"))
+	if(!signal.data["tag"] || (signal.data["tag"] != id_tag) || (signal.data["sigtype"]!="command") || (signal.data["advcontrol"] && !advcontrol))
 		return 0
 
 	if(signal.data["purge"] != null)
 		pressure_checks &= ~1
 		pump_direction = 0
 
-	if(signal.data["stabalize"] != null)
+	if(signal.data["stabilize"] != null)
 		pressure_checks |= 1
 		pump_direction = 1
 
@@ -307,6 +317,9 @@
 	update_icon()
 	return
 
+/obj/machinery/atmospherics/unary/vent_pump/can_crawl_through()
+	return !welded
+
 /obj/machinery/atmospherics/unary/vent_pump/attackby(obj/item/W, mob/user, params)
 	if(istype(W, /obj/item/weapon/weldingtool))
 		var/obj/item/weapon/weldingtool/WT = W
@@ -324,10 +337,14 @@
 					welded = 0
 					update_icon()
 			else
+
 				user << "\blue The welding tool needs to be on to start this task."
 		else
 			user << "\blue You need more welding fuel to complete this task."
 			return 1
+	else if(istype(W, /obj/item/device/multitool))
+		update_multitool_menu(user)
+		return 1
 	else
 		..()
 
@@ -343,7 +360,42 @@
 	if(old_stat != stat)
 		update_icon()
 
+
+/obj/machinery/atmospherics/unary/vent_pump/interact(mob/user as mob)
+	update_multitool_menu(user)
+
+/obj/machinery/atmospherics/unary/vent_pump/multitool_menu(var/mob/user,var/obj/item/device/multitool/P)
+	return {"
+	<ul>
+		<li><b>Frequency:</b> <a href="?src=\ref[src];set_freq=-1">[format_frequency(frequency)] GHz</a> (<a href="?src=\ref[src];set_freq=[1439]">Reset</a>)</li>
+		<li>[format_tag("ID Tag","id_tag","set_id")]</li>
+		<li><b>AAC Acces:</b> <a href="?src=\ref[src];toggleadvcontrol=1">[advcontrol ? "Allowed" : "Blocked"]</a>
+		</ul>
+	"}
+
+/obj/machinery/atmospherics/unary/vent_pump/multitool_topic(var/mob/user, var/list/href_list, var/obj/O)
+	if("toggleadvcontrol" in href_list)
+		advcontrol = !advcontrol
+		return MT_UPDATE
+
+	if("set_id" in href_list)
+		var/newid = copytext(reject_bad_text(input(usr, "Specify the new ID tag for this machine", src, src.id_tag) as null|text), 1, MAX_MESSAGE_LEN)
+		if(!newid)
+			return
+		if(frequency == 1439)
+			initial_loc.air_vent_info -= id_tag
+			initial_loc.air_vent_names -= id_tag
+
+		id_tag = newid
+		broadcast_status()
+
+		return MT_UPDATE
+
+	return ..()
+
 /obj/machinery/atmospherics/unary/vent_pump/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob, params)
+	if (istype(W, /obj/item/device/multitool))
+		update_multitool_menu(user)
 	if (!istype(W, /obj/item/weapon/wrench))
 		return ..()
 	if (!(stat & NOPOWER) && on)
@@ -367,24 +419,10 @@
 			"\blue You have unfastened \the [src].", \
 			"You hear ratchet.")
 		new /obj/item/pipe(loc, make_from=src)
-		del(src)
+		qdel(src)
 
-/obj/machinery/atmospherics/unary/vent_pump/Del()
+/obj/machinery/atmospherics/unary/vent_pump/Destroy()
 	if(initial_loc)
 		initial_loc.air_vent_info -= id_tag
 		initial_loc.air_vent_names -= id_tag
-	..()
-	return
-
-/*
-	Alt-click to ventcrawl - Monkeys, aliens, slimes and mice.
-	This is a little buggy but somehow that just seems to plague ventcrawl.
-	I am sorry, I don't know why.
-*/
-/obj/machinery/atmospherics/unary/vent_pump/AltClick(var/mob/living/ML)
-	if(istype(ML))
-		var/list/ventcrawl_verbs = list(/mob/living/carbon/monkey/verb/ventcrawl, /mob/living/carbon/alien/verb/alien_ventcrawl, /mob/living/carbon/slime/verb/ventcrawl,/mob/living/simple_animal/mouse/verb/ventcrawl)
-		if(length(ML.verbs & ventcrawl_verbs)) // alien queens have this removed, an istype would be complicated
-			ML.handle_ventcrawl(src)
-			return
-	..()
+	return ..()

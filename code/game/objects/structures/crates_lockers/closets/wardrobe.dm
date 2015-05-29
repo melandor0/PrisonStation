@@ -49,6 +49,18 @@
 
 	return
 
+/obj/structure/closet/redcorp
+	name = "corporate security wardrobe"
+	icon_state = "red"
+	icon_closed = "red"
+
+/obj/structure/closet/redcorp/New()
+	new /obj/item/clothing/under/rank/security/corp(src)
+	new /obj/item/clothing/under/rank/security/corp(src)
+	new /obj/item/clothing/under/rank/security/corp(src)
+	new /obj/item/clothing/head/soft/sec/corp(src)
+	new /obj/item/clothing/head/soft/sec/corp(src)
+	new /obj/item/clothing/head/soft/sec/corp(src)
 
 /obj/structure/closet/wardrobe/pink
 	name = "pink wardrobe"
@@ -103,8 +115,13 @@
 	new /obj/item/clothing/suit/holidaypriest(src)
 	new /obj/item/clothing/under/wedding/bride_white(src)
 	new /obj/item/weapon/storage/backpack/cultpack (src)
-	new /obj/item/weapon/storage/fancy/candle_box(src)
-	new /obj/item/weapon/storage/fancy/candle_box(src)
+	new /obj/item/weapon/storage/fancy/candle_box/eternal(src)
+	new /obj/item/weapon/storage/fancy/candle_box/eternal(src)
+	new /obj/item/weapon/storage/fancy/candle_box/eternal(src)
+	new /obj/item/clothing/gloves/ring/silver(src)
+	new /obj/item/clothing/gloves/ring/silver(src)
+	new /obj/item/clothing/gloves/ring/gold(src)
+	new /obj/item/clothing/gloves/ring/gold(src)
 	return
 
 
@@ -182,9 +199,9 @@
 	new /obj/item/clothing/head/hardhat/red(src)
 	new /obj/item/clothing/head/hardhat/red(src)
 	new /obj/item/clothing/head/hardhat/red(src)
-	new /obj/item/clothing/head/beret/eng(src)
-	new /obj/item/clothing/head/beret/eng(src)
-	new /obj/item/clothing/head/beret/eng(src)
+	new /obj/item/clothing/head/beret/atmos(src)
+	new /obj/item/clothing/head/beret/atmos(src)
+	new /obj/item/clothing/head/beret/atmos(src)
 	return
 
 

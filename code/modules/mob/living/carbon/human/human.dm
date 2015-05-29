@@ -42,9 +42,13 @@
 	prev_gender = gender // Debug for plural genders
 	make_blood()
 
+	var/mob/M = src
+	faction |= "\ref[M]"
+
 	// Set up DNA.
 	if(!delay_ready_dna)
 		dna.ready_dna(src)
+	UpdateAppearance()
 
 /mob/living/carbon/human/dummy
 	real_name = "Test Dummy"
@@ -57,6 +61,10 @@
 /mob/living/carbon/human/tajaran/New(var/new_loc)
 	h_style = "Tajaran Ears"
 	..(new_loc, "Tajaran")
+
+/mob/living/carbon/human/vulpkanin/New(var/new_loc)
+	h_style = "Bald"
+	..(new_loc, "Vulpkanin")
 
 /mob/living/carbon/human/unathi/New(var/new_loc)
 	h_style = "Unathi Horns"
@@ -97,6 +105,37 @@
 /mob/living/carbon/human/machine/New(var/new_loc)
 	h_style = "blue IPC screen"
 	..(new_loc, "Machine")
+
+/mob/living/carbon/human/shadow/New(var/new_loc)
+	h_style = "Bald"
+	..(new_loc, "Shadow")
+
+/mob/living/carbon/human/golem/New(var/new_loc)
+	h_style = "Bald"
+	..(new_loc, "Golem")
+
+/mob/living/carbon/human/wryn/New(var/new_loc)
+	h_style = "Antennae"
+	..(new_loc, "Wryn")
+
+/mob/living/carbon/human/nucleation/New(var/new_loc)
+	h_style = "Nucleation Crystals"
+	..(new_loc, "Nucleation")
+
+/mob/living/carbon/human/monkey/New(var/new_loc)
+	..(new_loc, "Monkey")
+
+/mob/living/carbon/human/farwa/New(var/new_loc)
+	..(new_loc, "Farwa")
+
+/mob/living/carbon/human/wolpin/New(var/new_loc)
+	..(new_loc, "Wolpin")
+
+/mob/living/carbon/human/neara/New(var/new_loc)
+	..(new_loc, "Neara")
+
+/mob/living/carbon/human/stok/New(var/new_loc)
+	..(new_loc, "Stok")
 
 /mob/living/carbon/human/Bump(atom/movable/AM as mob|obj, yes)
 	if ((!( yes ) || now_pushing))
@@ -210,6 +249,7 @@
 			if(mind.changeling)
 				stat("Chemical Storage", "[mind.changeling.chem_charges]/[mind.changeling.chem_storage]")
 				stat("Absorbed DNA", mind.changeling.absorbedcount)
+		stat(null, "Station Time: [worldtime2text()]")
 
 	if(istype(loc, /obj/spacepod)) // Spacdpods!
 		var/obj/spacepod/S = loc
@@ -232,12 +272,15 @@
 
 				var/limbs_affected = pick(2,3,4)
 				var/obj/item/organ/external/processing_dismember
+				var/list/valid_limbs = organs.Copy()
 
-				while(limbs_affected != 0)
-					processing_dismember = pick(organs)
-					if(processing_dismember.name != "chest" && processing_dismember.name != "head" && processing_dismember.name != "groin")
+				while(limbs_affected != 0 && valid_limbs.len > 0)
+					processing_dismember = pick(valid_limbs)
+					if(processing_dismember.limb_name != "chest" && processing_dismember.limb_name != "head" && processing_dismember.limb_name != "groin")
 						processing_dismember.droplimb(1,pick(0,1,2),0,1)
+						valid_limbs -= processing_dismember
 						limbs_affected -= 1
+					else valid_limbs -= processing_dismember
 
 
 			//return
@@ -250,28 +293,25 @@
 
 			f_loss += 60
 
+			var/limbs_affected = 0
+			var/obj/item/organ/external/processing_dismember
+			var/list/valid_limbs = organs.Copy()
+
 			if (prob(getarmor(null, "bomb")))
 				b_loss = b_loss/1.5
 				f_loss = f_loss/1.5
 
-				var/limbs_affected = pick(1, 1, 2)
-				var/obj/item/organ/external/processing_dismember
-
-				while(limbs_affected != 0)
-					processing_dismember = pick(organs)
-					if(processing_dismember.name != "chest" && processing_dismember.name != "head" && processing_dismember.name != "groin")
-						processing_dismember.droplimb(1,pick(0,2),0,1)
-						limbs_affected -= 1
-
+				limbs_affected = pick(1, 1, 2)
 			else
-				var/limbs_affected = pick(1, 2, 3)
-				var/obj/item/organ/external/processing_dismember
+				limbs_affected = pick(1, 2, 3)
 
-				while(limbs_affected != 0)
-					processing_dismember = pick(organs)
-					if(processing_dismember.name != "chest" && processing_dismember.name != "head" && processing_dismember.name != "groin")
-						processing_dismember.droplimb(1,pick(0,2),0,1)
-						limbs_affected -= 1
+			while(limbs_affected != 0 && valid_limbs.len > 0)
+				processing_dismember = pick(valid_limbs)
+				if(processing_dismember.limb_name != "chest" && processing_dismember.limb_name != "head" && processing_dismember.limb_name != "groin")
+					processing_dismember.droplimb(1,pick(0,2),0,1)
+					valid_limbs -= processing_dismember
+					limbs_affected -= 1
+				else valid_limbs -= processing_dismember
 
 			if (!istype(l_ear, /obj/item/clothing/ears/earmuffs) && !istype(r_ear, /obj/item/clothing/ears/earmuffs))
 				ear_damage += 30
@@ -288,12 +328,15 @@
 
 				var/limbs_affected = pick(0, 1)
 				var/obj/item/organ/external/processing_dismember
+				var/list/valid_limbs = organs.Copy()
 
-				while(limbs_affected != 0)
-					processing_dismember = pick(organs)
-					if(processing_dismember.name != "chest" && processing_dismember.name != "head" && processing_dismember.name != "groin")
+				while(limbs_affected != 0 && valid_limbs.len > 0)
+					processing_dismember = pick(valid_limbs)
+					if(processing_dismember.limb_name != "chest" && processing_dismember.limb_name != "head" && processing_dismember.limb_name != "groin")
 						processing_dismember.droplimb(1,1,0,1)
+						valid_limbs -= processing_dismember
 						limbs_affected -= 1
+					else valid_limbs -= processing_dismember
 
 			if (!istype(l_ear, /obj/item/clothing/ears/earmuffs) && !istype(r_ear, /obj/item/clothing/ears/earmuffs))
 				ear_damage += 15
@@ -304,7 +347,7 @@
 	var/update = 0
 	var/weapon_message = "Explosive Blast"
 	for(var/obj/item/organ/external/temp in organs)
-		switch(temp.name)
+		switch(temp.limb_name)
 			if("head")
 				update |= temp.take_damage(b_loss * 0.2, f_loss * 0.2, used_weapon = weapon_message)
 			if("chest")
@@ -495,25 +538,28 @@
 	var/dat = {"
 	<B><HR><FONT size=3>[name]</FONT></B>
 	<BR><HR>
+	<BR><B>Back:</B> <A href='?src=\ref[src];item=back'>[(back && !(back.flags & ABSTRACT)) ? back : "Nothing"]</A> [((istype(wear_mask, /obj/item/clothing/mask) && istype(back, /obj/item/weapon/tank) && !( internal )) ? text(" <A href='?src=\ref[];item=internal'>Set Internal</A>", src) : "")]
 	<BR><B>Head(Mask):</B> <A href='?src=\ref[src];item=mask'>[(wear_mask && !(wear_mask.flags & ABSTRACT)) ? wear_mask : "Nothing"]</A>
 	<BR><B>Left Hand:</B> <A href='?src=\ref[src];item=l_hand'>[(l_hand && !(l_hand.flags & ABSTRACT)) ? l_hand  : "Nothing"]</A>
-	<BR><B>Right Hand:</B> <A href='?src=\ref[src];item=r_hand'>[(r_hand && !(r_hand.flags&ABSTRACT)) ? r_hand : "Nothing"]</A>
-	<BR><B>Gloves:</B> <A href='?src=\ref[src];item=gloves'>[(gloves && !(gloves.flags & ABSTRACT)) ? gloves : "Nothing"]</A>
-	<BR><B>Eyes:</B> <A href='?src=\ref[src];item=eyes'>[(glasses && !(glasses.flags & ABSTRACT)) ? glasses : "Nothing"]</A>
-	<BR><B>Left Ear:</B> <A href='?src=\ref[src];item=l_ear'>[(l_ear && !(l_ear.flags & ABSTRACT)) ? l_ear : "Nothing"]</A>
-	<BR><B>Right Ear:</B> <A href='?src=\ref[src];item=r_ear'>[(r_ear && !(r_ear.flags & ABSTRACT)) ? r_ear : "Nothing"]</A>
-	<BR><B>Head:</B> <A href='?src=\ref[src];item=head'>[(head && !(head.flags & ABSTRACT)) ? head : "Nothing"]</A>
-	<BR><B>Shoes:</B> <A href='?src=\ref[src];item=shoes'>[(shoes && !(shoes.flags & ABSTRACT)) ? shoes : "Nothing"]</A>
-	<BR><B>Belt:</B> <A href='?src=\ref[src];item=belt'>[(belt && !(belt.flags & ABSTRACT)) ? belt : "Nothing"]</A> [((istype(wear_mask, /obj/item/clothing/mask) && istype(belt, /obj/item/weapon/tank) && !( internal )) ? text(" <A href='?src=\ref[];item=internal'>Set Internal</A>", src) : "")]
-	<BR><B>Uniform:</B> <A href='?src=\ref[src];item=uniform'>[(w_uniform && !(w_uniform.flags & ABSTRACT)) ? w_uniform : "Nothing"]</A> [(suit) ? ((suit.has_sensor == 1) ? text(" <A href='?src=\ref[];item=sensor'>Sensors</A>", src) : "") :]
-	<BR><B>(Exo)Suit:</B> <A href='?src=\ref[src];item=suit'>[(wear_suit && !(wear_suit.flags & ABSTRACT)) ? wear_suit : "Nothing"]</A>
-	<BR><B>Back:</B> <A href='?src=\ref[src];item=back'>[(back && !(back.flags & ABSTRACT)) ? back : "Nothing"]</A> [((istype(wear_mask, /obj/item/clothing/mask) && istype(back, /obj/item/weapon/tank) && !( internal )) ? text(" <A href='?src=\ref[];item=internal'>Set Internal</A>", src) : "")]
-	<BR><B>ID:</B> <A href='?src=\ref[src];item=id'>[(wear_id && !(wear_id.flags & ABSTRACT)) ? wear_id : "Nothing"]</A>
-	<BR><B>PDA:</B> <A href='?src=\ref[src];item=pda'>[(wear_pda && !(wear_pda.flags & ABSTRACT)) ? wear_pda : "Nothing"]</A>
-	<BR><B>Suit Storage:</B> <A href='?src=\ref[src];item=s_store'>[(s_store && !(s_store.flags & ABSTRACT)) ? s_store : "Nothing"]</A>
-	<BR><BR><A href='?src=\ref[src];pockets=left'>Left Pocket ([(l_store && !(l_store.flags & ABSTRACT)) ? (pickpocket ? l_store.name : "Full") : "Empty"])</A>
-	<BR><A href='?src=\ref[src];pockets=right'>Right Pocket ([(r_store && !(r_store.flags & ABSTRACT)) ? (pickpocket ? r_store.name : "Full") : "Empty"])</A>
-	<BR><A href='?src=\ref[src];item=pockets'>Empty Both Pockets</A>
+	<BR><B>Right Hand:</B> <A href='?src=\ref[src];item=r_hand'>[(r_hand && !(r_hand.flags&ABSTRACT)) ? r_hand : "Nothing"]</A>"}
+	if(!issmall(src))
+		dat += {"
+		<BR><B>Gloves:</B> <A href='?src=\ref[src];item=gloves'>[(gloves && !(gloves.flags & ABSTRACT)) ? gloves : "Nothing"]</A>
+		<BR><B>Eyes:</B> <A href='?src=\ref[src];item=eyes'>[(glasses && !(glasses.flags & ABSTRACT)) ? glasses : "Nothing"]</A>
+		<BR><B>Left Ear:</B> <A href='?src=\ref[src];item=l_ear'>[(l_ear && !(l_ear.flags & ABSTRACT)) ? l_ear : "Nothing"]</A>
+		<BR><B>Right Ear:</B> <A href='?src=\ref[src];item=r_ear'>[(r_ear && !(r_ear.flags & ABSTRACT)) ? r_ear : "Nothing"]</A>
+		<BR><B>Head:</B> <A href='?src=\ref[src];item=head'>[(head && !(head.flags & ABSTRACT)) ? head : "Nothing"]</A>
+		<BR><B>Shoes:</B> <A href='?src=\ref[src];item=shoes'>[(shoes && !(shoes.flags & ABSTRACT)) ? shoes : "Nothing"]</A>
+		<BR><B>Belt:</B> <A href='?src=\ref[src];item=belt'>[(belt && !(belt.flags & ABSTRACT)) ? belt : "Nothing"]</A> [((istype(wear_mask, /obj/item/clothing/mask) && istype(belt, /obj/item/weapon/tank) && !( internal )) ? text(" <A href='?src=\ref[];item=internal'>Set Internal</A>", src) : "")]
+		<BR><B>Uniform:</B> <A href='?src=\ref[src];item=uniform'>[(w_uniform && !(w_uniform.flags & ABSTRACT)) ? w_uniform : "Nothing"]</A> [(suit) ? ((suit.has_sensor == 1) ? text(" <A href='?src=\ref[];item=sensor'>Sensors</A>", src) : "") :]
+		<BR><B>(Exo)Suit:</B> <A href='?src=\ref[src];item=suit'>[(wear_suit && !(wear_suit.flags & ABSTRACT)) ? wear_suit : "Nothing"]</A>
+		<BR><B>ID:</B> <A href='?src=\ref[src];item=id'>[(wear_id && !(wear_id.flags & ABSTRACT)) ? wear_id : "Nothing"]</A>
+		<BR><B>PDA:</B> <A href='?src=\ref[src];item=pda'>[(wear_pda && !(wear_pda.flags & ABSTRACT)) ? wear_pda : "Nothing"]</A>
+		<BR><B>Suit Storage:</B> <A href='?src=\ref[src];item=s_store'>[(s_store && !(s_store.flags & ABSTRACT)) ? s_store : "Nothing"]</A>
+		<BR><BR><A href='?src=\ref[src];pockets=left'>Left Pocket ([(l_store && !(l_store.flags & ABSTRACT)) ? (pickpocket ? l_store.name : "Full") : "Empty"])</A>
+		<BR><A href='?src=\ref[src];pockets=right'>Right Pocket ([(r_store && !(r_store.flags & ABSTRACT)) ? (pickpocket ? r_store.name : "Full") : "Empty"])</A>
+		<BR><A href='?src=\ref[src];item=pockets'>Empty Both Pockets</A>"}
+	dat += {"
 	<BR><BR>[(handcuffed ? text("<A href='?src=\ref[src];item=handcuff'>Handcuffed</A>") : text("<A href='?src=\ref[src];item=handcuff'>Not Handcuffed</A>"))]
 	<BR>[(legcuffed ? text("<A href='?src=\ref[src];item=legcuff'>Legcuffed</A>") : text(""))]
 	[(suit) ? ((suit.accessories.len) ? text("<BR><A href='?src=\ref[];item=tie'>Remove Accessory</A>", src) : "") :]
@@ -644,13 +690,16 @@
 /mob/living/carbon/human/Topic(href, href_list)
 	var/pickpocket = 0
 
+	if(ishuman(usr))
+		var/mob/living/carbon/human/H = usr
+		var/obj/item/clothing/gloves/G = H.gloves
+		if(G)
+			pickpocket = G.pickpocket
+
 	if(!usr.stat && usr.canmove && !usr.restrained() && in_range(src, usr))
 
 		// if looting pockets with gloves, do it quietly
 		if(href_list["pockets"])
-			if(usr:gloves)
-				var/obj/item/clothing/gloves/G = usr:gloves
-				pickpocket = G.pickpocket
 			var/pocket_side = href_list["pockets"]
 			var/pocket_id = (pocket_side == "right" ? slot_r_store : slot_l_store)
 			var/obj/item/pocket_item = (pocket_id == slot_r_store ? src.r_store : src.l_store)
@@ -689,9 +738,6 @@
 		if(href_list["item"])
 			var/itemTarget = href_list["item"]
 			if(itemTarget == "id")
-				if(usr:gloves)
-					var/obj/item/clothing/gloves/G = usr:gloves
-					pickpocket = G.pickpocket
 				if(pickpocket)
 					var/obj/item/worn_id = src.wear_id
 					var/obj/item/place_item = usr.get_active_hand() // Item to place in the pocket, if it's empty
@@ -736,9 +782,6 @@
 
 	if ((href_list["item"] && !( usr.stat ) && usr.canmove && !( usr.restrained() ) && in_range(src, usr) && ticker)) //if game hasn't started, can't make an equip_e
 		var/obj/effect/equip_e/human/O = new /obj/effect/equip_e/human(  )
-		if(ishuman(usr) && usr:gloves)
-			var/obj/item/clothing/gloves/G = usr:gloves
-			pickpocket = G.pickpocket
 		if(!pickpocket || href_list["item"] != "id")  // Stop the non-stealthy verbose strip if pickpocketing id.
 			O.source = usr
 			O.target = src
@@ -1054,9 +1097,6 @@
 		tinted += MT.tint
 	return tinted
 
-/mob/living/carbon/human/IsAdvancedToolUser()
-	return 1//Humans can use guns and such
-
 
 /mob/living/carbon/human/abiotic(var/full_body = 0)
 	if(full_body && ((src.l_hand && !(src.l_hand.flags & ABSTRACT)) || (src.r_hand && !(src.r_hand.flags & ABSTRACT)) || (src.back || src.wear_mask || src.head || src.shoes || src.w_uniform || src.wear_suit || src.glasses || src.l_ear || src.r_ear || src.gloves)))
@@ -1076,9 +1116,6 @@
 
 	if(!species)
 		set_species()
-
-	if(dna && dna.mutantrace == "golem")
-		return "Animated Construct"
 
 	return species.name
 
@@ -1354,6 +1391,8 @@
 		vessel = null
 	make_blood()
 
+	maxHealth = species.total_health
+
 	if(species.language)
 		add_language(species.language)
 
@@ -1382,7 +1421,6 @@
 		dna = new /datum/dna(null)
 		dna.species = species.name
 		dna.real_name = real_name
-	dna.mutantrace = null
 
 	species.handle_post_spawn(src)
 
@@ -1391,6 +1429,8 @@
 		update_mutantrace(1)
 		regenerate_icons()
 		fixblood()
+
+	UpdateAppearance()
 
 	if(species)
 		return 1
@@ -1640,9 +1680,6 @@
 	if(istype(head, /obj/item/clothing/head/wizard) || istype(head, /obj/item/clothing/head/helmet/space/rig/wizard))
 		threatcount += 2
 
-	//Check for nonhuman scum
-	if(dna && dna.mutantrace && dna.mutantrace != "none")
-		threatcount += 1
 
 	//Loyalty implants imply trustworthyness
 	if(isloyal(src))
@@ -1659,3 +1696,11 @@
 
 /mob/living/carbon/human/InCritical()
 	return (health <= config.health_threshold_crit && stat == UNCONSCIOUS)
+
+
+/mob/living/carbon/human/IsAdvancedToolUser(var/silent)
+	if(species.has_fine_manipulation)
+		return 1
+	if(!silent)
+		src << "<span class='warning'>You don't have the dexterity to use that!<span>"
+	return 0

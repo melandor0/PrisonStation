@@ -47,7 +47,7 @@
 			A.real_name = O.real_name
 			A.name = O.name
 			if(iscorgi(O))
-				var/mob/living/simple_animal/corgi/C = O
+				var/mob/living/simple_animal/pet/corgi/C = O
 				if(C.inventory_head)
 					C.inventory_head.loc = C.loc
 				if(C.inventory_back)
@@ -127,8 +127,8 @@
 proc/wabbajack(mob/living/M)
 	if(istype(M))
 		if(istype(M, /mob/living) && M.stat != DEAD)
-			if(M.monkeyizing)	return
-			M.monkeyizing = 1
+			if(M.notransform)	return
+			M.notransform = 1
 			M.canmove = 0
 			M.icon = null
 			M.overlays.Cut()
@@ -148,11 +148,8 @@ proc/wabbajack(mob/living/M)
 
 			var/mob/living/new_mob
 
-			var/randomize = pick("monkey","robot","slime","xeno","human","animal")
+			var/randomize = pick("robot","slime","xeno","human","animal")
 			switch(randomize)
-				if("monkey")
-					new_mob = new /mob/living/carbon/monkey(M.loc)
-					new_mob.universal_speak = 1
 				if("robot")
 					if(prob(30))
 						new_mob = new /mob/living/silicon/robot/syndicate(M.loc)
@@ -197,33 +194,29 @@ proc/wabbajack(mob/living/M)
 						var/animal = pick("parrot","corgi","crab","pug","cat","tomato","mouse","chicken","cow","lizard","chick","fox")
 						switch(animal)
 							if("parrot")	new_mob = new /mob/living/simple_animal/parrot(M.loc)
-							if("corgi")		new_mob = new /mob/living/simple_animal/corgi(M.loc)
+							if("corgi")		new_mob = new /mob/living/simple_animal/pet/corgi(M.loc)
 							if("crab")		new_mob = new /mob/living/simple_animal/crab(M.loc)
-							if("cat")		new_mob = new /mob/living/simple_animal/cat(M.loc)
+							if("cat")		new_mob = new /mob/living/simple_animal/pet/cat(M.loc)
 							if("tomato")	new_mob = new /mob/living/simple_animal/tomato(M.loc)
 							if("mouse")		new_mob = new /mob/living/simple_animal/mouse(M.loc)
 							if("chicken")	new_mob = new /mob/living/simple_animal/chicken(M.loc)
 							if("cow")		new_mob = new /mob/living/simple_animal/cow(M.loc)
 							if("lizard")	new_mob = new /mob/living/simple_animal/lizard(M.loc)
-							if("fox") 		new_mob = new /mob/living/simple_animal/fox(M.loc)
+							if("fox") 		new_mob = new /mob/living/simple_animal/pet/fox(M.loc)
 							else			new_mob = new /mob/living/simple_animal/chick(M.loc)
 					new_mob.universal_speak = 1
 				if("human")
 					new_mob = new /mob/living/carbon/human/human(M.loc)
-
+					var/mob/living/carbon/human/H = new_mob
+					H.set_species(pick(all_species))
 					var/datum/preferences/A = new()	//Randomize appearance for the human
 					A.copy_to(new_mob)
 
-					var/mob/living/carbon/human/human/H = new_mob
-//					ready_dna(H)
-					if(H.dna)
-						H.dna.mutantrace = pick("lizard","golem","slime","plant","fly","shadow","adamantine","skeleton",8;"")
-						H.update_body()
 				else
 					return
 
 			for (var/obj/effect/proc_holder/spell/wizard/S in M.spell_list)
-				new_mob.spell_list += new S.type
+				new_mob.AddSpell(new S.type)
 
 			new_mob.attack_log = M.attack_log
 			M.attack_log += text("\[[time_stamp()]\] <font color='orange'>[M.real_name] ([M.ckey]) became [new_mob.real_name].</font>")

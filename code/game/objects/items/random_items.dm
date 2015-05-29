@@ -61,7 +61,7 @@
 //	identify_probability = 0
 	New()
 		..()
-		var/global/list/chems_only = list("slimejelly","blood","water","lube","charcoal","toxin","cyanide","morphine","epinephrine","space_drugs","serotrotium","oxygen","copper","nitrogen","hydrogen","potassium","mercury","sulfur","carbon","chlorine","fluorine","sodium","phosphorus","lithium","sugar","sacid","facid","glycerol","radium","mutadone","thermite","mutagen","virusfood","iron","gold","silver","uranium","aluminum","silicon","fuel","cleaner","atrazine","plasma","teporone","cryptobiolin","lexorin","silver_sulfadiazine","salbutamol","perfluorodecalin","omnizine","synaptizine","haloperidol","potass_iodide","pen_acid","mannitol","oculine","styptic_powder","methamphetamine","cryoxadone","clonexadone","spaceacillin","carpotoxin","mindbreaker","fluorosurfactant","fluorosurfactant","ethanol","ammonia","diethylamine","antihol","pancuronium","lipolicide","condensedcapsaicin","frostoil","amanitin","psilocybin","enzyme","nothing","salglu_solution","antifreeze","neurotoxin")
+		var/global/list/chems_only = list("slimejelly","blood","water","lube","charcoal","toxin","cyanide","morphine","epinephrine","space_drugs","serotrotium","oxygen","copper","nitrogen","hydrogen","potassium","mercury","sulfur","carbon","chlorine","fluorine","sodium","phosphorus","lithium","sugar","sacid","facid","glycerol","radium","mutadone","thermite","mutagen","virusfood","iron","gold","silver","uranium","aluminum","silicon","fuel","cleaner","atrazine","plasma","teporone","lexorin","silver_sulfadiazine","salbutamol","perfluorodecalin","omnizine","synaptizine","haloperidol","potass_iodide","pen_acid","mannitol","oculine","styptic_powder","methamphetamine","cryoxadone","spaceacillin","carpotoxin","mindbreaker","fluorosurfactant","fluorosurfactant","ethanol","ammonia","diethylamine","antihol","pancuronium","lipolicide","condensedcapsaicin","frostoil","amanitin","psilocybin","enzyme","nothing","salglu_solution","antifreeze","neurotoxin")
 		var/global/list/rare_chems = list("minttoxin","nanites","xenomicrobes","adminordrazine")
 
 		var/datum/reagent/R = pick(chems_only + rare_chems)
@@ -123,7 +123,7 @@
 
 	New()
 		..()
-		var/global/list/meds_only = list("charcoal","toxin","cyanide","morphine","epinephrine","space_drugs","serotrotium","mutadone","mutagen","teporone","cryptobiolin","lexorin","silver_sulfadiazine","salbutamol","perfluorodecalin","omnizine","synaptizine","haloperidol","potass_iodide","pen_acid","mannitol","oculine","styptic_powder","methamphetamine","spaceacillin","carpotoxin","mindbreaker","ethanol","ammonia","diethylamine","antihol","pancuronium","lipolicide","condensedcapsaicin","frostoil","amanitin","psilocybin","nothing","salglu_solution","neurotoxin")
+		var/global/list/meds_only = list("charcoal","toxin","cyanide","morphine","epinephrine","space_drugs","serotrotium","mutadone","mutagen","teporone","lexorin","silver_sulfadiazine","salbutamol","perfluorodecalin","omnizine","synaptizine","haloperidol","potass_iodide","pen_acid","mannitol","oculine","styptic_powder","methamphetamine","spaceacillin","carpotoxin","mindbreaker","ethanol","ammonia","diethylamine","antihol","pancuronium","lipolicide","condensedcapsaicin","frostoil","amanitin","psilocybin","nothing","salglu_solution","neurotoxin")
 		var/global/list/rare_meds = list("nanites","xenomicrobes","minttoxin","adminordrazine","blood")
 
 		var/i = 1
@@ -198,7 +198,7 @@
 				B.desc	= "Looks like the label fell off."
 //				B.identify_probability = 0
 
-
+/*
 /obj/structure/closet/crate/bin/flowers
 	name = "flower barrel"
 	desc = "A bin full of fresh flowers for the bereaved."
@@ -210,7 +210,6 @@
 			var/atom/movable/AM = new flowertype(src)
 			AM.pixel_x = rand(-10,10)
 			AM.pixel_y = rand(-5,5)
-
 
 /obj/structure/closet/crate/bin/plants
 	name = "plant barrel"
@@ -234,6 +233,7 @@
 			var/obj/O = new ptype(src)
 			O.pixel_x = rand(-10,10)
 			O.pixel_y = rand(-5,5)
+*/
 
 /obj/structure/closet/secure_closet/random_drinks
 	name = "Unlabelled Booze"
@@ -301,12 +301,12 @@
 
 	attackby(obj/item/weapon/W as obj, mob/user as mob, params)
 		if(istype(W, /obj/item/weapon/crowbar))
-			var/mob/living/simple_animal/cat/Cat1 = new(loc)
+			var/mob/living/simple_animal/pet/cat/Cat1 = new(loc)
 			Cat1.apply_damage(250)//,TOX)
 			Cat1.name = "Schrodinger's Cat"
 			Cat1.desc = "It seems it's been dead for a while."
 
-			var/mob/living/simple_animal/cat/Cat2 = new(loc)
+			var/mob/living/simple_animal/pet/cat/Cat2 = new(loc)
 			Cat2.name = "Schrodinger's Cat"
 			Cat2.desc = "It's was alive the whole time!"
 			sleep(2)

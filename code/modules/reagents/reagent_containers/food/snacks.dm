@@ -44,7 +44,7 @@
 		return 0
 
 	if(istype(M, /mob/living/carbon))
-		var/fullness = M.nutrition + (M.reagents.get_reagent_amount("nutriment") * 25)
+		var/fullness = M.nutrition + (M.reagents.get_reagent_amount("nutriment") * 20) + (M.reagents.get_reagent_amount("protein") * 25) + (M.reagents.get_reagent_amount("plantmatter") * 25)
 		if(M == user)								//If you're eating it yourself
 			if(istype(M,/mob/living/carbon/human))
 				var/mob/living/carbon/human/H = M
@@ -243,7 +243,7 @@
 			if(bitecount >= 4)
 				M.visible_message("[M] [pick("burps from enjoyment", "yaps for more", "woofs twice", "looks at the area where \the [src] was")].","<span class=\"notice\">You swallow up the last part of \the [src].")
 				playsound(src.loc,'sound/items/eatfood.ogg', rand(10,50), 1)
-				var/mob/living/simple_animal/corgi/C = M
+				var/mob/living/simple_animal/pet/corgi/C = M
 				if (C.health <= C.maxHealth + 5)
 					C.health += 5
 				else
@@ -535,7 +535,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 1)
+		reagents.add_reagent("protein", 1)
 		reagents.add_reagent("egg", 5)
 
 	throw_impact(atom/hit_atom)
@@ -623,7 +623,20 @@
 	icon_state = "flour"
 	New()
 		..()
-		reagents.add_reagent("nutriment", 1)
+		reagents.add_reagent("flour", 5)
+
+/obj/item/weapon/reagent_containers/food/snacks/organ
+
+	name = "organ"
+	desc = "It's good for you."
+	icon = 'icons/obj/surgery.dmi'
+	icon_state = "appendix"
+	filling_color = "#E00D34"
+
+	New()
+		..()
+		reagents.add_reagent("protein", 4)
+		src.bitesize = 3
 
 /obj/item/weapon/reagent_containers/food/snacks/appendix
 //yes, this is the same as meat. I might do something different in future
@@ -635,7 +648,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 3)
+		reagents.add_reagent("protein", 3)
 		src.bitesize = 3
 
 /obj/item/weapon/reagent_containers/food/snacks/appendix/inflamed
@@ -686,7 +699,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 3)
+		reagents.add_reagent("protein", 3)
 		reagents.add_reagent("carpotoxin", 3)
 		src.bitesize = 6
 
@@ -710,7 +723,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 3)
+		reagents.add_reagent("plantmatter", 3)
 		reagents.add_reagent("psilocybin", 3)
 		src.bitesize = 6
 
@@ -722,7 +735,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 3)
+		reagents.add_reagent("protein", 3)
 		src.bitesize = 6
 
 /obj/item/weapon/reagent_containers/food/snacks/bearmeat
@@ -733,7 +746,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 12)
+		reagents.add_reagent("protein", 12)
 		reagents.add_reagent("methamphetamine", 5)
 		src.bitesize = 3
 
@@ -745,7 +758,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 3)
+		reagents.add_reagent("protein", 3)
 		src.bitesize = 6
 
 /obj/item/weapon/reagent_containers/food/snacks/spidermeat
@@ -754,7 +767,7 @@
 	icon_state = "spidermeat"
 	New()
 		..()
-		reagents.add_reagent("nutriment", 3)
+		reagents.add_reagent("protein", 3)
 		reagents.add_reagent("toxin", 3)
 		bitesize = 3
 
@@ -764,7 +777,7 @@
 	icon_state = "spiderleg"
 	New()
 		..()
-		reagents.add_reagent("nutriment", 2)
+		reagents.add_reagent("protein", 2)
 		reagents.add_reagent("toxin", 2)
 		bitesize = 2
 
@@ -775,7 +788,7 @@
 	filling_color = "#DB0000"
 	New()
 		..()
-		reagents.add_reagent("nutriment", 3)
+		reagents.add_reagent("protein", 3)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/sausage
@@ -786,7 +799,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 6)
+		reagents.add_reagent("protein", 6)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/donkpocket
@@ -799,14 +812,15 @@
 		..()
 		reagents.add_reagent("nutriment", 4)
 
-	var/warm = 0
-	proc/cooltime() //Not working, derp?
-		if (src.warm)
-			spawn( 4200 )
-				src.warm = 0
-				src.reagents.del_reagent("omnizine")
-				src.name = "donk-pocket"
-		return
+/obj/item/weapon/reagent_containers/food/snacks/warmdonkpocket
+	name = "Warm Donk-pocket"
+	desc = "The food of choice for the seasoned traitor."
+	icon_state = "donkpocket"
+	filling_color = "#DEDEAB"
+	New()
+		..()
+		reagents.add_reagent("nutriment", 4)
+		reagents.add_reagent("omnizine", 4)
 
 /obj/item/weapon/reagent_containers/food/snacks/syndidonkpocket
 	name = "Donk-pocket"
@@ -914,8 +928,6 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 2)
-		if(prob(5))
-			reagents.add_reagent("nanites", 2)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/roburgerbig
@@ -1230,7 +1242,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 4)
+		reagents.add_reagent("protein", 4)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/no_raisin
@@ -1242,7 +1254,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 6)
+		reagents.add_reagent("plantmatter", 6)
 
 /obj/item/weapon/reagent_containers/food/snacks/spacetwinkie
 	name = "Space Twinkie"
@@ -1265,6 +1277,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 4)
+		reagents.add_reagent("fake_cheese", 2)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/chinese/chowmein
@@ -1274,6 +1287,7 @@
 	New()
 		..()
 		reagents.add_reagent("nutriment", 6)
+		reagents.add_reagent("beans", 3)
 		reagents.add_reagent("msg",4)
 		bitesize = 2
 
@@ -1283,7 +1297,8 @@
 	icon_state = "chinese2"
 	New()
 		..()
-		reagents.add_reagent("nutriment", 6)
+		reagents.add_reagent("nutriment", 4)
+		reagents.add_reagent("protein", 2)
 		reagents.add_reagent("msg",4)
 		bitesize = 2
 
@@ -1654,11 +1669,11 @@
 	bitesize = 12
 	filling_color = "#ADAC7F"
 
-	var/monkey_type = /mob/living/carbon/monkey
+	var/monkey_type = "Monkey"
 
 	New()
 		..()
-		reagents.add_reagent("nutriment",10)
+		reagents.add_reagent("protein",10)
 
 	afterattack(obj/O as obj, mob/user as mob, proximity)
 		if(!proximity) return
@@ -1672,6 +1687,7 @@
 		if(wrapped)
 			Unwrap(user)
 
+/*
 	On_Consume(var/mob/M)
 		M << "<span class = 'warning'>Something inside of you suddently expands!</span>"
 
@@ -1699,7 +1715,7 @@
 			else 		//someone is having a bad day
 				E.createwound(CUT, 30)
 				E.embed(surprise)
-		else if (ismonkey(M))
+		else if (issmall(M))
 			M.visible_message("<span class='danger'>[M] suddenly tears in half!</span>")
 			var/mob/living/carbon/monkey/ook = new monkey_type(M.loc)
 			ook.name = "malformed [ook.name]"
@@ -1707,11 +1723,16 @@
 			ook.add_blood(M)
 			M.gib()
 		..()
+*/
+
+	water_act(volume, temperature)
+		if(volume >= 5)	return Expand()
 
 	proc/Expand()
 		for(var/mob/M in viewers(src,7))
 			M << "\red \The [src] expands!"
-		new monkey_type(src)
+		var/mob/living/carbon/human/H = new (src)
+		H.set_species(monkey_type)
 		del(src)
 
 	proc/Unwrap(mob/user as mob)
@@ -1728,25 +1749,34 @@
 
 /obj/item/weapon/reagent_containers/food/snacks/monkeycube/farwacube
 	name = "farwa cube"
-	monkey_type = /mob/living/carbon/monkey/tajara
+	monkey_type = "Farwa"
 /obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/farwacube
 	name = "farwa cube"
-	monkey_type =/mob/living/carbon/monkey/tajara
+	monkey_type = "Farwa"
+
+
+/obj/item/weapon/reagent_containers/food/snacks/monkeycube/wolpincube
+	name = "wolpin cube"
+	monkey_type = "Wolpin"
+/obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/wolpincube
+	name = "wolpin cube"
+	monkey_type = "Wolpin"
+
 
 /obj/item/weapon/reagent_containers/food/snacks/monkeycube/stokcube
 	name = "stok cube"
-	monkey_type = /mob/living/carbon/monkey/unathi
+	monkey_type = "Stok"
 /obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/stokcube
 	name = "stok cube"
-	monkey_type =/mob/living/carbon/monkey/unathi
+	monkey_type = "Stok"
 
 /obj/item/weapon/reagent_containers/food/snacks/monkeycube/neaeracube
 	name = "neaera cube"
-	monkey_type =/mob/living/carbon/monkey/skrell
+	monkey_type = "Neara"
 
 /obj/item/weapon/reagent_containers/food/snacks/monkeycube/wrapped/neaeracube
 	name = "neaera cube"
-	monkey_type =/mob/living/carbon/monkey/skrell
+	monkey_type = "Neara"
 
 
 /obj/item/weapon/reagent_containers/food/snacks/spellburger
@@ -2057,7 +2087,7 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 3)
+		reagents.add_reagent("plantmatter", 3)
 		reagents.add_reagent("oculine", 3)
 		bitesize = 2
 
@@ -2315,7 +2345,8 @@
 	filling_color = "#FF7575"
 	New()
 		..()
-		reagents.add_reagent("nutriment", 30)
+		reagents.add_reagent("protein", 20)
+		reagents.add_reagent("nutriment", 10)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/meatbreadslice
@@ -2335,7 +2366,8 @@
 	filling_color = "#8AFF75"
 	New()
 		..()
-		reagents.add_reagent("nutriment", 30)
+		reagents.add_reagent("protein", 20)
+		reagents.add_reagent("nutriment", 10)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/xenomeatbreadslice
@@ -2354,7 +2386,8 @@
 	slices_num = 5
 	New()
 		..()
-		reagents.add_reagent("nutriment", 30)
+		reagents.add_reagent("protein", 20)
+		reagents.add_reagent("nutriment", 10)
 		reagents.add_reagent("toxin", 15)
 		bitesize = 2
 
@@ -2440,7 +2473,8 @@
 	filling_color = "#E6AEDB"
 	New()
 		..()
-		reagents.add_reagent("nutriment", 25)
+		reagents.add_reagent("protein", 15)
+		reagents.add_reagent("nutriment", 10)
 		reagents.add_reagent("mannitol", 10)
 		bitesize = 2
 
@@ -2597,7 +2631,7 @@
 	New()
 		..()
 		reagents.add_reagent("mercury", 5)
-		reagents.add_reagent("mindbreaker", 5)
+		reagents.add_reagent("lsd", 5)
 		reagents.add_reagent("ethanol", 5)
 		reagents.add_reagent("weird_cheese", 5)
 
@@ -2760,7 +2794,8 @@
 	slices_num = 6
 	New()
 		..()
-		reagents.add_reagent("nutriment", 50)
+		reagents.add_reagent("protein", 30)
+		reagents.add_reagent("nutriment", 20)
 		reagents.add_reagent("tomatojuice", 6)
 		bitesize = 2
 
@@ -2779,7 +2814,8 @@
 	slices_num = 6
 	New()
 		..()
-		reagents.add_reagent("nutriment", 35)
+		reagents.add_reagent("plantmatter", 25)
+		reagents.add_reagent("nutriment", 10)
 		bitesize = 2
 
 /obj/item/weapon/reagent_containers/food/snacks/mushroompizzaslice
@@ -2797,7 +2833,8 @@
 	slices_num = 6
 	New()
 		..()
-		reagents.add_reagent("nutriment", 30)
+		reagents.add_reagent("plantmatter", 20)
+		reagents.add_reagent("nutriment", 10)
 		reagents.add_reagent("tomatojuice", 6)
 		reagents.add_reagent("oculine", 12)
 		bitesize = 2
@@ -3102,7 +3139,8 @@
 
 	New()
 		..()
-		reagents.add_reagent("nutriment", 6)
+		reagents.add_reagent("plantmatter", 4)
+		reagents.add_reagent("nutriment", 2)
 		reagents.add_reagent("radium", 2)
 		bitesize = 2
 
@@ -3123,7 +3161,7 @@
 	icon_state = "spidereggs"
 	New()
 		..()
-		reagents.add_reagent("nutriment", 2)
+		reagents.add_reagent("protein", 2)
 		reagents.add_reagent("toxin", 3)
 		bitesize = 2
 
@@ -3300,7 +3338,7 @@
 	bitesize = 1
 	New()
 		..()
-		reagents.add_reagent("nutriment", 1)
+		reagents.add_reagent("protein", 1)
 
 /obj/item/weapon/reagent_containers/food/snacks/cutlet
 	name = "cutlet"
@@ -3310,7 +3348,7 @@
 	bitesize = 2
 	New()
 		..()
-		reagents.add_reagent("nutriment", 2)
+		reagents.add_reagent("protein", 2)
 
 /obj/item/weapon/reagent_containers/food/snacks/rawmeatball
 	name = "raw meatball"
@@ -3320,7 +3358,7 @@
 	bitesize = 2
 	New()
 		..()
-		reagents.add_reagent("nutriment", 2)
+		reagents.add_reagent("protein", 2)
 
 /obj/item/weapon/reagent_containers/food/snacks/hotdog
 	name = "hotdog"
@@ -3329,7 +3367,7 @@
 	bitesize = 2
 	New()
 		..()
-		reagents.add_reagent("nutriment", 6)
+		reagents.add_reagent("protein", 6)
 
 /obj/item/weapon/reagent_containers/food/snacks/flatbread
 	name = "flatbread"
@@ -3358,7 +3396,7 @@
 	bitesize = 2
 	New()
 		..()
-		reagents.add_reagent("nutriment", 3)
+		reagents.add_reagent("plantmatter", 3)
 
 /obj/item/weapon/reagent_containers/food/snacks/ectoplasm
 	name = "ectoplasm"
@@ -3368,118 +3406,3 @@
 	New()
 		..()
 		reagents.add_reagent("ectoplasm", 10)
-
-////Discount Dan's Burritos//////       May God have mercy on your souls---and stomachs.    -Fox
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito
-	name = "Discount Dan's Burrito"
-	desc = "Quite possibly the worst burrito in all of space."
-	icon_state = "danburrito"
-	bitesize = 10
-	var/selfheat = 0
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito/attack_self(mob/user as mob) //self-heating action!
-	if(selfheat)
-		return
-	else
-		selfheat = 1
-		user << "<span class='notice'>You crack the burrito like a glow stick, activating the heater mechanism.</span>"
-		reagents.add_reagent("pyrosium", 2)
-		reagents.add_reagent("oxygen", 2)
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito/random
-	New()
-		..()
-		var/list/list = typesof(/obj/item/weapon/reagent_containers/food/snacks/danburrito) - list(/obj/item/weapon/reagent_containers/food/snacks/danburrito,/obj/item/weapon/reagent_containers/food/snacks/danburrito/random)
-		var/T = pick(list)
-		new T(loc)
-		spawn(0)
-			del src
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito/pizza
-	name = "Sconto Danilo's Burritos - 50% Real Mozzarella Pepperoni Pizza Party Flavor"
-	desc = "A self-heating pizza burrito."
-	New()
-		..()
-		reagents.add_reagent("soybeanoil", 3)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("fake_cheese", 3)
-		reagents.add_reagent("cheese", 3)
-		reagents.add_reagent("pepperoni", 3)
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito/pancake
-	name = "Descuento Danito's Burritos - Pancake Sausage Brunch Flavor"
-	desc = "A self-heating breakfast burrito with a buttermilk pancake in lieu of a tortilla. A little frightening."
-	New()
-		..()
-		reagents.add_reagent("hydrogenated_soybeanoil", 3)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("porktonium", 4)
-		reagents.add_reagent("vhfcs", 2)
-		reagents.add_reagent("coffee", 4)
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito/beans
-	name = "Descuento Danito's Burritos - Spicy Beans and Wieners Ole! Flavor"
-	desc = "A self-heating convenience reinterpretation of Mexican cuisine. The exact mechanism used to heat it is probably best left to speculation."
-	New()
-		..()
-		reagents.add_reagent("soybeanoil", 3)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("lithium", 4)
-		reagents.add_reagent("capsaicin", 6)
-		reagents.add_reagent("beans", 10)
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito/homestyle
-	name = "Descuento Danito's Burritos - Homestyle Comfort Flavor"
-	desc = "A self-heating burrito just like Mom used to make, if your mother was a souless, automated burrito production line."
-	New()
-		..()
-		reagents.add_reagent("soybeanoil", 3)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("mashedpotatoes", 5)
-		reagents.add_reagent("gravy", 3)
-		reagents.add_reagent("diethylamine", 2)
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito/texas
-	name = "Spooky Dan's BOO-ritos - Texas Toast Chainsaw Massacre Flavor"
-	desc = "A self-heating burrito.  Isn't that concept scary enough on its own?"
-	New()
-		..()
-		reagents.add_reagent("soybeanoil", 3)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("fake_cheese", 3)
-		reagents.add_reagent("space_drugs", 3)
-//		reagents.add_reagent("cblood", 4)   uncomment once actual changeling blood is added
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito/beff
-	name = "Descuento Danito's Burritos - Beff and Bean Flavor"
-	desc = "A self-heating convenience reinterpretation of Mexican cuisine. The exact mechanism used to heat it is probably best left to speculation."
-	New()
-		..()
-		reagents.add_reagent("hydrogenated_soybeanoil", 3)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("uranium", 2)
-		reagents.add_reagent("beff", 4)
-		reagents.add_reagent("fake_cheese", 4)
-		reagents.add_reagent("beans", 10)
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito/nightmare
-	name = "Spooky Dan's BOO-ritos - Nightmare on Elm Meat Flavor"
-	desc = "A self-heating burrito that purports to contain elm-smoked meat. Of some sort. Probably from an animal."
-	New()
-		..()
-		reagents.add_reagent("soybeanoil", 3)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("beff", 3)
-		reagents.add_reagent("synthflesh", 2)
-		reagents.add_reagent("tonguedog", 9)
-
-/obj/item/weapon/reagent_containers/food/snacks/danburrito/strawberry
-	name = "Descuento Danito's Burritos - Strawberrito Churro Flavor"
-	desc = "There is no way anyone could possibly justify this."
-	New()
-		..()
-		reagents.add_reagent("soybeanoil", 3)
-		reagents.add_reagent("msg", 9)
-		reagents.add_reagent("vhfcs", 8)
-		reagents.add_reagent("oil", 2)

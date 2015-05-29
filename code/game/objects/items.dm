@@ -21,8 +21,10 @@
 	var/max_heat_protection_temperature //Set this variable to determine up to which temperature (IN KELVIN) the item protects against heat damage. Keep at null to disable protection. Only protects areas set by heat_protection flags
 	var/min_cold_protection_temperature //Set this variable to determine down to which temperature (IN KELVIN) the item protects against cold damage. 0 is NOT an acceptable number due to if(varname) tests!! Keep at null to disable protection. Only protects areas set by cold_protection flags
 
-	var/icon_action_button //If this is set, The item will make an action button on the player's HUD when picked up. The button will have the icon_action_button sprite from the screen1_action.dmi file.
-	var/action_button_name //This is the text which gets displayed on the action button. If not set it defaults to 'Use [name]'. Note that icon_action_button needs to be set in order for the action button to appear.
+	//If this is set, The item will make an action button on the player's HUD when picked up.
+	var/action_button_name //It is also the text which gets displayed on the action button. If not set it defaults to 'Use [name]'. If it's not set, there'll be no button.
+	var/action_button_is_hands_free = 0 //If 1, bypass the restrained, lying, and stunned checks action buttons normally test for
+	var/datum/action/item_action/action = null
 
 	//Since any item can now be a piece of clothing, this has to be put here so all items share it.
 	var/flags_inv //This flag is used to determine when items in someone's inventory cover others. IE helmets making it so you can't see glasses, etc.
@@ -163,7 +165,7 @@
 	return 1
 
 
-/obj/item/attack_paw(mob/user as mob)
+/obj/item/attack_alien(mob/user as mob)
 
 	if(isalien(user)) // -- TLE
 		var/mob/living/carbon/alien/A = user
@@ -200,7 +202,7 @@
 			A.unEquip(src)
 		user << "Your claws aren't capable of such fine manipulation."
 		return
-	attack_paw(A)
+	attack_hand(A)
 
 /obj/item/attack_ai(mob/user as mob)
 	if (istype(src.loc, /obj/item/weapon/robot_module))
@@ -491,34 +493,6 @@
 		return 0 //Unsupported slot
 		//END HUMAN
 
-	else if(ismonkey(M))
-		//START MONKEY
-		var/mob/living/carbon/monkey/MO = M
-		switch(slot)
-			if(slot_l_hand)
-				if(MO.l_hand)
-					return 0
-				return 1
-			if(slot_r_hand)
-				if(MO.r_hand)
-					return 0
-				return 1
-			if(slot_wear_mask)
-				if(MO.wear_mask)
-					return 0
-				if( !(slot_flags & SLOT_MASK) )
-					return 0
-				return 1
-			if(slot_back)
-				if(MO.back)
-					return 0
-				if( !(slot_flags & SLOT_BACK) )
-					return 0
-				return 1
-		return 0 //Unsupported slot
-
-		//END MONKEY
-
 
 /obj/item/verb/verb_pickup()
 	set src in oview(1)
@@ -556,13 +530,7 @@
 //The default action is attack_self().
 //Checks before we get to here are: mob is alive, mob is not restrained, paralyzed, asleep, resting, laying, item is on the mob.
 /obj/item/proc/ui_action_click()
-	if( src in usr )
-		attack_self(usr)
-		return
-	else if(istype(src, /obj/item/clothing/accessory))
-		if(istype(src.loc,/obj/item/clothing/under))
-			attack_self(usr)
-
+	attack_self(usr)
 
 /obj/item/proc/IsShield()
 	return 0
@@ -584,14 +552,6 @@
 			(H.head && H.head.flags & HEADCOVERSEYES) || \
 			(H.wear_mask && H.wear_mask.flags & MASKCOVERSEYES) || \
 			(H.glasses && H.glasses.flags & GLASSESCOVERSEYES) \
-		))
-		// you can't stab someone in the eyes wearing a mask!
-		user << "\red You're going to need to remove that mask/helmet/glasses first."
-		return
-
-	var/mob/living/carbon/monkey/Mo = M
-	if(istype(Mo) && ( \
-			(Mo.wear_mask && Mo.wear_mask.flags & MASKCOVERSEYES) \
 		))
 		// you can't stab someone in the eyes wearing a mask!
 		user << "\red You're going to need to remove that mask/helmet/glasses first."
@@ -637,7 +597,7 @@
 		eyes.take_damage(rand(3,4), 1)
 		if(eyes.damage >= eyes.min_bruised_damage)
 			if(M.stat != 2)
-				if(!(eyes & ORGAN_ROBOT) || !(eyes & ORGAN_ASSISTED))  //robot eyes bleeding might be a bit silly
+				if(!(eyes.status & ORGAN_ROBOT) || !(eyes.status & ORGAN_ASSISTED))  //robot eyes bleeding might be a bit silly
 					M << "\red Your eyes start to bleed profusely!"
 			if(prob(50))
 				if(M.stat != 2)

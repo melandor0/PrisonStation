@@ -18,6 +18,7 @@
 	response_harm   = "stomps the"
 	stop_automated_movement = 1
 	friendly = "pinches"
+	ventcrawler = 2
 	var/obj/item/inventory_head
 	var/obj/item/inventory_mask
 	can_hide = 1
@@ -83,7 +84,7 @@
 
 	//Removing from inventory
 	if(href_list["remove_inv"])
-		if(get_dist(src,usr) > 1 || !(ishuman(usr) || ismonkey(usr) || isrobot(usr) ||  isalienadult(usr)))
+		if(get_dist(src,usr) > 1 || !(ishuman(usr) || isrobot(usr) ||  isalienadult(usr)))
 			return
 		var/remove_from = href_list["remove_inv"]
 		switch(remove_from)
@@ -95,7 +96,7 @@
 					emote_hear = list("clicks")
 					emote_see = list("clacks")
 					desc = "Free crabs!"
-					src.sd_SetLuminosity(0)
+					src.sd_set_light(0)
 					inventory_head.loc = src.loc
 					inventory_head = null
 				else
@@ -113,7 +114,7 @@
 
 	//Adding things to inventory
 	else if(href_list["add_inv"])
-		if(get_dist(src,usr) > 1 || !(ishuman(usr) || ismonkey(usr) || isrobot(usr) ||  isalienadult(usr)))
+		if(get_dist(src,usr) > 1 || !(ishuman(usr) || isrobot(usr) ||  isalienadult(usr)))
 			return
 		var/add_to = href_list["add_inv"]
 		if(!usr.get_active_hand())

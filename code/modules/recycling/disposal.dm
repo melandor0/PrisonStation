@@ -93,22 +93,14 @@
 			user << "You can't place that item inside the disposal unit."
 			return
 
-		if(istype(I, /obj/item/weapon/storage/bag/trash))
-			var/obj/item/weapon/storage/bag/trash/T = I
-			if(T.contents.len)
-				user << "\blue You empty the bag."
-				for(var/obj/item/O in T.contents)
-					T.remove_from_storage(O,src)
-				T.update_icon()
-				update()
-				return
-
-		if(istype(I, /obj/item/weapon/storage/part_replacer))
-			var/obj/item/weapon/storage/part_replacer/P = I
-			if(P.contents.len)
-				user << "\blue You empty the RPED's contents."
-				for(var/obj/item/O in P.contents)
-					P.remove_from_storage(O,src)
+		if(istype(I, /obj/item/weapon/storage))
+			var/obj/item/weapon/storage/S = I
+			if((S.allow_quick_empty || S.allow_quick_gather) && S.contents.len)
+				S.hide_from(user)
+				user.visible_message("[user] empties \the [S] into \the [src].", "You empty \the [S] into \the [src].")
+				for(var/obj/item/O in S.contents)
+					S.remove_from_storage(O, src)
+				S.update_icon() // For content-sensitive icons
 				update()
 				return
 
@@ -214,37 +206,25 @@
 		return
 
 
-	// monkeys can only pull the flush lever
-	attack_paw(mob/user as mob)
-		if(stat & BROKEN)
-			return
-
-		flush = !flush
-		update()
-		return
-
 	// ai as human but can't flush
 	attack_ai(mob/user as mob)
 		interact(user, 1)
 
 	// human interact with machine
 	attack_hand(mob/user as mob)
+		if(stat & BROKEN)
+			return
+
 		if(user && user.loc == src)
 			usr << "\red You cannot reach the controls from inside."
 			return
-		/*
-		if(mode==-1)
-			usr << "\red The disposal units power is disabled."
-			return
-		*/
-		interact(user, 0)
 
-	// hostile mob escape from disposals
-	attack_animal(var/mob/living/simple_animal/M)
-		if(M.environment_smash)
-			M.do_attack_animation(src)
-			visible_message("<span class='danger'>[M.name] smashes \the [src] apart!</span>")
-			qdel(src)
+		// Clumsy folks can only flush it.
+		if(user.IsAdvancedToolUser(1))
+			interact(user, 0)
+		else
+			flush = !flush
+			update()
 		return
 
 	// user interaction
@@ -405,6 +385,7 @@
 			//Actually transfer the gas
 			var/datum/gas_mixture/removed = env.remove(transfer_moles)
 			air_contents.merge(removed)
+			air_update_turf()
 
 
 		// if full enough, switch to ready mode
@@ -649,7 +630,9 @@
 
 	// called to vent all gas in holder to a location
 	proc/vent_gas(var/atom/location)
-		location.assume_air(gas)  // vent all gas to turf
+		if(location)
+			location.assume_air(gas)  // vent all gas to turf
+		air_update_turf()
 		return
 
 // Disposal pipes
@@ -1302,7 +1285,8 @@
 				AM.pipe_eject(dir)
 				if(!istype(AM,/mob/living/silicon/robot/drone)) //Drones keep smashing windows from being fired out of chutes. Bad for the station. ~Z
 					spawn(5)
-						AM.throw_at(target, 3, 1)
+						if(AM)
+							AM.throw_at(target, 3, 1)
 			H.vent_gas(src.loc)
 			del(H)
 
