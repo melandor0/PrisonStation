@@ -67,10 +67,6 @@
 			if(affecting.take_damage(force / 2))
 				H.UpdateDamageIcon()
 			H.updatehealth()
-	else if(ismonkey(user))
-		var/mob/living/carbon/monkey/M = user
-		M << "<span class='warning'>[src] cuts into your hand!</span>"
-		M.adjustBruteLoss(force / 2)
 
 
 /obj/item/weapon/shard/Crossed(AM as mob|obj)
