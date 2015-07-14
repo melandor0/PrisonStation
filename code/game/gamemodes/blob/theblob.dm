@@ -25,8 +25,7 @@
 
 	Destroy()
 		blobs -= src
-		..()
-		return
+		return ..()
 
 
 	CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
@@ -168,7 +167,7 @@
 		return
 
 	proc/Delete()
-		del(src)
+		qdel(src)
 
 /obj/effect/blob/normal
 	icon_state = "blob"

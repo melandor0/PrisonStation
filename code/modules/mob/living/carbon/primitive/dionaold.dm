@@ -13,6 +13,7 @@
 	var/ready_evolve = 0
 	ventcrawler = 1
 	var/environment_smash = 0 // This is a sloppy way to solve attack_animal runtimes. Stupid nymphs...
+	holder_type = /obj/item/weapon/holder/diona
 
 /mob/living/carbon/primitive/diona/New()
 
@@ -30,16 +31,9 @@
 			src << "You feel your being twine with that of [M] as you merge with its biomass."
 			src.verbs += /mob/living/carbon/primitive/diona/proc/split
 			src.verbs -= /mob/living/carbon/primitive/diona/proc/merge
-			src.loc = M
+			src.forceMove(M)
 		else
-			var/obj/item/weapon/holder/diona/D = new(loc)
-			src.loc = D
-			D.name = loc.name
-			D.attack_hand(M)
-			M << "You scoop up [src]."
-			src << "[M] scoops you up."
-		M.status_flags |= PASSEMOTES
-		return
+			get_scooped(M)
 
 	..()
 
@@ -173,7 +167,7 @@
 	if(istype(loc,/obj/item/weapon/holder/diona))
 		var/obj/item/weapon/holder/diona/L = loc
 		src.loc = L.loc
-		del(L)
+		qdel(L)
 
 	for(var/datum/language/L in languages)
 		adult.add_language(L.name)
@@ -188,7 +182,7 @@
 	for (var/obj/item/W in src.contents)
 		src.unEquip(W)
 
-	del(src)
+	qdel(src)
 
 /mob/living/carbon/primitive/diona/verb/steal_blood()
 	set category = "Diona"

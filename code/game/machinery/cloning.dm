@@ -372,7 +372,7 @@
 		user << "\blue \The [src] processes \the [W]."
 		biomass += 50
 		user.drop_item()
-		del(W)
+		qdel(W)
 		return
 	else if (istype(W, /obj/item/weapon/wrench))
 		if(src.locked && (src.anchored || src.occupant))
@@ -447,7 +447,6 @@
 	src.icon_state = "pod_0"
 	src.eject_wait = 0 //If it's still set somehow.
 	domutcheck(src.occupant) //Waiting until they're out before possible notransform.
-	src.occupant.add_side_effect("Bad Stomach") // Give them an extra side-effect for free.
 	src.occupant = null
 
 	return
@@ -459,7 +458,7 @@
 		src.icon_state = "pod_g"
 		src.occupant.ghostize()
 		spawn(5)
-			del(src.occupant)
+			qdel(src.occupant)
 	return
 
 /obj/machinery/clonepod/relaymove(mob/user as mob)

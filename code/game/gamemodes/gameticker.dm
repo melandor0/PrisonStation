@@ -219,6 +219,7 @@ var/global/datum/controller/gameticker/ticker
 			admins_number++
 	if(admins_number == 0)
 		send2adminirc("Round has started with no admins online.")
+	auto_toggle_ooc(0) // Turn it off
 
 	/* DONE THROUGH PROCESS SCHEDULER
 	supply_controller.process() 		//Start the supply shuttle regenerating points -- TLE
@@ -250,6 +251,7 @@ var/global/datum/controller/gameticker/ticker
 	proc/station_explosion_cinematic(var/station_missed=0, var/override = null)
 		if( cinematic )	return	//already a cinematic in progress!
 
+		auto_toggle_ooc(1) // Turn it on
 		//initialise our cinematic screen object
 		cinematic = new(src)
 		cinematic.icon = 'icons/effects/station_explosion.dmi'
@@ -339,10 +341,9 @@ var/global/datum/controller/gameticker/ticker
 						M.death()//No mercy
 		//If its actually the end of the round, wait for it to end.
 		//Otherwise if its a verb it will continue on afterwards.
-		sleep(300)
-
-		if(cinematic)	del(cinematic)		//end the cinematic
-		if(temp_buckle)	del(temp_buckle)	//release everybody
+		spawn(300)
+			if(cinematic)	qdel(cinematic)		//end the cinematic
+			if(temp_buckle)	qdel(temp_buckle)	//release everybody
 		return
 
 
@@ -356,7 +357,7 @@ var/global/datum/controller/gameticker/ticker
 					continue
 				else
 					player.create_character()
-					del(player)
+					qdel(player)
 
 
 	proc/collect_minds()
@@ -401,7 +402,7 @@ var/global/datum/controller/gameticker/ticker
 
 		if(!mode.explosion_in_progress && game_finished && (mode_finished || post_game))
 			current_state = GAME_STATE_FINISHED
-
+			auto_toggle_ooc(1) // Turn it on
 			spawn
 				declare_completion()
 
@@ -454,11 +455,12 @@ var/global/datum/controller/gameticker/ticker
 
 			if(player.client)
 				if(player.client.karma_spent == 0)
-					var/dat
-					dat += {"<html><head><title>Karma Reminder</title></head><body><h1><B>Karma Reminder</B></h1><br>
-					You have not yet spent your karma for the round, surely there is a player who was worthy of receiving<br>
-					your reward? Look under 'Special Verbs' for the 'Award Karma' button, and use it once a round for best results!</table></body></html>"}
-					player << browse(dat, "window=karmareminder;size=400x300")
+					if(player.client.prefs && !(player.client.prefs.toggles & DISABLE_KARMA_REMINDER))
+						var/dat
+						dat += {"<html><head><title>Karma Reminder</title></head><body><h1><B>Karma Reminder</B></h1><br>
+						You have not yet spent your karma for the round, surely there is a player who was worthy of receiving<br>
+						your reward? Look under 'Special Verbs' for the 'Award Karma' button, and use it once a round for best results!</table></body></html>"}
+						player << browse(dat, "window=karmareminder;size=400x300")
 
 
 /datum/controller/gameticker/proc/declare_completion()

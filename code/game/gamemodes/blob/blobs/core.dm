@@ -23,10 +23,9 @@
 	Destroy()
 		blob_cores -= src
 		if(overmind)
-			del(overmind)
+			qdel(overmind)
 		processing_objects.Remove(src)
-		..()
-		return
+		return ..()
 
 	update_icon()
 		if(health <= 0)
@@ -66,7 +65,7 @@
 		overmind_get_delay = world.time + 300 // 30 seconds
 
 		if(overmind)
-			del(overmind)
+			qdel(overmind)
 
 		var/client/C = null
 		var/list/candidates = list()
