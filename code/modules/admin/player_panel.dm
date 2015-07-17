@@ -514,6 +514,9 @@
 		if(ticker.mode.shadows.len)
 			dat += check_role_table("Shadowlings", ticker.mode.shadows, src)
 
+		if(ticker.mode.technos.len)
+			dat += check_role_table("Shadowlings", ticker.mode.technos, src)
+
 		if(ticker.mode.shadowling_thralls.len)
 			dat += check_role_table("Shadowling Thralls", ticker.mode.shadowling_thralls, src)
 

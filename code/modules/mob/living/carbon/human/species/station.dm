@@ -463,3 +463,46 @@
 			O.droplimb(1)
 	var/obj/item/organ/external/O = H.organs_by_name["head"]
 	if(O) O.droplimb(1)
+
+/datum/species/husk
+	name = "Husk"
+	icobase = 'icons/mob/human_races/r_husk.dmi'
+	deform = 'icons/mob/human_races/r_husk.dmi'
+	path = /mob/living/carbon/human/husk
+	default_language = "Galactic Common"
+	language = "Trinary"
+	unarmed_type = /datum/unarmed_attack/punch
+
+	eyes = "blank_eyes"
+	brute_mod = 0.5
+	burn_mod = 0.5
+	slowdown = 4
+
+	cold_level_1 = 50
+	cold_level_2 = -1
+	cold_level_3 = -1
+
+	heat_level_1 = 500		//gives them about 25 seconds in space before taking damage
+	heat_level_2 = 540
+	heat_level_3 = 600
+	heat_level_3_breathe = 600
+
+	synth_temp_gain = 10 //this should cause IPCs to stabilize at ~80 C in a 20 C environment.
+
+	flags = IS_WHITELISTED | NO_BREATHE | NO_SCAN | NO_BLOOD | NO_PAIN | NO_INTORGANS // | IS_SYNTHETIC
+	bodyflags = FEET_NOSLIP
+	dietflags = DIET_OMNI		//IPCs can't eat, so no diet
+	blood_color = "#1F187F"
+	flesh_color = "#AAAAAA"
+	reagent_tag = PROCESS_ORG
+
+/datum/species/husk/handle_death(var/mob/living/carbon/human/H)
+	H.emote("deathgasp")
+	for(var/organ_name in H.organs_by_name)
+		if (organ_name == "head")			// do the head last as that's when the user will be transfered to the posibrain
+			continue
+		var/obj/item/organ/external/O = H.organs_by_name[organ_name]
+		if(O && (O.body_part != UPPER_TORSO) && (O.body_part != LOWER_TORSO))  // We're making them fall apart, not gibbing them!
+			O.droplimb(1)
+	var/obj/item/organ/external/O = H.organs_by_name["head"]
+	if(O) O.droplimb(1)

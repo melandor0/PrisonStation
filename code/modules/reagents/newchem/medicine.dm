@@ -1009,3 +1009,60 @@ datum/reagent/haloperidol/on_mob_life(var/mob/living/M as mob)
 	result_amount = 3
 	min_temp = 370
 	mix_message = "The solution gently swirls with a metallic sheen."
+
+datum/reagent/necronites	//Nanites for the Technomancer
+	name = "Necronites"
+	id = "necronites"
+	description = "UNKNOWN ERROR UNABLE TO UNABLE T"
+	reagent_state = LIQUID
+	color = "#000000"
+	process_flags = ORGANIC | SYNTHETIC
+	metabolization_rate = 0.2
+
+datum/reagent/necronites/reaction_mob(var/mob/living/M as mob, var/method=TOUCH, var/volume)
+	var/mob/living/carbon/human/H = M
+	if(istype(M, /mob/living/carbon))
+		if(method==TOUCH)
+			H.reagents.add_reagent("necronites", volume/2)
+		if(H.species.name == "Husk")
+			return
+		if(method==TOUCH || method==INGEST)
+			if(M.stat == DEAD)
+				var/mob/dead/observer/ghost = M.get_ghost()
+				if(ghost)
+					ghost << "<span class='ghostalert'>Your are attempting to be revived with Necronites. Return to your body if you want to be revived!</span> (Verbs -> Ghost -> Re-enter corpse)"
+					ghost << sound('sound/effects/genetics.ogg')
+					M.visible_message("<span class='notice'>[M] doesn't appear to respond, perhaps try again later?</span>")
+				if(!M.suiciding && !ghost && !(NOCLONE in M.mutations))
+					M.visible_message("<span class='warning'>[M] seems to rise from the dead!</span>")
+					dead_mob_list -= M
+					living_mob_list |= list(M)
+					add_logs(M, M, "zombiefied", object="necronites")
+					spawn(0)
+						H.zombification()
+	..()
+	return
+
+datum/reagent/necronites/on_mob_life(var/mob/living/M as mob)
+	var/mob/living/carbon/human/H = M
+	if(!M) M = holder.my_atom
+	if(H.species.name == "Husk")
+		M.adjustBruteLoss(-4)
+	else
+		if(M.health < config.health_threshold_crit)
+			//ticker.mode.add_husk(H.mind)
+			//H.mind.special_role = "Husk"
+			spawn(0)
+				H.zombification()
+		else
+			M.adjustBruteLoss(4)
+	..()
+	return
+
+/datum/chemical_reaction/necronites
+	name = "Necronites"
+	id = "necronites"
+	result = "necronites"
+	required_reagents = list("necronites" = 1, "silver" = 1, "sugar" = 1)
+	result_amount = 3
+	mix_message = "The mix quickly turns pitch black. You gleam a shimmer of green in the darkness."

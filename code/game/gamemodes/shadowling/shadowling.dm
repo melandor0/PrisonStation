@@ -281,7 +281,7 @@ Made by Xhuis
 						if((I.icon_state == "thrall" || I.icon_state == "shadowling") && I.loc == shadow_mind.current)
 							qdel(I)
 
-		for(var/datum/mind/thrall in thralls)
+		for(var/datum/mind/thrall in shadowling_thralls)
 			if(thrall.current)
 				if(thrall.current.client)
 					for(var/image/I in thrall.current.client.images)

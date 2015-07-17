@@ -8,6 +8,7 @@
 	var/list/hud_list[10]
 	var/datum/species/species //Contains icon generation and language information, set during New().
 	var/embedded_flag	  //To check if we've need to roll for damage on movement while an item is imbedded in us.
+	var/zombifying	//To check if zombification is already taking place.
 
 /mob/living/carbon/human/New(var/new_loc, var/new_species = null, var/delay_ready_dna=0)
 	if(!species)
@@ -111,6 +112,10 @@
 /mob/living/carbon/human/machine/New(var/new_loc)
 	h_style = "blue IPC screen"
 	..(new_loc, "Machine")
+
+/mob/living/carbon/human/husk/New(var/new_loc)
+	h_style = "blue IPC screen"
+	..(new_loc, "Husk")
 
 /mob/living/carbon/human/shadow/New(var/new_loc)
 	h_style = "Bald"
@@ -1709,3 +1714,22 @@
 	if(!silent)
 		src << "<span class='warning'>You don't have the dexterity to use that!<span>"
 	return 0
+
+/mob/living/carbon/human/proc/zombification(var/huskdelay)
+	if(zombifying)
+		return
+	if(src.species.name == "Husk")
+		return
+	if(isnull(huskdelay))
+		huskdelay = 150	//sleep delay below in deciseconds
+	zombifying = 1
+	visible_message("<span class='warning'>[src] starts to convulse!</span>")
+	sleep(huskdelay)
+	visible_message("<span class='warning'>[src] starts to transform!</span>")
+	sleep(huskdelay)
+	revive()
+	set_species("Husk")
+	ticker.mode.add_husk(mind)
+	mind.special_role = "Husk"
+	visible_message("<span class='warning'>[src] seems to rise from the dead, changed!</span>")
+	zombifying = 0

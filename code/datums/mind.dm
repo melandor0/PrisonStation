@@ -338,6 +338,25 @@ datum/mind
 
 			sections["shadowling"] = text
 
+			/** TECHNOMANCER **/
+			text = "technomancer"
+			if(ticker.mode.config_tag == "technomancer")
+				text = uppertext(text)
+			text = "<i><b>[text]</b></i>: "
+			if(src in ticker.mode.technos)
+				text += "<b>TECHNOMANCER</b>|husk|<a href='?src=\ref[src];technomancer=clear'>human</a>"
+			else if(src in ticker.mode.technomancer_husks)
+				text += "Technomancer|<b>HUSK</b>|<a href='?src=\ref[src];technomancer=clear'>human</a>"
+			else
+				text += "<a href='?src=\ref[src];technomancer=technomancer'>technomancer</a>|<a href='?src=\ref[src];technomancer=husk'>husk</a>|<b>HUMAN</b>"
+
+			if(current && current.client && current.client.prefs.be_special & BE_TECHNOMANCER)
+				text += "|Enabled in Prefs"
+			else
+				text += "|Disabled in Prefs"
+
+			sections["technomancer"] = text
+
 			/** MONKEY ***/
 			if (istype(current, /mob/living/carbon))
 				text = "monkey"
@@ -1003,6 +1022,47 @@ datum/mind
 					current << "<span class='danger'>You may use the Hivemind Commune ability to communicate with your fellow enlightened ones.</span>"
 					message_admins("[key_name_admin(usr)] has thrall'ed [current].")
 					log_admin("[key_name(usr)] has thrall'ed [current].")
+
+		else if(href_list["technomancer"])
+			switch(href_list["technomancer"])
+				if("clear")
+					ticker.mode.update_techno_icons_removed(src)
+					current.spell_list.Cut()
+					if(src in ticker.mode.technos)
+						ticker.mode.technos -= src
+						special_role = null
+						current << "<span class='userdanger'>Your powers have been quenched! You are no longer a technomancer!</span>"
+						current.spell_list.Cut()
+						if(current.mind)
+							current.mind.spell_list.Cut()
+						message_admins("[key_name_admin(usr)] has de-technomancered [current].")
+						log_admin("[key_name(usr)] has de-technomancered [current].")
+					else if(src in ticker.mode.technomancer_husks)
+						ticker.mode.technomancer_husks -= src
+						special_role = null
+						current.remove_language("Husk Hivemind")
+						current << "<span class='userdanger'>You have been brainwashed! You are no longer the technomancer's slave!</span>"
+						message_admins("[key_name_admin(usr)] has freed the husk [current].")
+						log_admin("[key_name(usr)] has freed the husk [current].")
+				if("technomancer")
+					if(!ishuman(current))
+						usr << "<span class='warning'>This only works on humans!</span>"
+						return
+					ticker.mode.technos += src
+					special_role = "Technoling"
+					current << "<span class='deadsay'><b>You are a technomancer now PLACEHOLDER TEXT</b></span>"
+					ticker.mode.finalize_technomancer(src)
+					ticker.mode.update_techno_icons_added(src)
+				if("husk")
+					if(!ishuman(current))
+						usr << "<span class='warning'>This only works on humans!</span>"
+						return
+					var/mob/living/carbon/human/H = current
+					H.zombification(0)
+					current << "<span class='deadsay'>You are a husk now. PLACEHOLDER TEXT</span>"
+					current << "<span class='danger'>You may use the Hivemind Commune ability to communicate with your fellow undead.</span>"
+					message_admins("[key_name_admin(usr)] has husked [current].")
+					log_admin("[key_name(usr)] has husked [current].")
 
 		else if (href_list["silicon"])
 			current.hud_updateflag |= (1 << SPECIALROLE_HUD)
