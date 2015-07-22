@@ -345,6 +345,7 @@ datum/mind
 			text = "<i><b>[text]</b></i>: "
 			if(src in ticker.mode.technos)
 				text += "<b>TECHNOMANCER</b>|husk|<a href='?src=\ref[src];technomancer=clear'>human</a>"
+				text += "<br><a href='?src=\ref[src];technomancer=givecrystal'>Give Telecrystal</a>."
 			else if(src in ticker.mode.technomancer_husks)
 				text += "Technomancer|<b>HUSK</b>|<a href='?src=\ref[src];technomancer=clear'>human</a>"
 			else
@@ -1049,10 +1050,15 @@ datum/mind
 						usr << "<span class='warning'>This only works on humans!</span>"
 						return
 					ticker.mode.technos += src
-					special_role = "Technoling"
+					special_role = "Technomancer"
 					current << "<span class='deadsay'><b>You are a technomancer now PLACEHOLDER TEXT</b></span>"
 					ticker.mode.finalize_technomancer(src)
 					ticker.mode.update_techno_icons_added(src)
+				if("givecrystal")
+					var/mob/living/carbon/human/M = current
+					M.equip_or_collect(new /obj/item/device/technocrystal(M), slot_in_backpack)
+					current << "<span class='deadsay'><b>You have been given a single telecrystal for your gear.</b></span>"
+					message_admins("[key_name_admin(usr)] has given a technomancer telecrystal to [current].")
 				if("husk")
 					if(!ishuman(current))
 						usr << "<span class='warning'>This only works on humans!</span>"

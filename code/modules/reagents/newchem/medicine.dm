@@ -1026,6 +1026,8 @@ datum/reagent/necronites/reaction_mob(var/mob/living/M as mob, var/method=TOUCH,
 			H.reagents.add_reagent("necronites", volume/2)
 		if(H.species.name == "Husk")
 			return
+		if(H.mind.special_role == "Technomancer")	//Never husk the techromancer. That would be... weird.
+			return
 		if(method==TOUCH || method==INGEST)
 			if(M.stat == DEAD)
 				var/mob/dead/observer/ghost = M.get_ghost()
@@ -1046,8 +1048,10 @@ datum/reagent/necronites/reaction_mob(var/mob/living/M as mob, var/method=TOUCH,
 datum/reagent/necronites/on_mob_life(var/mob/living/M as mob)
 	var/mob/living/carbon/human/H = M
 	if(!M) M = holder.my_atom
-	if(H.species.name == "Husk")
+	if(H.species.name == "Husk" || H.mind.special_role == "Technomancer")
 		M.adjustBruteLoss(-4)
+		M.adjustFireLoss(-4)
+		M.adjustCloneLoss(-2)
 	else
 		if(M.health < config.health_threshold_crit)
 			//ticker.mode.add_husk(H.mind)

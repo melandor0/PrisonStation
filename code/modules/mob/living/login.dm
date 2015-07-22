@@ -36,4 +36,7 @@
 			if("shadowling")
 				if((mind in ticker.mode.shadowling_thralls) || (mind in ticker.mode.shadows))
 					ticker.mode.update_shadow_icons_added(src.mind)
+			if("technomancer")
+				if((mind in ticker.mode.technomancer_husks) || (mind in ticker.mode.technos))
+					ticker.mode.update_techno_icons_added(src.mind)
 	return .

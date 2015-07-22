@@ -103,7 +103,7 @@ technomancer - shadowling
 	return 1
 
 
-/datum/game_mode/technomancer/post_setup()	//Post-setup
+/datum/game_mode/technomancer/post_setup(mob/living/carbon/human/technomancer_mob)	//Post-setup
 	for(var/datum/mind/techno in technos)
 		log_game("[techno.key] (ckey) has been selected as the Technomancer.")
 		sleep(10)
@@ -112,6 +112,7 @@ technomancer - shadowling
 		greet_techno(techno)
 		finalize_technomancer(techno)
 		process_techno_objectives(techno)
+		technomancer_mob.equip_or_collect(new /obj/item/device/technocrystal(technomancer_mob), slot_in_backpack)
 
 	spawn (rand(waittime_l, waittime_h))
 		send_intercept()
@@ -282,3 +283,11 @@ technomancer - shadowling
 				for(var/image/I in techno_mind.current.client.images)
 					if(I.icon_state == "husk" || I.icon_state == "technomancer")
 						qdel(I)
+
+/datum/language/husk
+	name = "Husk Hivemind"
+	desc = "Husks are capable of communicating over a hivemind."
+	speech_verb = "says"
+	colour = "shadowling"
+	key = "z"
+	flags = RESTRICTED | HIVEMIND

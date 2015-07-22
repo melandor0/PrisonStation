@@ -432,6 +432,7 @@
 #include "code\game\gamemodes\shadowling\shadowling_abilities.dm"
 #include "code\game\gamemodes\shadowling\shadowling_items.dm"
 #include "code\game\gamemodes\shadowling\special_shadowling_abilities.dm"
+#include "code\game\gamemodes\technomancer\soulcapacitor.dm"
 #include "code\game\gamemodes\technomancer\special_technomancer_abilities.dm"
 #include "code\game\gamemodes\technomancer\technomancer.dm"
 #include "code\game\gamemodes\technomancer\technomancer_abilities.dm"

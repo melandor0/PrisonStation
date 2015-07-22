@@ -1,104 +1,117 @@
-/obj/item/clothing/under/technomancer
-	name = "blackened flesh"
-	desc = "Black, chitonous skin."
-	item_state = "golem"
-	origin_tech = null
-	icon_state = "golem"
-	_color = "golem"
-	flags = ABSTRACT | NODROP
-	has_sensor = 0
-	unacidable = 1
+/obj/item/device/technocrystal
+	name = "Summoning Crystal"
+	icon = 'icons/obj/wizard.dmi'
+	icon_state = "soulstone"
+	item_state = "electronic"
+	desc = "Placeholder description THIS IS A CRYSTAL THAT SUMMONS YOUR SHIT."
+	w_class = 1.0
+	slot_flags = SLOT_BELT
+	origin_tech = "bluespace=4;materials=4"
+	var/imprinted = "empty"
 
+	attack_self()
+		var/mob/living/carbon/human/user = usr
+		usr.visible_message("\red The rune disappears with a flash of red light, and a set of armor appears on [usr]...", \
+		"\red You are blinded by the flash of red light! After you're able to see again, you see that you are now wearing a set of armor.")
 
-/obj/item/clothing/suit/space/technomancer
-	name = "chitin shell"
-	desc = "Dark, semi-transparent shell. Protects against vacuum, but not against the light of the stars." //Still takes damage from spacewalking but is immune to space itself
-	icon_state = "golem"
-	item_state = "golem"
-	body_parts_covered = FULL_BODY //Technomancers are immune to space
-	cold_protection = FULL_BODY
-	min_cold_protection_temperature = SPACE_SUIT_MIN_TEMP_PROTECT
-	flags_inv = HIDEGLOVES | HIDESHOES | HIDEJUMPSUIT
-	flags = ABSTRACT | NODROP | THICKMATERIAL
-	slowdown = 0
-	unacidable = 1
-	heat_protection = null //You didn't expect a light-sensitive creature to have heat resistance, did you?
-	max_heat_protection_temperature = null
+		//user.equip_to_slot_or_collect(new /obj/item/clothing/head/culthood/alt(user), slot_head)
+		//user.equip_to_slot_or_collect(new /obj/item/clothing/suit/cultrobes/alt(user), slot_wear_suit)
+		//user.equip_to_slot_or_collect(new /obj/item/clothing/shoes/cult(user), slot_shoes)
+		//user.equip_to_slot_or_collect(new /obj/item/weapon/storage/backpack/cultpack(user), slot_back)
+		user.equip_or_collect(new /obj/item/weapon/storage/belt/soulcapacitor/full(user), slot_belt)
+		user.equip_or_collect(new /obj/item/weapon/storage/lockbox/necronites_vials(user), slot_in_backpack)
+		//TECHNOKIT
 
+		////////////the above update their overlay icons cache but do not call update_icons()
+		////////////the below calls update_icons() at the end, which will update overlay icons by using the (now updated) cache
 
-/obj/item/clothing/shoes/technomancer
-	name = "chitin feet"
-	desc = "Charred-looking feet. They have minature hooks that latch onto flooring."
-	icon_state = "golem"
-	unacidable = 1
-	flags = NOSLIP | ABSTRACT | NODROP
+		//user.put_in_hands(new /obj/item/weapon/melee/cultblade(user))	//put in hands or on floor
 
+		qdel(src)
+		return
 
-/obj/item/clothing/mask/gas/technomancer
-	name = "chitin mask"
-	desc = "A mask-like formation with slots for facial features. A red film covers the eyes."
-	icon_state = "golem"
-	item_state = "golem"
-	origin_tech = null
-	siemens_coefficient = 0
-	unacidable = 1
-	flags = ABSTRACT | NODROP
+/obj/item/weapon/storage/belt/soulcapacitor
+	name = "soul capacitor belt"
+	desc = "Designed for ease of access to the capacitors during a fight, as to not let a single enemy spirit slip away"
+	icon_state = "soulstonebelt"
+	item_state = "soulstonebelt"
+	storage_slots = 6
+	can_hold = list(
+		"/obj/item/device/soulcapacitor"
+		)
 
-
-/obj/item/clothing/gloves/technomancer
-	name = "chitin hands"
-	desc = "An electricity-resistant covering of the hands."
-	icon_state = "golem"
-	item_state = null
-	origin_tech = null
-	siemens_coefficient = 0
-	unacidable = 1
-	flags = ABSTRACT | NODROP
-
-
-/obj/item/clothing/head/technomancer
-	name = "chitin helm"
-	desc = "A helmet-like enclosure of the head."
-	icon_state = "golem"
-	item_state = null
-	origin_tech = null
-	unacidable = 1
-	flags = ABSTRACT | NODROP
-
-
-/obj/item/clothing/glasses/night/technomancer
-	name = "crimson eyes"
-	desc = "A technomancer's eyes. Very light-sensitive and can detect body heat through walls."
-	icon = null
-	icon_state = null
-	item_state = null
-	origin_tech = null
-	vision_flags = SEE_MOBS
-	darkness_view = 8
-	see_darkness = 0
-	invisa_view = 2
-	unacidable = 1
-	flash_protect = -1
-	flags = ABSTRACT | NODROP
-
-/obj/structure/shadow_vortex
-	name = "vortex"
-	desc = "A swirling hole in the fabric of reality. Eye-watering chimes sound from its depths."
-	density = 0
-	anchored = 1
-	icon = 'icons/effects/genetics.dmi'
-	icon_state = "shadow_portal"
-
-/obj/structure/shadow_vortex/New()
-	src.audible_message("<span class='warning'><b>\The [src] lets out a dismaying screech as dimensional barriers are torn apart!</span>")
-	playsound(loc, 'sound/effects/eleczap.ogg', 100, 1)
-	sleep(100)
-	qdel(src)
-
-/obj/structure/shadow_vortex/Crossed(var/td)
+/obj/item/weapon/storage/belt/soulcapacitor/full/New()
 	..()
-	if(ismob(td))
-		td << "<span class='userdanger'><font size=3>You enter the rift. Sickening chimes begin to jangle in your ears. \
-		All around you is endless blackness. After you see something moving, you realize it isn't entirely lifeless.</font></span>" //A bit of spooking before they die
-	playsound(loc, 'sound/effects/EMPulse.ogg', 25, 1)
-	qdel(td)
+	new /obj/item/device/mmi/soulcapacitor(src)
+	new /obj/item/device/mmi/soulcapacitor(src)
+	new /obj/item/device/mmi/soulcapacitor(src)
+	new /obj/item/device/mmi/soulcapacitor(src)
+	new /obj/item/device/mmi/soulcapacitor(src)
+	new /obj/item/device/mmi/soulcapacitor(src)
+
+/*
+/obj/item/weapon/storage/fancy/necronites_vials
+	icon = 'icons/obj/vialbox.dmi'
+	icon_state = "vialbox6"
+	icon_type = "vial"
+	name = "necronite vial box"
+	storage_slots = 6
+	can_hold = list("/obj/item/weapon/reagent_containers/glass/beaker/vial")
+
+
+/obj/item/weapon/storage/fancy/necronites_vials/New()
+	..()
+	for(var/i=1; i <= storage_slots; i++)
+		new /obj/item/weapon/reagent_containers/glass/beaker/vial/necronites(src)
+*/
+
+/obj/item/weapon/reagent_containers/glass/beaker/vial/necronites
+	name = "vial"
+	desc = "A small glass vial. Can hold up to 5 units."
+	icon_state = "vial"
+	g_amt = 250
+	volume = 5
+	w_class = 2
+	amount_per_transfer_from_this = 5
+	possible_transfer_amounts = list(1,5)
+	flags = OPENCONTAINER
+	New()
+		..()
+		reagents.add_reagent("necronites", 50)
+		update_icon()
+
+/obj/item/weapon/storage/lockbox/necronites_vials
+	name = "secure vial storage box"
+	desc = "A locked box for keeping things away from children."
+	icon = 'icons/obj/vialbox.dmi'
+	icon_state = "vialbox0"
+	item_state = "syringe_kit"
+	max_w_class = 2
+	w_class = 3
+	can_hold = list("/obj/item/weapon/reagent_containers/glass/beaker/vial")
+	max_combined_w_class = 14 //The sum of the w_classes of all the items in this storage item.
+	storage_slots = 6
+	req_access = list()
+
+/obj/item/weapon/storage/lockbox/necronites_vials/New()
+	..()
+	for(var/i=1; i <= storage_slots; i++)
+		new /obj/item/weapon/reagent_containers/glass/beaker/vial/necronites(src)
+	update_icon()
+
+/obj/item/weapon/storage/lockbox/necronites_vials/update_icon(var/itemremoved = 0)
+	var/total_contents = src.contents.len - itemremoved
+	src.icon_state = "vialbox[total_contents]"
+	src.overlays.Cut()
+	if (!broken)
+		overlays += image(icon, src, "led[locked]")
+		if(locked)
+			overlays += image(icon, src, "cover")
+	else
+		overlays += image(icon, src, "ledb")
+	return
+
+/obj/item/weapon/storage/lockbox/necronites_vials/attackby(obj/item/weapon/W as obj, mob/user as mob, params)
+	..()
+	update_icon()
+
