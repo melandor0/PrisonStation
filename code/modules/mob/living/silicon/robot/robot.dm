@@ -1397,7 +1397,6 @@ var/list/robot_verbs_default = list(
 	icon_state = "syndie_bloodhound"
 	lawupdate = 0
 	scrambledcodes = 1
-	modtype = "Synd"
 	faction = list("syndicate")
 	designation = "Syndicate"
 	modtype = "Syndicate"

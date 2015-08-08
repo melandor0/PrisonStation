@@ -37,7 +37,7 @@
 		user << "\red <b>Capture failed!</b>: \black The soul has already fled it's mortal frame."
 		return
 	if(brainmob.key)
-		user << "\red <b>Capture failed!</b>: \black The soul stone is full! Use or free an existing soul to make room."
+		user << "\red <b>Capture failed!</b>: \black The soul capacitor is full!"
 		return
 	if(searching != 0)
 		searching = 0
@@ -49,6 +49,11 @@
 	brainmob.name = M.real_name
 	brainmob.real_name = brainmob.name
 	transfer_personality(M)
+	new /obj/effect/decal/remains/human(M.loc) //Spawns a skeleton
+	var/turf/T = get_turf_or_move(src.loc)
+	for (var/mob/O in viewers(T))
+		O.show_message("\blue The capacitor ticks and a ghostly light flies into it from the body as it disintegrates into dust.")
+	qdel(M)
 	return
 
 
@@ -93,7 +98,7 @@
 /obj/item/device/mmi/soulcapacitor/proc/question(var/client/C)
 	spawn(0)
 		if(!C)	return
-		var/response = alert(C, "Someone is requesting a personality for a soul capacitor. Would you like to play as one?", "Soul capacitor request", "Yes", "No", "Never for this round")
+		var/response = alert(C, "Someone is requesting a soul for a soul capacitor. Would you like to play as one?", "Soul capacitor request", "Yes", "No", "Never for this round")
 		if(!C || brainmob.key || 0 == searching)	return		//handle logouts that happen whilst the alert is waiting for a response, and responses issued after a brain has been located.
 		if(response == "Yes")
 			transfer_personality(C.mob)
@@ -112,7 +117,7 @@
 		brainmob.mind.assigned_role = "Soul Capacitor"
 	if(H.mind)
 		H.mind.transfer_to(brainmob)
-	brainmob << "\blue You feel slightly disoriented. That's normal when you're just a metal cube."
+	brainmob << "\blue You feel slightly disoriented. That's normal when you're a disembodied soul."
 	icon_state = "soulcapacitor-occupied"
 	return
 
@@ -130,7 +135,7 @@
 
 	var/turf/T = get_turf_or_move(src.loc)
 	for (var/mob/M in viewers(T))
-		M.show_message("\blue The soul capacitor chimes quietly.")
+		M.show_message("\blue The capacitor radiates with warmth. You sense something swirling within, trying to escape.")
 	icon_state = "soulcapacitor-occupied"
 
 /obj/item/device/mmi/soulcapacitor/proc/reset_search() //We give the players sixty seconds to decide, then reset the timer.
@@ -141,7 +146,7 @@
 
 	var/turf/T = get_turf_or_move(src.loc)
 	for (var/mob/M in viewers(T))
-		M.show_message("\blue The soul capacitor buzzes quietly, and the golden lights fade away. Perhaps you could try again?")
+		M.show_message("\blue A feeling of emptiness washes over you as the small device ticks, then falls quiet. It is as dead as the grave.")
 
 /obj/item/device/mmi/soulcapacitor/Topic(href,href_list)
 	if("signup" in href_list)
