@@ -456,6 +456,9 @@ datum/preferences
 			if(!is_job_whitelisted(user, rank))
 				HTML += "<font color=red>[rank]</font></td><td><font color=red><b> \[KARMA]</b></font></td></tr>"
 				continue
+			if(rank == "Prisoner") //Snowflake bullshit /mel
+				HTML += "<font color=red>[rank]</font></td><td><font color=red><b> \[LATEJOIN]</b></font></td></tr>"
+				continue
 			if(jobban_isbanned(user, rank))
 				HTML += "<del>[rank]</del></td><td><b> \[BANNED]</b></td></tr>"
 				continue
