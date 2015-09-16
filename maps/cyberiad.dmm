@@ -353,7 +353,7 @@
 "agO" = (/obj/machinery/light_switch{pixel_x = -24},/obj/structure/cable{d1 = 1; d2 = 2; icon_state = "1-2"; pixel_y = 0; tag = ""},/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{dir = 4},/turf/simulated/floor{icon_state = "white"; temperature = 273.15},/area/security/prison/kitchen)
 "agP" = (/obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{dir = 4},/turf/simulated/floor{icon_state = "white"; temperature = 273.15},/area/security/prison/kitchen)
 "agQ" = (/obj/machinery/atmospherics/unary/vent_scrubber{dir = 8; on = 1; scrub_N2O = 1; scrub_Toxins = 1},/turf/simulated/floor{icon_state = "white"; temperature = 273.15},/area/security/prison/kitchen)
-"agR" = (/obj/structure/closet/secure_closet/freezer/kitchen,/obj/item/device/radio/intercom{broadcasting = 0; listening = 1; name = "Station Intercom (General)"; pixel_x = 28; pixel_y = 0; pixel_z = 0},/turf/simulated/floor{icon_state = "white"; temperature = 273.15},/area/security/prison/kitchen)
+"agR" = (/obj/structure/closet/secure_closet/freezer/kitchen{req_access = list(63)},/obj/item/device/radio/intercom{broadcasting = 0; listening = 1; name = "Station Intercom (General)"; pixel_x = 28; pixel_y = 0; pixel_z = 0},/turf/simulated/floor{icon_state = "white"; temperature = 273.15},/area/security/prison/kitchen)
 "agS" = (/obj/machinery/light_switch{pixel_x = -24},/turf/simulated/floor{icon_state = "dark"},/area/security/prison/observation)
 "agT" = (/obj/structure/stool/bed/chair{dir = 1},/turf/simulated/floor{icon_state = "dark"},/area/security/prison/observation)
 "agU" = (/obj/structure/stool/bed/chair{dir = 1},/obj/machinery/atmospherics/pipe/simple/visible/purple,/turf/simulated/floor{icon_state = "dark"},/area/security/prison/observation)
