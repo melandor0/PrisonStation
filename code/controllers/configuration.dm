@@ -66,7 +66,7 @@
 	var/assistantlimit = 0 //enables assistant limiting
 	var/assistantratio = 2 //how many assistants to security members
 	var/prisonerlimit = 0 //enables assistant limiting
-	var/prisonerratio = 3 //how many assistants to security members
+	var/prisonerratio = 2 //how many assistants to security members
 
 	var/max_maint_drones = 5				//This many drones can spawn,
 	var/allow_drone_spawn = 1				//assuming the admin allow them to.

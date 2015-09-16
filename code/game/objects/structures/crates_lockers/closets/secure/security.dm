@@ -114,10 +114,10 @@
 		new /obj/item/weapon/storage/box/flashbangs(src)
 		new /obj/item/clothing/mask/gas/sechailer/swat(src)
 		new /obj/item/weapon/shield/riot/tele(src)
-		new /obj/item/weapon/melee/baton/loaded(src)
+		new /obj/item/weapon/melee/baton/loaded(src)	//Because HoS Special
 		new /obj/item/weapon/storage/belt/security(src)
 		new /obj/item/taperoll/police(src)
-		new /obj/item/weapon/gun/energy/hos(src)
+		new /obj/item/weapon/gun/energy/hos(src)	//Because HoS Special
 		return
 
 
@@ -153,9 +153,8 @@
 		new /obj/item/weapon/storage/box/zipties(src)
 		new /obj/item/weapon/storage/box/flashbangs(src)
 		new /obj/item/weapon/reagent_containers/spray/pepper(src)
-		new /obj/item/weapon/melee/baton/loaded(src)
-		new /obj/item/weapon/gun/energy/advtaser(src)
 		new /obj/item/weapon/storage/belt/security(src)
+		new /obj/item/weapon/melee/classic_baton(src)	//No more stunbatons. -Mel
 		new /obj/item/weapon/storage/box/holobadge(src)
 		return
 
