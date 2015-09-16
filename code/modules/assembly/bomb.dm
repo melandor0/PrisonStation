@@ -11,9 +11,9 @@
 	var/obj/item/device/assembly_holder/bombassembly = null   //The first part of the bomb is an assembly holder, holding an igniter+some device
 	var/obj/item/weapon/tank/bombtank = null //the second part of the bomb is a plasma tank
 
-/obj/item/device/onetankbomb/examine()
-	..()
-	bombtank.examine()
+/obj/item/device/onetankbomb/examine(mob/user)
+	..(user)
+	user.examinate(bombtank)
 
 /obj/item/device/onetankbomb/update_icon()
 	if(bombtank)
@@ -39,17 +39,17 @@
 		bombtank.master = null
 		bombtank = null
 
-		del(src)
+		qdel(src)
 		return
 	if((istype(W, /obj/item/weapon/weldingtool) && W:welding))
 		if(!status)
 			status = 1
-			bombers += "[key_name(user)] welded a single tank bomb. Temp: [bombtank.air_contents.temperature-T0C]"
-			msg_admin_attack("[key_name_admin(user)][isAntag(user) ? "(ANTAG)" : ""] welded a single tank bomb. Temp: [bombtank.air_contents.temperature-T0C]")
+			bombers += "[key_name(user)] welded a single tank bomb. Temperature: [bombtank.air_contents.temperature-T0C]"
+			msg_admin_attack("[key_name_admin(user)] welded a single tank bomb. Temperature: [bombtank.air_contents.temperature-T0C]")
 			user << "<span class='notice'>A pressure hole has been bored to [bombtank] valve. \The [bombtank] can now be ignited.</span>"
 		else
 			status = 0
-			bombers += "[key_name(user)] unwelded a single tank bomb. Temp: [bombtank.air_contents.temperature-T0C]"
+			bombers += "[key_name(user)] unwelded a single tank bomb. Temperature: [bombtank.air_contents.temperature-T0C]"
 			user << "<span class='notice'>The hole has been closed.</span>"
 	add_fingerprint(user)
 	..()

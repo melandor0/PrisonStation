@@ -66,10 +66,9 @@
 	failmsg = "The [name]'s refill light blinks red."
 	..()
 
-/obj/item/device/lightreplacer/examine()
-	set src in view(2)
-	..()
-	usr << "It has [uses] lights remaining."
+/obj/item/device/lightreplacer/examine(mob/user)
+	if(..(user, 2))
+		user << "It has [uses] lights remaining."
 
 /obj/item/device/lightreplacer/attackby(obj/item/W, mob/user, params)
 	if(istype(W, /obj/item/stack/sheet/glass))
@@ -82,7 +81,7 @@
 			G.amount = remaining
 			if(!G.amount)
 				user.drop_item()
-				del(G)
+				qdel(G)
 			AddUses(increment)
 			user << "You insert a piece of glass into the [src.name]. You have [uses] lights remaining."
 			return
@@ -94,7 +93,7 @@
 				AddUses(1)
 				user << "You insert the [L.name] into the [src.name]. You have [uses] lights remaining."
 				user.drop_item()
-				del(L)
+				qdel(L)
 				return
 		else
 			user << "You need a working light."
@@ -167,7 +166,7 @@
 			target.brightness_color = L2.brightness_color
 			target.on = target.has_power()
 			target.update()
-			del(L2)
+			qdel(L2)
 
 			if(target.on && target.rigged)
 				target.explode()

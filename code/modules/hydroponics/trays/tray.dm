@@ -71,7 +71,8 @@
 		"adminordrazine" =  1,
 		"eznutrient" =      1,
 		"robustharvest" =   1,
-		"left4zed" =        1
+		"left4zed" =        1,
+		"fishwater" =		0.75,
 		)
 	var/global/list/weedkiller_reagents = list(
 		"fluorine" =       -4,
@@ -98,6 +99,7 @@
 		"phosphorus" =     -0.5,
 		"water" =           1,
 		"sodawater" =       1,
+		"fishwater" =		1,
 		)
 
 	// Beneficial reagents also have values for modifying yield_mod and mut_mod (in that order).
@@ -131,6 +133,8 @@
 		)
 	//--FalseIncarnate
 
+	var/last_plant_ikey		//This is for debugging reference, and is otherwise useless. --FalseIncarnate
+
 /obj/machinery/portable_atmospherics/hydroponics/AltClick()
 	if(mechanical && !usr.stat && !usr.lying && Adjacent(usr))
 		close_lid(usr)
@@ -138,8 +142,8 @@
 	return ..()
 
 /obj/machinery/portable_atmospherics/hydroponics/proc/attack_generic(var/mob/user)
-	if(istype(user,/mob/living/carbon/primitive/diona))
-		var/mob/living/carbon/primitive/diona/nymph = user
+	if(istype(user,/mob/living/simple_animal/diona))
+		var/mob/living/simple_animal/diona/nymph = user
 
 		if(nymph.stat == DEAD || nymph.paralysis || nymph.weakened || nymph.stunned || nymph.restrained())
 			return
@@ -160,10 +164,10 @@
 	..()
 
 	component_parts = list()
-	component_parts += new /obj/item/weapon/circuitboard/hydroponics(src)
-	component_parts += new /obj/item/weapon/stock_parts/matter_bin(src)
-	component_parts += new /obj/item/weapon/stock_parts/matter_bin(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
+	component_parts += new /obj/item/weapon/circuitboard/hydroponics(null)
+	component_parts += new /obj/item/weapon/stock_parts/matter_bin(null)
+	component_parts += new /obj/item/weapon/stock_parts/matter_bin(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
 	RefreshParts()
 
 	temp_chem_holder = new()
@@ -322,6 +326,10 @@
 		seed.harvest(user,yield_mod)
 	else
 		seed.harvest(get_turf(src),yield_mod)
+	//Increases harvest count for round-end score
+	//Currently per-plant (not per-item) harvested
+	// --FalseIncarnate
+	score_stuffharvested++
 
 	// Reset values.
 	harvest = 0
@@ -572,7 +580,7 @@
 			weedlevel -= P.weed_kill_str
 			user << "You spray [src] with [O]."
 			playsound(loc, 'sound/effects/spray3.ogg', 50, 1, -6)
-			del(O)
+			qdel(O)
 
 			check_level_sanity()
 			update_icon()
@@ -585,7 +593,7 @@
 			weedlevel -= W.weed_kill_str
 			user << "You spray [src] with [O]."
 			playsound(loc, 'sound/effects/spray3.ogg', 50, 1, -6)
-			del(O)
+			qdel(O)
 
 			check_level_sanity()
 			update_icon()
@@ -680,7 +688,7 @@
 
 			if(!S.seed)
 				user << "The packet seems to be empty. You throw it away."
-				del(O)
+				qdel(O)
 				return
 
 			user << "You plant the [S.seed.seed_name] [S.seed.seed_noun]."
@@ -691,7 +699,7 @@
 			health = (istype(S, /obj/item/seeds/cutting) ? round(seed.get_trait(TRAIT_ENDURANCE)/rand(2,5)) : seed.get_trait(TRAIT_ENDURANCE))
 			lastcycle = world.time
 
-			del(O)
+			qdel(O)
 
 			check_health()
 
@@ -733,13 +741,13 @@
 			user << "<span class='danger'>[src] is already occupied!</span>"
 		else
 			user.drop_item()
-			del(O)
+			qdel(O)
 
 			var/obj/machinery/apiary/A = new(src.loc)
 			A.icon = src.icon
 			A.icon_state = src.icon_state
 			A.hydrotray_type = src.type
-			del(src)
+			qdel(src)
 	else if ((istype(O, /obj/item/weapon/tank) && !( src.destroyed )))
 		if (src.holding)
 			user << "\blue There is alreadu a tank loaded into the [src]."
@@ -773,31 +781,30 @@
 	else if(dead)
 		remove_dead(user)
 
-/obj/machinery/portable_atmospherics/hydroponics/examine()
-
-	..()
+/obj/machinery/portable_atmospherics/hydroponics/examine(mob/user)
+	..(user)
 
 	if(!seed)
-		usr << "[src] is empty."
+		user << "[src] is empty."
 		return
 
-	usr << "<span class='notice'>[seed.display_name]</span> are growing here.</span>"
+	user << "<span class='notice'>[seed.display_name]</span> are growing here.</span>"
 
-	if(!Adjacent(usr))
+	if(!Adjacent(user))
 		return
 
-	usr << "Water: [round(waterlevel,0.1)]/100"
-	usr << "Nutrient: [round(nutrilevel,0.1)]/10"
+	user << "Water: [round(waterlevel,0.1)]/100"
+	user << "Nutrient: [round(nutrilevel,0.1)]/10"
 
 	if(weedlevel >= 5)
-		usr << "\The [src] is <span class='danger'>infested with weeds</span>!"
+		user << "\The [src] is <span class='danger'>infested with weeds</span>!"
 	if(pestlevel >= 5)
-		usr << "\The [src] is <span class='danger'>infested with tiny worms</span>!"
+		user << "\The [src] is <span class='danger'>infested with tiny worms</span>!"
 
 	if(dead)
-		usr << "<span class='danger'>The plant is dead.</span>"
+		user << "<span class='danger'>The plant is dead.</span>"
 	else if(health <= (seed.get_trait(TRAIT_ENDURANCE)/ 2))
-		usr << "The plant looks <span class='danger'>unhealthy</span>."
+		user << "The plant looks <span class='danger'>unhealthy</span>."
 
 	if(mechanical)
 		var/turf/T = loc
@@ -825,7 +832,7 @@
 				light_available =  5
 			light_string = "a light level of [light_available] lumens"
 
-		usr << "The tray's sensor suite is reporting [light_string] and a temperature of [environment.temperature]K."
+		user << "The tray's sensor suite is reporting [light_string] and a temperature of [environment.temperature]K."
 
 /obj/machinery/portable_atmospherics/hydroponics/verb/close_lid_verb()
 	set name = "Toggle Tray Lid"

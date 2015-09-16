@@ -68,6 +68,7 @@
 				new /obj/item/weapon/aiModule/syndicate(src)
 				new /obj/item/weapon/card/emag(src)
 				new /obj/item/device/encryptionkey/binary(src)
+				new /obj/item/weapon/aiModule/toyAI(src)
 				return
 
 			if("lordsingulo")
@@ -129,7 +130,7 @@
 
 /obj/item/weapon/storage/box/syndie_kit/space
 	name = "Boxed Space Suit and Helmet"
-	can_hold = list(/obj/item/clothing/suit/space/syndicate/black/red, /obj/item/clothing/head/helmet/space/syndicate/black/red)
+	can_hold = list("/obj/item/clothing/suit/space/syndicate/black/red", "/obj/item/clothing/head/helmet/space/syndicate/black/red")
 	max_w_class = 3
 
 /obj/item/weapon/storage/box/syndie_kit/space/New()
@@ -140,7 +141,7 @@
 
 /obj/item/weapon/storage/box/syndie_kit/hardsuit
 	name = "Boxed Blood Red Suit and Helmet"
-	can_hold = list(/obj/item/clothing/suit/space/rig/syndi, /obj/item/clothing/head/helmet/space/rig/syndi)
+	can_hold = list("/obj/item/clothing/suit/space/rig/syndi", "/obj/item/clothing/head/helmet/space/rig/syndi")
 	max_w_class = 3
 
 /obj/item/weapon/storage/box/syndie_kit/hardsuit/New()
@@ -198,12 +199,26 @@
 		new /obj/item/weapon/implanter/emp/(src)
 		new /obj/item/device/flashlight/emp/(src)
 
-/obj/item/weapon/storage/box/syndie_kit/sarin
-	name = "Sarin Gas Grenades"
+/obj/item/weapon/storage/box/syndie_kit/tabun
+	name = "Tabun Gas Grenades"
 
 	New()
 		..()
-		new /obj/item/weapon/grenade/chem_grenade/saringas(src)
-		new /obj/item/weapon/grenade/chem_grenade/saringas(src)
-		new /obj/item/weapon/grenade/chem_grenade/saringas(src)
-		new /obj/item/weapon/grenade/chem_grenade/saringas(src)
+		new /obj/item/weapon/grenade/chem_grenade/tabungas(src)
+		new /obj/item/weapon/grenade/chem_grenade/tabungas(src)
+		new /obj/item/weapon/grenade/chem_grenade/tabungas(src)
+		new /obj/item/weapon/grenade/chem_grenade/tabungas(src)
+
+/obj/item/weapon/storage/box/syndie_kit/bioterror
+	name = "bioterror syringe box"
+
+	New()
+		..()
+		new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
+		new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
+		new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
+		new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
+		new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
+		new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
+		new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
+		return

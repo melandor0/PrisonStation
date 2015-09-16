@@ -45,7 +45,7 @@
 	var/turf/nearest_beacon_loc	// the nearest beacon's location
 
 	var/beacon_freq = 1445		// navigation beacon frequency
-	var/control_freq = 1447		// bot control frequency
+	var/control_freq = BOT_FREQ		// bot control frequency
 
 	var/bot_filter 				// The radio filter the bot uses to identify itself on the network.
 
@@ -106,6 +106,12 @@
 	Radio.follow_target = src
 
 
+/obj/machinery/bot/Destroy()
+	aibots -= src
+	qdel(Radio)
+	qdel(botcard)
+	return ..()
+
 /obj/machinery/bot/proc/add_to_beacons(bot_filter) //Master filter control for bots. Must be placed in the bot's local New() to support map spawned bots.
 	spawn(20)
 		if(radio_controller)
@@ -114,7 +120,6 @@
 				radio_controller.add_object(src, control_freq, bot_filter)
 
 /obj/machinery/bot/proc/explode()
-	aibots -= src
 	qdel(src)
 
 /obj/machinery/bot/proc/healthcheck()
@@ -136,7 +141,7 @@
 		user << "<span class='notice'>You need to open maintenance panel first.</span>"
 
 /obj/machinery/bot/examine(mob/user)
-	..()
+	..(user)
 	if (health < maxhealth)
 		if (health > maxhealth/3)
 			user << "<span class='danger'>[src]'s parts look loose.</span>"
@@ -241,7 +246,7 @@
 		else
 			user << "<span class='warning'>Maintenance panel is locked.</span>"
 	else
-		if(istype(W, /obj/item/weapon/weldingtool) && user.a_intent != "harm")
+		if(istype(W, /obj/item/weapon/weldingtool) && user.a_intent != I_HARM)
 			if(health >= maxhealth)
 				user << "<span class='warning'>[src] does not need a repair.</span>"
 				return

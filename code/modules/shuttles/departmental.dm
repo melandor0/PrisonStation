@@ -1,7 +1,7 @@
 /obj/machinery/computer/shuttle_control/mining
 	name = "Mining Shuttle Console"
 	shuttle_tag = "Mining"
-	req_access = list(access_mining)
+	req_access = list()
 	circuit = /obj/item/weapon/circuitboard/mining_shuttle
 
 /obj/machinery/computer/shuttle_control/engineering

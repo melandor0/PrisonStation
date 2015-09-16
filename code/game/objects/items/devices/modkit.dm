@@ -24,7 +24,7 @@
 	if(!parts)
 		user << "<span class='warning'>This kit has no parts for this modification left.</span>"
 		user.unEquip(src)
-		del(src)
+		qdel(src)
 		return
 
 	var/allowed = 0
@@ -60,11 +60,11 @@
 
 	if(!parts)
 		user.unEquip(src)
-		del(src)
+		qdel(src)
 
-/obj/item/device/modkit/examine()
-	..()
-	usr << "It looks as though it modifies hardsuits to fit [target_species] users."
+/obj/item/device/modkit/examine(mob/user)
+	..(user)
+	user << "It looks as though it modifies hardsuits to fit [target_species] users."
 
 /obj/item/device/modkit/tajaran
 	name = "Tajaran hardsuit modification kit"

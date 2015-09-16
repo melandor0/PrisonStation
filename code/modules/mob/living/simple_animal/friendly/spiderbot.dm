@@ -193,7 +193,7 @@
 
 /mob/living/simple_animal/spiderbot/Destroy()
 	eject_brain()
-	..()
+	return ..()
 
 /mob/living/simple_animal/spiderbot/New()
 
@@ -212,12 +212,13 @@
 	if(camera)
 		camera.status = 0
 
-	held_item.loc = src.loc
-	held_item = null
+	if(held_item)
+		held_item.forceMove(src.loc)
+		held_item = null
 
 	robogibs(src.loc, viruses)
-	src.Destroy()
-	return
+	qdel(src)
+
 //Cannibalized from the parrot mob. ~Zuhayr
 
 /mob/living/simple_animal/spiderbot/verb/drop_held_item()
@@ -280,7 +281,7 @@
 	src << "\red There is nothing of interest to take."
 	return 0
 
-/mob/living/simple_animal/spiderbot/examine()
-	..()
+/mob/living/simple_animal/spiderbot/examine(mob/user)
+	..(user)
 	if(src.held_item)
-		usr << "It is carrying \a [src.held_item] \icon[src.held_item]."
+		user << "It is carrying \a [src.held_item] \icon[src.held_item]."

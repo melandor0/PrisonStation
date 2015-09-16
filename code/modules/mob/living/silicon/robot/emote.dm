@@ -13,7 +13,7 @@
 	var/on_CD = 0
 	switch(act)
 		//Cooldown-inducing emotes
-		if("ping","buzz","beep","law")		//halt is exempt because it's used to stop criminal scum
+		if("ping","buzz","beep","law","flip","halt")		//halt is exempt because it's used to stop criminal scum //WHOEVER THOUGHT THAT WAS A GOOD IDEA IS GOING TO GET SHOT.
 			on_CD = handle_emote_CD()			//proc located in code\modules\mob\emote.dm
 		//Everything else, including typos of the above emotes
 		else
@@ -219,6 +219,11 @@
 				m_type = 2
 			else
 				src << "You are not security."
+
+		if ("flip")
+			m_type = 1
+			message = "<B>[src]</B> does a flip!"
+			src.SpinAnimation(5,1)
 
 		if ("help")
 			src << "salute, bow-(none)/mob, clap, flap, aflap, twitch, twitch_s, nod, deathgasp, glare-(none)/mob, stare-(none)/mob, look, beep, ping, \nbuzz, law, halt"

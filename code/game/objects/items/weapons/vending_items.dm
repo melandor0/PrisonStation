@@ -21,7 +21,7 @@
 		charges = amt
 
 /obj/item/weapon/vending_refill/examine(mob/user)
-	..()
+	..(user)
 	if(charges)
 		user << "It can restock [charges] item(s)."
 	else
@@ -77,3 +77,8 @@
 	machine_name = "ClothesMate"
 	icon_state = "refill_clothes"
 	charges = 20// of 62
+
+/obj/item/weapon/vending_refill/crittercare
+	machine_name = "CritterCare"
+	icon_state = "refill_pet"
+	charges = 31// of 94

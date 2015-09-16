@@ -28,19 +28,24 @@
 	user.germ_level = 0
 	user.next_pain_time = 0
 	user.traumatic_shock = 0
+	user.timeofdeath = 0
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
 		H.restore_blood()
 		H.shock_stage = 0
 		spawn(1)
 			H.fixblood()
+		H.species.create_organs(H)
+		// Now that recreating all organs is necessary, the rest of this organ stuff probably
+		//  isn't, but I don't want to remove it, just in case.
 		for(var/organ_name in H.organs_by_name)
 			var/obj/item/organ/external/O = H.organs_by_name[organ_name]
+			if(!O) continue
 			for(var/obj/item/weapon/shard/shrapnel/s in O.implants)
 				if(istype(s))
 					O.implants -= s
 					H.contents -= s
-					del(s)
+					qdel(s)
 			O.brute_dam = 0
 			O.burn_dam = 0
 			O.damage_state = "00"

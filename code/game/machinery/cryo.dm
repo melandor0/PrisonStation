@@ -30,25 +30,25 @@
 	initialize_directions = dir
 	initialize()
 	component_parts = list()
-	component_parts += new /obj/item/weapon/circuitboard/cryo_tube(src)
-	component_parts += new /obj/item/weapon/stock_parts/matter_bin(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/stack/cable_coil(src, 1)
+	component_parts += new /obj/item/weapon/circuitboard/cryo_tube(null)
+	component_parts += new /obj/item/weapon/stock_parts/matter_bin(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/stack/cable_coil(null, 1)
 	RefreshParts()
 
 /obj/machinery/atmospherics/unary/cryo_cell/upgraded/New()
 	..()
 	component_parts = list()
-	component_parts += new /obj/item/weapon/circuitboard/cryo_tube(src)
-	component_parts += new /obj/item/weapon/stock_parts/matter_bin/super(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/stack/cable_coil(src, 1)
+	component_parts += new /obj/item/weapon/circuitboard/cryo_tube(null)
+	component_parts += new /obj/item/weapon/stock_parts/matter_bin/super(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/stack/cable_coil(null, 1)
 	RefreshParts()
 
 /obj/machinery/atmospherics/unary/cryo_cell/RefreshParts()
@@ -66,12 +66,14 @@
 			break
 
 /obj/machinery/atmospherics/unary/cryo_cell/Destroy()
-	var/turf/T = loc
-	T.contents += contents
-	var/obj/item/weapon/reagent_containers/glass/B = beaker
-	if(beaker)
-		B.loc = get_step(loc, SOUTH) //Beaker is carefully ejected from the wreckage of the cryotube
-	..()
+	var/turf/T = get_turf(src)
+	if(istype(T))
+		T.contents += contents
+		var/obj/item/weapon/reagent_containers/glass/B = beaker
+		if(beaker)
+			B.loc = get_step(T, SOUTH) //Beaker is carefully ejected from the wreckage of the cryotube
+			beaker = null
+	return ..()
 
 /obj/machinery/atmospherics/unary/cryo_cell/MouseDrop_T(atom/movable/O as mob|obj, mob/user as mob)
 	if(O.loc == user) //no you can't pull things out of your ass
@@ -151,6 +153,9 @@
 	go_out()
 	return
 
+/obj/machinery/atmospherics/unary/cryo_cell/attack_ghost(mob/user)
+	return attack_hand(user)
+	
 /obj/machinery/atmospherics/unary/cryo_cell/attack_hand(mob/user)
 	if(panel_open)
 		usr << "\blue <b>Close the maintenance panel first.</b>"
@@ -301,7 +306,7 @@
 				return
 		var/mob/M = G:affecting
 		if(put_mob(M))
-			del(G)
+			qdel(G)
 	return
 
 /obj/machinery/atmospherics/unary/cryo_cell/update_icon()

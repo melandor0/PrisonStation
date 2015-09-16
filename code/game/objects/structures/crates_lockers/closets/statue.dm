@@ -41,7 +41,7 @@
 			desc = "If it takes forever, I will wait for you..."
 
 	if(health == 0) //meaning if the statue didn't find a valid target
-		del(src)
+		qdel(src)
 		return
 
 	processing_objects.Add(src)
@@ -57,7 +57,7 @@
 	if (timer <= 0)
 		dump_contents()
 		processing_objects.Remove(src)
-		del(src)
+		qdel(src)
 
 /obj/structure/closet/statue/dump_contents()
 
@@ -99,11 +99,14 @@
 /obj/structure/closet/statue/toggle()
 	return
 
-/obj/structure/closet/statue/bullet_act(var/obj/item/projectile/Proj)
-	health -= Proj.damage
+/obj/structure/closet/statue/proc/check_health()
 	if(health <= 0)
 		for(var/mob/M in src)
 			shatter(M)
+
+/obj/structure/closet/statue/bullet_act(var/obj/item/projectile/Proj)
+	health -= Proj.damage
+	check_health()
 
 	return
 
@@ -116,21 +119,17 @@
 	for(var/mob/M in src)
 		shatter(M)
 
-/obj/structure/closet/statue/meteorhit(obj/O as obj)
-	if(O.icon_state == "flaming")
-		for(var/mob/M in src)
-			M.meteorhit(O)
-			shatter(M)
+/obj/structure/closet/statue/ex_act(severity)
+	for(var/mob/M in src)
+		M.ex_act(severity)
+		health -= 60 / severity
+		check_health()
 
 /obj/structure/closet/statue/attackby(obj/item/I as obj, mob/user as mob, params)
 	user.changeNext_move(CLICK_CD_MELEE)
 	health -= I.force
 	visible_message("\red [user] strikes [src] with [I].")
-	if(health <= 0)
-		for(var/mob/M in src)
-			shatter(M)
-
-
+	check_health()
 
 /obj/structure/closet/statue/MouseDrop_T()
 	return
@@ -152,7 +151,7 @@
 		user.dust()
 	dump_contents()
 	visible_message("\red [src] shatters!. ")
-	del(src)
+	qdel(src)
 
 
 /obj/structure/statue

@@ -4,21 +4,22 @@ var/list/preferences_datums = list()
 
 var/global/list/special_roles = list( //keep synced with the defines BE_* in setup.dm. THE ORDER MATTERS
 //some autodetection here.
-	"traitor" = IS_MODE_COMPILED("traitor"),             // 1 / 1
-	"operative" = IS_MODE_COMPILED("nuclear"),           // 2 / 2
-	"changeling" = IS_MODE_COMPILED("changeling"),       // 4 / 3
-	"wizard" = IS_MODE_COMPILED("wizard"),               // 8 / 4
-	"malf AI" = IS_MODE_COMPILED("malfunction"),         // 16 / 5
-	"revolutionary" = IS_MODE_COMPILED("revolution"),    // 32 / 6
-	"alien" = 1,           							     // 62 / 7
-	"pAI" = 1,                   						 // 128	/ 8
-	"cultist" = IS_MODE_COMPILED("cult"),                // 256 / 9
-	"ninja" = 1,										 // 512 / 10
-	"raider" = IS_MODE_COMPILED("heist"),				 // 1024 / 11
-	"vampire" = IS_MODE_COMPILED("vampire"),			 // 2048 / 12
-	"mutineer" = IS_MODE_COMPILED("mutiny"),             // 4096 / 13
-	"blob" = IS_MODE_COMPILED("blob"),          	     	// 8192 / 14
-	"shadowling" = IS_MODE_COMPILED("shadowling")		//16384 / 15
+	"traitor" = IS_MODE_COMPILED("traitor"),			// 1 / 1
+	"operative" = IS_MODE_COMPILED("nuclear"),			// 2 / 2
+	"changeling" = IS_MODE_COMPILED("changeling"),		// 4 / 3
+	"wizard" = IS_MODE_COMPILED("wizard"),				// 8 / 4
+	"malf AI" = IS_MODE_COMPILED("malfunction"),		// 16 / 5
+	"revolutionary" = IS_MODE_COMPILED("revolution"),	// 32 / 6
+	"alien" = 1,										// 62 / 7
+	"pAI" = 1,											// 128	/ 8
+	"cultist" = IS_MODE_COMPILED("cult"),				// 256 / 9
+	"ninja" = 1,										// 512 / 10
+	"raider" = IS_MODE_COMPILED("heist"),				// 1024 / 11
+	"vampire" = IS_MODE_COMPILED("vampire"),			// 2048 / 12
+	"mutineer" = IS_MODE_COMPILED("mutiny"),			// 4096 / 13
+	"blob" = IS_MODE_COMPILED("blob"),					// 8192 / 14
+	"shadowling" = IS_MODE_COMPILED("shadowling"),		//16384 / 15
+	"revenant" =  1										//32768 / 16
 )
 var/global/list/special_role_times = list( //minimum age (in days) for accounts to play these roles
 	num2text(BE_PAI) = 0,
@@ -29,13 +30,14 @@ var/global/list/special_role_times = list( //minimum age (in days) for accounts 
 	num2text(BE_REV) = 14,
 	num2text(BE_VAMPIRE) = 14,
 	num2text(BE_BLOB) = 14,
+	num2text(BE_REVENANT) = 14,
 	num2text(BE_OPERATIVE) = 21,
 	num2text(BE_CULTIST) = 21,
 	num2text(BE_RAIDER) = 21,
 	num2text(BE_ALIEN) = 21,
 	num2text(BE_NINJA) = 21,
 	num2text(BE_MUTINEER) = 21,
-	num2text(BE_MALF) = 30
+	num2text(BE_MALF) = 30,
 )
 
 /proc/player_old_enough_antag(client/C, role)
@@ -65,18 +67,20 @@ var/global/list/special_role_times = list( //minimum age (in days) for accounts 
 		return max(0, days - C.player_age)
 	return 0
 
-var/const/MAX_SAVE_SLOTS = 10
-
 //used for alternate_option
 #define GET_RANDOM_JOB 0
 #define BE_CIVILIAN 1
 #define RETURN_TO_LOBBY 2
+
+#define MAX_SAVE_SLOTS 10 // Save slots for regular players
+#define MAX_SAVE_SLOTS_MEMBER 10 // Save slots for BYOND members
 
 datum/preferences
 	//doohickeys for savefiles
 //	var/path
 	var/default_slot = 1				//Holder so it doesn't default to slot 1, rather the last one used
 //	var/savefile_version = 0
+	var/max_save_slots = MAX_SAVE_SLOTS
 
 	//non-preference stuff
 	var/warns = 0
@@ -102,8 +106,9 @@ datum/preferences
 	var/age = 30						//age of character
 	var/spawnpoint = "Arrivals Shuttle" //where this character will spawn (0-2).
 	var/b_type = "A+"					//blood type (not-chooseable)
-	var/underwear = 1					//underwear type
-	var/undershirt = 1					//undershirt type
+	var/underwear = "Nude"					//underwear type
+	var/undershirt = "Nude"					//undershirt type
+	var/socks = "Nude"					//socks type
 	var/backbag = 2						//backpack type
 	var/h_style = "Bald"				//Hair type
 	var/r_hair = 0						//Hair color
@@ -123,6 +128,7 @@ datum/preferences
 	var/species = "Human"
 	var/language = "None"				//Secondary language
 
+	var/body_accessory = null
 
 	var/speciesprefs = 0//I hate having to do this, I really do (Using this for oldvox code, making names universal I guess
 
@@ -181,16 +187,27 @@ datum/preferences
 
 	// jukebox volume
 	var/volume = 100
+
+	// BYOND membership
+	var/unlock_content = 0
+
 /datum/preferences/New(client/C)
 	b_type = pick(4;"O-", 36;"O+", 3;"A-", 28;"A+", 1;"B-", 20;"B+", 1;"AB-", 5;"AB+")
 	if(istype(C))
 		if(!IsGuestKey(C.key))
-//			load_path(C.ckey)
-			if(load_preferences(C))
-				if(load_character(C))
-					return
-	gender = pick(MALE, FEMALE)
+			unlock_content = C.IsByondMember()
+			if(unlock_content)
+				max_save_slots = MAX_SAVE_SLOTS_MEMBER
+	var/loaded_preferences_successfully = load_preferences(C)
+	if(loaded_preferences_successfully)
+		if(load_character(C))
+			return
+	//we couldn't load character data so just randomize the character appearance + name
+	random_character()		//let's create a random character then - rather than a fat, bald and naked man.
 	real_name = random_name(gender)
+	if(!loaded_preferences_successfully)
+		save_preferences(C)
+	save_character(C)		//let's save this new random character so it doesn't keep generating new ones.
 
 /datum/preferences
 	proc/ShowChoices(mob/user)
@@ -314,11 +331,9 @@ datum/preferences
 					dat += "\[...\]<br><br>"
 				else
 					dat += "<br><br>"
-				if(gender == MALE)
-					dat += "Underwear: <a href ='?_src_=prefs;preference=underwear;task=input'><b>[underwear_m[underwear]]</b></a><br>"
-				else
-					dat += "Underwear: <a href ='?_src_=prefs;preference=underwear;task=input'><b>[underwear_f[underwear]]</b></a><br>"
-				dat += "Undershirt: <a href='?_src_=prefs;preference=undershirt;task=input'><b>[undershirt_t[undershirt]]</b></a><br>"
+				dat += "<b>Underwear:</b><BR><a href ='?_src_=prefs;preference=underwear;task=input'>[underwear]</a><BR>"
+				dat += "<b>Undershirt:</b><BR><a href ='?_src_=prefs;preference=undershirt;task=input'>[undershirt]</a><BR>"
+				dat += "<b>Socks:</b><BR><a href ='?_src_=prefs;preference=socks;task=input'>[socks]</a><BR>"
 				dat += "Backpack Type:<br><a href ='?_src_=prefs;preference=bag;task=input'><b>[backbaglist[backbag]]</b></a><br>"
 				dat += "Nanotrasen Relation:<br><a href ='?_src_=prefs;preference=nt_relation;task=input'><b>[nanotrasen_relation]</b></a><br>"
 				dat += "</td><td><b>Preview</b><br><img src=previewicon.png height=64 width=64><img src=previewicon2.png height=64 width=64></td></tr></table>"
@@ -335,7 +350,7 @@ datum/preferences
 					else
 						dat += "[flavor_text]"
 				else
-					dat += "[copytext(flavor_text, 1, 37)]...<br>"
+					dat += "[TextPreview(flavor_text)]...<br>"
 				dat += "<br>"
 
 				var/hairname = "Hair"
@@ -352,9 +367,13 @@ datum/preferences
 				dat += "<br><b>Eyes</b><br>"
 				dat += "<a href='?_src_=prefs;preference=eyes;task=input'>Change Color</a> <font face='fixedsys' size='3' color='#[num2hex(r_eyes, 2)][num2hex(g_eyes, 2)][num2hex(b_eyes, 2)]'><table  style='display:inline;' bgcolor='#[num2hex(r_eyes, 2)][num2hex(g_eyes, 2)][num2hex(b_eyes)]'><tr><td>__</td></tr></table></font><br>"
 
-				if(species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Slime People" || species == "Vulpkanin")
+				if(species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Slime People" || species == "Vulpkanin" || body_accessory_by_species[species] || check_rights(R_ADMIN, 0, user)) //admins can always fuck with this, because they are admins
 					dat += "<br><b>Body Color</b><br>"
 					dat += "<a href='?_src_=prefs;preference=skin;task=input'>Change Color</a> <font face='fixedsys' size='3' color='#[num2hex(r_skin, 2)][num2hex(g_skin, 2)][num2hex(b_skin, 2)]'><table style='display:inline;' bgcolor='#[num2hex(r_skin, 2)][num2hex(g_skin, 2)][num2hex(b_skin)]'><tr><td>__</td></tr></table></font>"
+
+				if(body_accessory_by_species[species] || check_rights(R_ADMIN, 0, user))
+					dat += "<br><b>Body Accessory</b><br>"
+					dat += "Accessory: <a href='?_src_=prefs;preference=body_accessory;task=input'>[body_accessory ? "[body_accessory]" : "None"]</a><br>"
 
 				dat += "</td></tr></table><hr><center>"
 
@@ -367,14 +386,23 @@ datum/preferences
 				dat += "<b>Alpha (transparency):</b> <a href='?_src_=prefs;preference=UIalpha'><b>[UI_style_alpha]</b></a><br>"
 				dat += "<b>Play admin midis:</b> <a href='?_src_=prefs;preference=hear_midis'><b>[(sound & SOUND_MIDI) ? "Yes" : "No"]</b></a><br>"
 				dat += "<b>Play lobby music:</b> <a href='?_src_=prefs;preference=lobby_music'><b>[(sound & SOUND_LOBBY) ? "Yes" : "No"]</b></a><br>"
-				dat += "<b>Randomized Character Slot:</b> <a href='?_src_=prefs;preference=randomslot'><b>[randomslot ? "Yes" : "No"]</b></a><br>"
+				dat += "<b>Randomized character slot:</b> <a href='?_src_=prefs;preference=randomslot'><b>[randomslot ? "Yes" : "No"]</b></a><br>"
 				dat += "<b>Ghost ears:</b> <a href='?_src_=prefs;preference=ghost_ears'><b>[(toggles & CHAT_GHOSTEARS) ? "Nearest Creatures" : "All Speech"]</b></a><br>"
 				dat += "<b>Ghost sight:</b> <a href='?_src_=prefs;preference=ghost_sight'><b>[(toggles & CHAT_GHOSTSIGHT) ? "Nearest Creatures" : "All Emotes"]</b></a><br>"
 				dat += "<b>Ghost radio:</b> <a href='?_src_=prefs;preference=ghost_radio'><b>[(toggles & CHAT_GHOSTRADIO) ? "Nearest Speakers" : "All Chatter"]</b></a><br>"
-
-
 				if(config.allow_Metadata)
-					dat += "<b>OOC Notes:</b> <a href='?_src_=prefs;preference=metadata;task=input'> Edit </a><br>"
+					dat += "<b>OOC notes:</b> <a href='?_src_=prefs;preference=metadata;task=input'><b>Edit</b></a><br>"
+
+				if(user.client)
+					if(user.client.holder)
+						dat += "<b>Adminhelp sound:</b> "
+						dat += "<a href='?_src_=prefs;preference=hear_adminhelps'><b>[(sound & SOUND_ADMINHELP)?"On":"Off"]</b></a><br>"
+
+					if(check_rights(R_ADMIN,0))
+						dat += "<b>OOC:</b> <span style='border: 1px solid #161616; background-color: [ooccolor ? ooccolor : normal_ooc_colour];'>&nbsp;&nbsp;&nbsp;</span> <a href='?_src_=prefs;preference=ooccolor;task=input'><b>Change</b></a><br>"
+
+					if(unlock_content)
+						dat += "<b>BYOND Membership Publicity:</b> <a href='?_src_=prefs;preference=publicity'><b>[(toggles & MEMBER_PUBLIC) ? "Public" : "Hidden"]</b></a><br>"
 
 				dat += "</td><td width='300px' height='300px' valign='top'>"
 				dat += "<h2>Special Role Settings</h2>"
@@ -405,11 +433,11 @@ datum/preferences
 		dat += "</center></body></html>"
 
 //		user << browse(dat, "window=preferences;size=560x580")
-		var/datum/browser/popup = new(user, "preferences", "<div align='center'>Character Setup</div>", 610, 650)
+		var/datum/browser/popup = new(user, "preferences", "<div align='center'>Character Setup</div>", 640, 750)
 		popup.set_content(dat)
 		popup.open(0)
 
-	proc/SetChoices(mob/user, limit = 14, list/splitJobs = list("Chief Engineer","Research Director","Captain"), width = 1025, height = 800)
+	proc/SetChoices(mob/user, limit = 12, list/splitJobs = list("Civilian","Research Director","AI","Bartender"), width = 755, height = 780)
 		if(!job_master)
 			return
 
@@ -441,7 +469,6 @@ datum/preferences
 					//the last job's selection color. Creating a rather nice effect.
 					for(var/i = 0, i < (limit - index), i += 1)
 						HTML += "<tr bgcolor='[lastJob.selection_color]'><td width='60%' align='right'>&nbsp</td><td>&nbsp</td></tr>"
-				HTML += "</table></td><td width='20%'><table width='100%' cellpadding='1' cellspacing='0'>"
 				HTML += "</table></td><td width='20%'><table width='100%' cellpadding='1' cellspacing='0'>"
 				index = 0
 
@@ -669,6 +696,8 @@ datum/preferences
 		HTML += ShowDisabilityState(user,DISABILITY_FLAG_FAT,"Obese")
 		HTML += ShowDisabilityState(user,DISABILITY_FLAG_EPILEPTIC,"Seizures")
 		HTML += ShowDisabilityState(user,DISABILITY_FLAG_DEAF,"Deaf")
+		HTML += ShowDisabilityState(user,DISABILITY_FLAG_BLIND,"Blind")
+		HTML += ShowDisabilityState(user,DISABILITY_FLAG_MUTE,"Mute")
 
 
 		// AUTOFIXED BY fix_string_idiocy.py
@@ -983,10 +1012,13 @@ datum/preferences
 					if("f_style")
 						f_style = random_facial_hair_style(gender, species)
 					if("underwear")
-						underwear = rand(1,underwear_m.len)
+						underwear = random_underwear(gender)
 						ShowChoices(user)
 					if("undershirt")
-						undershirt = rand(1,undershirt_t.len)
+						undershirt = random_undershirt(gender)
+						ShowChoices(user)
+					if("socks")
+						socks = random_socks(gender)
 						ShowChoices(user)
 					if("eyes")
 						r_eyes = rand(0,255)
@@ -1005,7 +1037,7 @@ datum/preferences
 					/*if("skin_style")
 						h_style = random_skin_style(gender)*/
 					if("all")
-						randomize_appearance_for()	//no params needed
+						random_character()
 			if("input")
 				switch(href_list["preference"])
 					if("name")
@@ -1138,9 +1170,26 @@ datum/preferences
 
 							valid_hairstyles[hairstyle] = hair_styles_list[hairstyle]
 
-						var/new_h_style = input(user, "Choose your character's hair style:", "Character Preference")  as null|anything in valid_hairstyles
+						var/new_h_style = input(user, "Choose your character's hair style:", "Character Preference") as null|anything in valid_hairstyles
 						if(new_h_style)
 							h_style = new_h_style
+
+					if("body_accessory")
+						var/list/possible_body_accessories = list()
+						if(check_rights(R_ADMIN, 1, user))
+							possible_body_accessories = body_accessory_by_name.Copy()
+						else
+							for(var/B in body_accessory_by_name)
+								var/datum/body_accessory/accessory = body_accessory_by_name[B]
+								if(!istype(accessory))
+									possible_body_accessories += "None" //the only null entry should be the "None" option
+									continue
+								if(species in accessory.allowed_species)
+									possible_body_accessories += B
+
+						var/new_body_accessory = input(user, "Choose your body accessory:", "Character Preference") as null|anything in possible_body_accessories
+						if(new_body_accessory)
+							body_accessory = new_body_accessory
 
 					if("facial")
 						var/new_facial = input(user, "Choose your character's facial-hair colour:", "Character Preference") as color|null
@@ -1175,17 +1224,34 @@ datum/preferences
 
 						var/new_underwear = input(user, "Choose your character's underwear:", "Character Preference")  as null|anything in underwear_options
 						if(new_underwear)
-							underwear = underwear_options.Find(new_underwear)
+							underwear = new_underwear
 						ShowChoices(user)
 
 					if("undershirt")
-						var/list/undershirt_options
-						undershirt_options = undershirt_t
-
-						var/new_undershirt = input(user, "Choose your character's undershirt:", "Character Preference") as null|anything in undershirt_options
-						if (new_undershirt)
-							undershirt = undershirt_options.Find(new_undershirt)
+						var/new_undershirt
+						if(gender == MALE)
+							new_undershirt = input(user, "Choose your character's undershirt:", "Character Preference") as null|anything in undershirt_m
+						else
+							new_undershirt = input(user, "Choose your character's undershirt:", "Character Preference") as null|anything in undershirt_f
+						if(new_undershirt)
+							undershirt = new_undershirt
 						ShowChoices(user)
+
+					if("socks")
+						var/list/valid_sockstyles = list()
+						for(var/sockstyle in socks_list)
+							var/datum/sprite_accessory/S = socks_list[sockstyle]
+							if(gender == MALE && S.gender == FEMALE)
+								continue
+							if(gender == FEMALE && S.gender == MALE)
+								continue
+							if(!(species in S.species_allowed))
+								continue
+							valid_sockstyles[sockstyle] = socks_list[sockstyle]
+						var/new_socks = input(user, "Choose your character's socks:", "Character Preference")  as null|anything in valid_sockstyles
+						ShowChoices(user)
+						if(new_socks)
+							socks = new_socks
 
 					if("eyes")
 						var/new_eyes = input(user, "Choose your character's eye colour:", "Character Preference") as color|null
@@ -1202,7 +1268,7 @@ datum/preferences
 							s_tone = 35 - max(min( round(new_s_tone), 220),1)
 
 					if("skin")
-						if(species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Slime People"|| species == "Vulpkanin")
+						if(species == "Unathi" || species == "Tajaran" || species == "Skrell" || species == "Slime People"|| species == "Vulpkanin" || body_accessory_by_species[species] || check_rights(R_ADMIN, 1, user))
 							var/new_skin = input(user, "Choose your character's skin colour: ", "Character Preference") as color|null
 							if(new_skin)
 								r_skin = hex2num(copytext(new_skin, 2, 4))
@@ -1334,12 +1400,16 @@ datum/preferences
 
 			else
 				switch(href_list["preference"])
+					if("publicity")
+						if(unlock_content)
+							toggles ^= MEMBER_PUBLIC
+
 					if("gender")
 						if(gender == MALE)
 							gender = FEMALE
 						else
 							gender = MALE
-
+						underwear = random_underwear(gender)
 
 					if("hear_adminhelps")
 						sound ^= SOUND_ADMINHELP
@@ -1409,7 +1479,10 @@ datum/preferences
 						close_load_dialog(user)
 
 					if("changeslot")
-						load_character(user,text2num(href_list["num"]))
+						if(!load_character(user,text2num(href_list["num"])))
+							random_character()
+							real_name = random_name(gender)
+							save_character(user)
 						close_load_dialog(user)
 
 					if("tab")
@@ -1419,7 +1492,7 @@ datum/preferences
 		ShowChoices(user)
 		return 1
 
-	proc/copy_to(mob/living/carbon/human/character, safety = 0)
+	proc/copy_to(mob/living/carbon/human/character)
 		if(be_random_name)
 			real_name = random_name(gender,species)
 
@@ -1516,13 +1589,12 @@ datum/preferences
 			W.buckled_mob = character
 			W.add_fingerprint(character)
 
-		if(underwear > underwear_m.len || underwear < 1)
-			underwear = 0 //I'm sure this is 100% unnecessary, but I'm paranoid... sue me. //HAH NOW NO MORE MAGIC CLONING UNDIES
 		character.underwear = underwear
-
-		if(undershirt > undershirt_t.len || undershirt < 1)
-			undershirt = 0
 		character.undershirt = undershirt
+		character.socks = socks
+
+		if(body_accessory)
+			character.body_accessory = body_accessory_by_name["[body_accessory]"]
 
 		if(backbag > 4 || backbag < 1)
 			backbag = 1 //Same as above
@@ -1531,7 +1603,7 @@ datum/preferences
 		//Debugging report to track down a bug, which randomly assigned the plural gender to people.
 		if(character.gender in list(PLURAL, NEUTER))
 			if(isliving(src)) //Ghosts get neuter by default
-				message_admins("[character] ([character.ckey]) has spawned with their gender as plural or neuter. Please notify coders.")
+				message_admins("[key_name_admin(character)] has spawned with their gender as plural or neuter. Please notify coders.")
 				character.gender = MALE
 
 	proc/open_load_dialog(mob/user)
@@ -1543,7 +1615,7 @@ datum/preferences
 		dat += "<b>Select a character slot to load</b><hr>"
 		var/name
 
-		for(var/i=1, i<=MAX_SAVE_SLOTS, i++)
+		for(var/i=1, i<=max_save_slots, i++)
 			if(!query.Execute())
 				var/err = query.ErrorMsg()
 				log_game("SQL ERROR during character slot loading. Error : \[[err]\]\n")

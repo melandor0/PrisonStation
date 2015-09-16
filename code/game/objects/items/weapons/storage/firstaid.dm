@@ -12,7 +12,6 @@
 	name = "first-aid kit"
 	desc = "It's an emergency medical kit for those serious boo-boos."
 	icon_state = "firstaid"
-	icon_override = 'icons/mob/in-hand/medkits.dmi'
 	throw_speed = 2
 	throw_range = 8
 	var/empty = 0
@@ -150,6 +149,28 @@
 	new /obj/item/clothing/glasses/hud/health/night(src)
 	return
 
+/obj/item/weapon/storage/firstaid/surgery
+	name = "field surgery kit"
+	icon_state = "duffel-med"
+	desc = "A kit for surgery in the field."
+	max_w_class = 4
+	storage_slots = 10
+	can_hold = list("/obj/item/roller","/obj/item/weapon/bonesetter","/obj/item/weapon/bonegel", "/obj/item/weapon/scalpel", "/obj/item/weapon/hemostat",
+		"/obj/item/weapon/cautery", "/obj/item/weapon/retractor", "/obj/item/weapon/FixOVein", "/obj/item/weapon/surgicaldrill", "/obj/item/weapon/circular_saw")
+
+/obj/item/weapon/storage/firstaid/surgery/New()
+	..()
+	new /obj/item/roller(src)
+	new /obj/item/weapon/bonesetter(src)
+	new /obj/item/weapon/bonegel(src)
+	new /obj/item/weapon/scalpel(src)
+	new /obj/item/weapon/hemostat(src)
+	new /obj/item/weapon/cautery(src)
+	new /obj/item/weapon/retractor(src)
+	new /obj/item/weapon/FixOVein(src)
+	new /obj/item/weapon/surgicaldrill(src)
+	new /obj/item/weapon/circular_saw(src)
+
 /*
  * Pill Bottles
  */
@@ -212,3 +233,18 @@
 		new /obj/item/weapon/dice( src )
 		new /obj/item/weapon/dice/d20( src )
 
+
+/obj/item/weapon/storage/pill_bottle/painkillers
+	name = "Pill Bottle (Salicylic Acid)"
+	desc = "Contains various pills for minor pain relief."
+
+/obj/item/weapon/storage/pill_bottle/painkillers/New()
+	..()
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)

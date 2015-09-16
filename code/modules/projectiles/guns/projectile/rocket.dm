@@ -16,11 +16,9 @@
 	var/max_rockets = 1
 	var/list/rockets = new/list()
 
-/obj/item/weapon/gun/rocketlauncher/examine()
-	set src in view()
-	..()
-	if (!(usr in view(2)) && usr!=src.loc) return
-	usr << "\blue [rockets.len] / [max_rockets] rockets."
+/obj/item/weapon/gun/rocketlauncher/examine(mob/user)
+	if(..(user, 2))
+		user << "\blue [rockets.len] / [max_rockets] rockets."
 
 /obj/item/weapon/gun/rocketlauncher/attackby(obj/item/I as obj, mob/user as mob, params)
 	if(istype(I, /obj/item/ammo_casing/rocket))
@@ -46,7 +44,7 @@
 		message_admins("[key_name_admin(user)] fired a rocket from a rocket launcher ([src.name]).")
 		log_game("[key_name_admin(user)] used a rocket launcher ([src.name]).")
 		rockets -= I
-		del(I)
+		qdel(I)
 		return
 	else
 		usr << "\red [src] is empty."

@@ -26,7 +26,7 @@
 
 /obj/item/weapon/gun/energy/taser/cyborg/Destroy()
 	processing_objects.Remove(src)
-	..()
+	return ..()
 
 /obj/item/weapon/gun/energy/taser/cyborg/process() //Every [recharge_time] ticks, recharge a shot for the cyborg
 	if(power_supply.charge == power_supply.maxcharge)
@@ -63,7 +63,7 @@
 	icon_state = "crossbow"
 	w_class = 2.0
 	item_state = "crossbow"
-	m_amt = 2000
+	materials = list(MAT_METAL=2000)
 	origin_tech = "combat=2;magnets=2;syndicate=5"
 	silenced = 1
 	fire_sound = 'sound/weapons/Genhit.ogg'
@@ -77,7 +77,7 @@
 
 /obj/item/weapon/gun/energy/crossbow/Destroy()
 	processing_objects.Remove(src)
-	..()
+	return ..()
 
 /obj/item/weapon/gun/energy/crossbow/process()
 	charge_tick++
@@ -98,7 +98,7 @@
 	silenced = 0
 	w_class = 3.0
 	force = 10
-	m_amt = 4000
+	materials = list(MAT_METAL=4000)
 	projectile_type = "/obj/item/projectile/energy/bolt/large"
 
 

@@ -98,8 +98,21 @@
 		"/obj/item/clothing/mask/surgical",
 		"/obj/item/clothing/gloves/color/latex",
         "/obj/item/weapon/reagent_containers/hypospray/autoinjector",
+        "/obj/item/device/rad_laser",
 		"/obj/item/device/sensor_device"
 	)
+
+/obj/item/weapon/storage/belt/medical/response_team
+
+/obj/item/weapon/storage/belt/medical/response_team/New()
+	new /obj/item/weapon/reagent_containers/pill/salbutamol(src)
+	new /obj/item/weapon/reagent_containers/pill/salbutamol(src)
+	new /obj/item/weapon/reagent_containers/pill/charcoal(src)
+	new /obj/item/weapon/reagent_containers/pill/charcoal(src)
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)
+	new /obj/item/weapon/reagent_containers/pill/salicylic(src)
+
 
 /obj/item/weapon/storage/belt/botany
 	name = "botanist belt"
@@ -149,7 +162,7 @@
 		"/obj/item/weapon/melee/classic_baton",
 		"/obj/item/device/flashlight/seclite",
 		"/obj/item/taperoll/police",
-		"/obj/item/weapon/melee/telebaton"
+		"/obj/item/weapon/melee/classic_baton/telescopic"
 		)
 
 /obj/item/weapon/storage/belt/security/sec/New()
@@ -161,7 +174,7 @@
 	new /obj/item/weapon/kitchenknife/combat(src)
 	new /obj/item/weapon/melee/baton/loaded(src)
 	new /obj/item/device/flash(src)
-	new /obj/item/weapon/melee/telebaton(src)
+	new /obj/item/weapon/melee/classic_baton/telescopic(src)
 	new /obj/item/weapon/grenade/flashbang(src)
 
 /obj/item/weapon/storage/belt/soulstone
@@ -189,6 +202,7 @@
 	desc = "Proves to the world that you are the strongest!"
 	icon_state = "championbelt"
 	item_state = "champion"
+	materials = list(MAT_GOLD=400)
 	storage_slots = 1
 	can_hold = list(
 		"/obj/item/clothing/mask/luchador"
@@ -361,7 +375,7 @@
 		else
 			user << "\red The Bluespace generator malfunctions!"
 			for (var/obj/O in src.contents) //it broke, delete what was in it
-				del(O)
+				qdel(O)
 			crit_fail = 1
 			return 0
 
@@ -442,7 +456,7 @@
 		user.visible_message("\red [user.name] is trying to strap a belt to [target.name]!")
 
 
-	if(do_after(user, 50) && in_range(user, target))
+	if(do_after(user, 50, target = target) && in_range(user, target))
 		user.drop_item()
 		target = target
 		loc = null

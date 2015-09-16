@@ -1,6 +1,7 @@
 /obj/item/organ/brain
 	name = "brain"
 	health = 400 //They need to live awhile longer than other organs.
+	max_damage = 200
 	icon_state = "brain2"
 	force = 1.0
 	w_class = 2.0
@@ -13,6 +14,9 @@
 	organ_tag = "brain"
 	parent_organ = "head"
 	vital = 1
+
+/obj/item/organ/brain/attack_self(mob/user as mob)
+	return  //let's not have players taken out of the round as easily as a click, once you have their brain.
 
 /obj/item/organ/brain/xeno
 	name = "thinkpan"
@@ -48,6 +52,7 @@
 
 /obj/item/organ/brain/removed(var/mob/living/user)
 
+	if(!owner) return ..() // Probably a redundant removal; just bail
 	name = "[owner.real_name]'s brain"
 
 	var/mob/living/simple_animal/borer/borer = owner.has_brain_worms()
@@ -88,3 +93,9 @@
 	desc = "A tightly furled roll of paper, covered with indecipherable runes."
 	icon = 'icons/obj/wizard.dmi'
 	icon_state = "scroll"
+
+/obj/item/organ/brain/Destroy() //copypasted from MMIs.
+	if(brainmob)
+		qdel(brainmob)
+		brainmob = null
+	return ..()

@@ -20,14 +20,14 @@
 /mob/proc/timed_alert(question as text, title as text, default as text, time as num, \
 					 choice1 as text, choice2 as text, choice3 as text)
 
-	if (client) client.timed_alert(question, title, default, time, choice1, choice2, choice3)
+	if (client) return client.timed_alert(question, title, default, time, choice1, choice2, choice3)
 	return
 
 
 
 /timed_alert/proc/timed_alert(client/ref_client, question, title, time, choice1, choice2, choice3)
         if (!ref_client) return
-        spawn (time) del src // When src is deleted, the proc ends immediately. The alert itself closes.
+        spawn (time) del(src) // When src is deleted, the proc ends immediately. The alert itself closes.
 
         var/ref_answer
         ref_answer = alert(ref_client, question, title, choice1, choice2, choice3)

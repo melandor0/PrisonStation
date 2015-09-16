@@ -36,8 +36,9 @@
 		/obj/item/weapon/gun/energy/laser/bluetag,\
 		/obj/item/weapon/gun/energy/laser/redtag,\
 		/obj/item/weapon/gun/energy/laser/practice,\
-		/obj/item/weapon/melee/telebaton,\
-		/obj/item/weapon/gun/energy/kinetic_accelerator)
+		/obj/item/weapon/melee/classic_baton/telescopic,\
+		/obj/item/weapon/gun/energy/kinetic_accelerator,\
+		/obj/item/weapon/gun/energy/floragun)
 
 
 /obj/machinery/bot/secbot/beepsky
@@ -191,7 +192,7 @@ Auto Patrol: []"},
 				user << "<span class='danger'> Access denied.</span>"
 	else
 		..()
-		if(istype(W, /obj/item/weapon/weldingtool) && user.a_intent != "harm") // Any intent but harm will heal, so we shouldn't get angry.
+		if(istype(W, /obj/item/weapon/weldingtool) && user.a_intent != I_HARM) // Any intent but harm will heal, so we shouldn't get angry.
 			return
 		if(!istype(W, /obj/item/weapon/screwdriver) && (W.force) && (!target)) // Added check for welding tool to fix #2432. Welding tool behavior is handled in superclass.
 			threatlevel = user.assess_threat(src)

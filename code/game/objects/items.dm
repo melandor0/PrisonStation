@@ -6,13 +6,21 @@
 	var/image/blood_overlay = null //this saves our blood splatter overlay, which will be processed not to go over the edges of the sprite
 	var/blood_overlay_color = null
 	var/item_state = null
+	var/lefthand_file = 'icons/mob/inhands/items_lefthand.dmi'
+	var/righthand_file = 'icons/mob/inhands/items_righthand.dmi'
+	
+	//Dimensions of the lefthand_file and righthand_file vars
+	//eg: 32x32 sprite, 64x64 sprite, etc.
+	var/inhand_x_dimension = 32
+	var/inhand_y_dimension = 32	
+	
 	var/r_speed = 1.0
 	var/health = null
 	var/hitsound = null
 	var/w_class = 3.0
 	var/slot_flags = 0		//This is used to determine on which slots an item can fit.
 	pass_flags = PASSTABLE
-	pressure_resistance = 5
+	pressure_resistance = 3
 //	causeerrorheresoifixthis
 	var/obj/item/master = null
 
@@ -26,6 +34,7 @@
 	var/action_button_is_hands_free = 0 //If 1, bypass the restrained, lying, and stunned checks action buttons normally test for
 	var/datum/action/item_action/action = null
 
+	var/list/materials = list()
 	//Since any item can now be a piece of clothing, this has to be put here so all items share it.
 	var/flags_inv //This flag is used to determine when items in someone's inventory cover others. IE helmets making it so you can't see glasses, etc.
 	var/_color = null
@@ -35,7 +44,6 @@
 	var/permeability_coefficient = 1 // for chemicals/diseases
 	var/siemens_coefficient = 1 // for electrical admittance/conductance (electrocution checks and shit)
 	var/slowdown = 0 // How much clothing is slowing you down. Negative values speeds you up
-	var/reflect_chance = 0 //This var dictates what % of a time an object will reflect an energy based weapon's shot
 	var/armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 	var/list/allowed = null //suit storage stuff.
 	var/obj/item/device/uplink/hidden/hidden_uplink = null // All items can have an uplink hidden inside, just remember to add the triggers.
@@ -53,18 +61,16 @@
 	var/list/species_fit = null //This object has a different appearance when worn by these species
 
 /obj/item/Destroy()
-	if(istype(src.loc, /mob))
-		var/mob/H = src.loc
-		H.unEquip(src) // items at the very least get unequipped from their mob before being deleted
-	if(reagents && istype(reagents))
-		reagents.my_atom = null
-		reagents.delete()
-	if(hasvar(src, "holder"))
-		src:holder = null
-	/*  BROKEN, FUCK BYOND
-	if(hasvar(src, "my_atom"))
-		src:my_atom = null*/
-	..()
+	if(ismob(loc))
+		var/mob/m = loc
+		m.unEquip(src, 1)
+	return ..()
+
+/obj/item/proc/check_allowed_items(atom/target, not_inside, target_self)
+	if(((src in target) && !target_self) || ((!istype(target.loc, /turf)) && (!istype(target, /turf)) && (not_inside)))
+		return 0
+	else
+		return 1
 
 /obj/item/device
 	icon = 'icons/obj/device.dmi'
@@ -86,7 +92,7 @@
 	return
 
 /obj/item/blob_act()
-	del(src)
+	qdel(src)
 
 //user: The mob that is suiciding
 //damagetype: The type of damage the item will inflict on the user
@@ -112,9 +118,7 @@
 
 	src.loc = T
 
-/obj/item/examine()
-	set src in view()
-
+/obj/item/examine(mob/user)
 	var/size
 	switch(src.w_class)
 		if(1.0)
@@ -129,10 +133,10 @@
 			size = "huge"
 		else
 	//if ((CLUMSY in usr.mutations) && prob(50)) t = "funny-looking"
-	usr << "This is a [src.blood_DNA ? "bloody " : ""]\icon[src][src.name]. It is a [size] item."
+	user << "This is a [src.blood_DNA ? "bloody " : ""]\icon[src][src.name]. It is a [size] item."
 	if(src.desc)
-		usr << src.desc
-	return
+		user << src.desc
+
 
 /obj/item/attack_hand(mob/user as mob)
 	if (!user) return 0
@@ -141,8 +145,11 @@
 		var/obj/item/organ/external/temp = H.organs_by_name["r_hand"]
 		if (user.hand)
 			temp = H.organs_by_name["l_hand"]
+		if(!temp)
+			user << "<span class='warning'>You try to use your hand, but it's missing!</span>"
+			return 0
 		if(temp && !temp.is_usable())
-			user << "<span class='notice'>You try to move your [temp.name], but cannot!"
+			user << "<span class='warning'>You try to move your [temp.name], but cannot!</span>"
 			return 0
 
 	if (istype(src.loc, /obj/item/weapon/storage))
@@ -170,7 +177,7 @@
 	if(isalien(user)) // -- TLE
 		var/mob/living/carbon/alien/A = user
 
-		if(!A.has_fine_manipulation || w_class >= 4)
+		if(!A.has_fine_manipulation)
 			if(src in A.contents) // To stop Aliens having items stuck in their pockets
 				A.unEquip(src)
 			user << "Your claws aren't capable of such fine manipulation."
@@ -197,7 +204,7 @@
 /obj/item/attack_alien(mob/user as mob)
 	var/mob/living/carbon/alien/A = user
 
-	if(!A.has_fine_manipulation || w_class >= 4)
+	if(!A.has_fine_manipulation)
 		if(src in A.contents) // To stop Aliens having items stuck in their pockets
 			A.unEquip(src)
 		user << "Your claws aren't capable of such fine manipulation."
@@ -296,7 +303,45 @@
 /obj/item/proc/mob_can_equip(M as mob, slot, disable_warning = 0)
 	if(!slot) return 0
 	if(!M) return 0
+	if(issmall(M))
+		//START MONKEY
+		var/mob/living/carbon/human/H = M
 
+		switch(slot)
+			if(slot_l_hand)
+				if(H.l_hand)
+					return 0
+				return 1
+			if(slot_r_hand)
+				if(H.r_hand)
+					return 0
+				return 1
+			if(slot_wear_mask)
+				if(H.wear_mask)
+					return 0
+				if( !(slot_flags & SLOT_MASK) )
+					return 0
+				return 1
+			if(slot_back)
+				if(H.back)
+					return 0
+				if( !(slot_flags & SLOT_BACK) )
+					return 0
+				return 1
+			if(slot_handcuffed)
+				if(H.handcuffed)
+					return 0
+				if(!istype(src, /obj/item/weapon/restraints/handcuffs))
+					return 0
+				return 1
+			if(slot_in_backpack)
+				if (H.back && istype(H.back, /obj/item/weapon/storage/backpack))
+					var/obj/item/weapon/storage/backpack/B = H.back
+					if(B.contents.len < B.storage_slots && w_class <= B.max_w_class)
+						return 1
+				return 0
+		return 0 //Unsupported slot
+		//END MONKEY
 	if(ishuman(M))
 		//START HUMAN
 		var/mob/living/carbon/human/H = M
@@ -304,6 +349,7 @@
 
 		if(istype(src, /obj/item/clothing/under) || istype(src, /obj/item/clothing/suit))
 			if(FAT in H.mutations)
+				//testing("[M] TOO FAT TO WEAR [src]!")
 				if(!(flags & ONESIZEFITSALL))
 					if(!disable_warning)
 						H << "\red You're too fat to wear the [name]."
@@ -536,8 +582,7 @@
 	return 0
 
 /obj/item/proc/IsReflect(var/def_zone) //This proc determines if and at what% an object will reflect energy projectiles if it's in l_hand,r_hand or wear_suit
-	if(prob(reflect_chance))
-		return 1
+	return 0
 
 /obj/item/proc/get_loc_turf()
 	var/atom/L = loc
@@ -561,10 +606,10 @@
 		user << "\red You cannot locate any eyes on this creature!"
 		return
 
-	user.attack_log += "\[[time_stamp()]\]<font color='red'> Attacked [M.name] ([M.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)])</font>"
-	M.attack_log += "\[[time_stamp()]\]<font color='orange'> Attacked by [user.name] ([user.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)])</font>"
+	user.attack_log += "\[[time_stamp()]\]<font color='red'> Attacked [key_name(M)] with [src.name] (INTENT: [uppertext(user.a_intent)])</font>"
+	M.attack_log += "\[[time_stamp()]\]<font color='orange'> Attacked by [key_name(user)] with [src.name] (INTENT: [uppertext(user.a_intent)])</font>"
 	if(M.ckey)
-		msg_admin_attack("[user.name] ([user.ckey])[isAntag(user) ? "(ANTAG)" : ""] attacked [M.name] ([M.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)") //BS12 EDIT ALG
+		msg_admin_attack("[key_name_admin(user)] attacked [key_name_admin(M)] with [src.name] (INTENT: [uppertext(user.a_intent)])") //BS12 EDIT ALG
 
 	if(!iscarbon(user))
 		M.LAssailant = null
@@ -605,7 +650,7 @@
 					M.drop_item()
 				M.eye_blurry += 10
 				M.Paralyse(1)
-				M.Weaken(4)
+				M.Weaken(2)
 			if (eyes.damage >= eyes.min_broken_damage)
 				if(M.stat != 2)
 					M << "\red You go blind!"
@@ -661,3 +706,12 @@
 	for(var/obj/item/A in world)
 		if(A.type == type && !A.blood_overlay)
 			A.blood_overlay = image(I)
+
+/obj/item/singularity_pull(S, current_size)
+	spawn(0) //this is needed or multiple items will be thrown sequentially and not simultaneously
+		if(current_size >= STAGE_FOUR)
+			throw_at(S,14,3)
+		else ..()
+
+/obj/item/proc/pwr_drain()
+	return 0 // Process Kill

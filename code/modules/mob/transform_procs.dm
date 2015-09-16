@@ -3,60 +3,6 @@
 	H.dna.SetSEState(MONKEYBLOCK,1)
 	domutcheck(H, null)
 
-/*
-/mob/living/carbon/human/proc/monkeyize()
-	if (notransform)
-		return
-	for(var/obj/item/W in src)
-		if (W==w_uniform) // will be torn
-			continue
-		unEquip(W)
-	regenerate_icons()
-	notransform = 1
-	canmove = 0
-	stunned = 1
-	icon = null
-	invisibility = 101
-	for(var/t in organs)
-		del(t)
-	var/atom/movable/overlay/animation = new /atom/movable/overlay( loc )
-	animation.icon_state = "blank"
-	animation.icon = 'icons/mob/mob.dmi'
-	animation.master = src
-	flick("h2monkey", animation)
-	sleep(48)
-	//animation = null
-
-	if(!species.primitive) //If the creature in question has no primitive set, this is going to be messy.
-		gib()
-		return
-
-	var/mob/living/carbon/monkey/O = null
-
-	O = new species.primitive(loc)
-
-	O.dna = dna.Clone()
-	O.dna.SetSEState(MONKEYBLOCK,1)
-	O.dna.SetSEValueRange(MONKEYBLOCK,0xDAC, 0xFFF)
-	O.loc = loc
-	O.viruses = viruses
-	O.a_intent = "harm"
-
-
-	if (client)
-		client.mob = O
-	if(mind)
-		mind.transfer_to(O)
-
-	O << "<B>You are now [O]. </B>"
-
-	spawn(0)//To prevent the proc from returning null.
-		del(src)
-	del(animation)
-
-	return O
-*/
-
 /mob/new_player/AIize()
 	spawning = 1
 	return ..()
@@ -65,7 +11,7 @@
 	if (notransform)
 		return
 	for(var/t in organs)
-		del(t)
+		qdel(t)
 
 	return ..(move)
 
@@ -113,16 +59,15 @@
 				loc_landmark = sloc
 
 	O.loc = loc_landmark.loc
-	for (var/obj/item/device/radio/intercom/comm in O.loc)
-		comm.ai += O
 
 	O.on_mob_init()
 
 	O.add_ai_verbs()
 
 	O.rename_self("ai",1)
-	. = O
-	qdel(src)
+	spawn
+		qdel(src)
+	return O
 
 /mob/living/carbon/human/make_into_mask(var/should_gib = 0)
 	for(var/t in organs)
@@ -159,7 +104,7 @@
 				"[src] disappears into the shadows, never to be seen again.", \
 				"You disappear into the shadows, never to be seen again.", \
 				"You hear strange noise, you can't quite place it.")
-			del(src)
+			qdel(src)
 
 	new_spirit << "<font color=\"purple\"><b><i>You are a Mask of Nar'sie now. You are a tiny fragment of the unknowable entity that is the god.</b></i></font>"
 	new_spirit << "<font color=\"purple\"><b><i>Your job is to help your acolytes complete their goals. Be spooky. Do evil.</b></i></font>"
@@ -188,9 +133,9 @@
 	icon = null
 	invisibility = 101
 	for(var/t in organs)
-		del(t)
+		qdel(t)
 	for(var/i in internal_organs)
-		del(i)
+		qdel(i)
 
 	var/mob/living/silicon/robot/O = new /mob/living/silicon/robot( loc )
 
@@ -233,7 +178,7 @@
 	O.Namepick()
 
 	spawn(0)//To prevent the proc from returning null.
-		del(src)
+		qdel(src)
 	return O
 
 //human -> alien
@@ -248,7 +193,7 @@
 	icon = null
 	invisibility = 101
 	for(var/t in organs)
-		del(t)
+		qdel(t)
 
 	var/alien_caste = pick("Hunter","Sentinel","Drone")
 	var/mob/living/carbon/alien/humanoid/new_xeno
@@ -260,13 +205,13 @@
 		if("Drone")
 			new_xeno = new /mob/living/carbon/alien/humanoid/drone(loc)
 
-	new_xeno.a_intent = "harm"
+	new_xeno.a_intent = I_HARM
 	new_xeno.key = key
 
 	new_xeno << "<B>You are now an alien.</B>"
 	new_xeno.update_pipe_vision()
 	spawn(0)//To prevent the proc from returning null.
-		del(src)
+		qdel(src)
 	return
 
 /mob/living/carbon/human/proc/slimeize(adult as num, reproduce as num)
@@ -280,7 +225,7 @@
 	icon = null
 	invisibility = 101
 	for(var/t in organs)
-		del(t)
+		qdel(t)
 
 	var/mob/living/carbon/slime/new_slime
 	if(reproduce)
@@ -302,7 +247,7 @@
 	new_slime << "<B>You are now a slime. Skreee!</B>"
 	new_slime.update_pipe_vision()
 	spawn(0)//To prevent the proc from returning null.
-		del(src)
+		qdel(src)
 	return
 
 /mob/living/carbon/human/proc/corgize()
@@ -316,16 +261,16 @@
 	icon = null
 	invisibility = 101
 	for(var/t in organs)	//this really should not be necessary
-		del(t)
+		qdel(t)
 
 	var/mob/living/simple_animal/pet/corgi/new_corgi = new /mob/living/simple_animal/pet/corgi (loc)
-	new_corgi.a_intent = "harm"
+	new_corgi.a_intent = I_HARM
 	new_corgi.key = key
 
 	new_corgi << "<B>You are now a Corgi. Yap Yap!</B>"
 	new_corgi.update_pipe_vision()
 	spawn(0)//To prevent the proc from returning null.
-		del(src)
+		qdel(src)
 	return
 
 /mob/living/carbon/human/Animalize()
@@ -349,18 +294,18 @@
 	invisibility = 101
 
 	for(var/t in organs)
-		del(t)
+		qdel(t)
 
 	var/mob/new_mob = new mobpath(src.loc)
 
 	new_mob.key = key
-	new_mob.a_intent = "harm"
+	new_mob.a_intent = I_HARM
 
 
 	new_mob << "You suddenly feel more... animalistic."
 	new_mob.update_pipe_vision()
 	spawn()
-		del(src)
+		qdel(src)
 	return
 
 /mob/proc/Animalize()
@@ -375,11 +320,11 @@
 	var/mob/new_mob = new mobpath(src.loc)
 
 	new_mob.key = key
-	new_mob.a_intent = "harm"
+	new_mob.a_intent = I_HARM
 	new_mob << "You feel more... animalistic"
 	new_mob.update_pipe_vision()
 
-	del(src)
+	qdel(src)
 
 /* Certain mob types have problems and should not be allowed to be controlled by players.
  *
@@ -471,17 +416,13 @@
 		return 1
 
 //Antag Creatures!
-/*	if(ispath(MP, /mob/living/simple_animal/hostile/carp) && !jobban_isbanned(src, "Syndicate"))
-		return 1 */
 	if(ispath(MP, /mob/living/simple_animal/borer) && !jobban_isbanned(src, "alien") && !jobban_isbanned(src, "Syndicate"))
-		return 1
-	if(ispath(MP, /mob/living/carbon/alien) && !jobban_isbanned(src, "alien") && !jobban_isbanned(src, "Syndicate"))
 		return 1
 	if(ispath(MP, /mob/living/simple_animal/hostile/statue) && !jobban_isbanned(src, "Syndicate"))
 		return 1
 
 //Friendly Creatures!
-	if(ispath(MP, /mob/living/carbon/primitive/diona) && !jobban_isbanned(src, "Dionaea"))
+	if(ispath(MP, /mob/living/simple_animal/diona) && !jobban_isbanned(src, "Dionaea"))
 		return 1
 
 	//Not in here? Must be untested!

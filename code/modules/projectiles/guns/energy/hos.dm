@@ -1,15 +1,15 @@
 /obj/item/weapon/gun/energy/hos
-	name = "HoS Energy Gun"
-	desc = "This is a modern recreation of the captain's antique laser gun. This gun has several unique firemodes, but lacks the ability to recharge over time."
+	name = "\improper X-01 MultiPhase Energy Gun"
+	desc = "This is a modern recreation of the captain's antique laser gun. This gun has several unique fire modes, but lacks the ability to recharge over time."
 	icon_state = "hoslaser"
 	item_state = null	//so the human update icon uses the icon_state instead.
-	icon_override = 'icons/mob/in-hand/guns.dmi'
 	force = 10
 	fire_sound = 'sound/weapons/Taser.ogg'
 	origin_tech = "combat=3;magnets=2"
 	charge_cost = 2000
 	modifystate = "hoslaserstun"
 	projectile_type = "/obj/item/projectile/energy/electrode"
+	fire_delay = 15
 	var/mode = 2
 
 	attack_self(mob/living/user as mob)

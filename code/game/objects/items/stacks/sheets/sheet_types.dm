@@ -13,6 +13,7 @@
 var/global/list/datum/stack_recipe/metal_recipes = list ( \
 	new/datum/stack_recipe("stool", /obj/structure/stool, one_per_turf = 1, on_floor = 1), \
 	new/datum/stack_recipe("chair", /obj/structure/stool/bed/chair, one_per_turf = 1, on_floor = 1), \
+	new/datum/stack_recipe("wheelchair", /obj/structure/stool/bed/chair/wheelchair, 15, one_per_turf = 1, on_floor = 1), \
 	new/datum/stack_recipe("bed", /obj/structure/stool/bed, 2, one_per_turf = 1, on_floor = 1), \
 	null, \
 	new/datum/stack_recipe_list("office chairs",list( \
@@ -85,21 +86,17 @@ var/global/list/datum/stack_recipe/metal_recipes = list ( \
 	desc = "Sheets made out off metal. It has been dubbed Metal Sheets."
 	singular_name = "metal sheet"
 	icon_state = "sheet-metal"
-	m_amt = 3750
+	materials = list(MAT_METAL=MINERAL_MATERIAL_AMOUNT)
 	throwforce = 10.0
 	flags = CONDUCT
 	origin_tech = "materials=1"
-
-/obj/item/stack/sheet/metal/full/New()
-	..()
-	amount = 50
 
 /obj/item/stack/sheet/metal/cyborg
 	name = "metal"
 	desc = "Sheets made out off metal. It has been dubbed Metal Sheets."
 	singular_name = "metal sheet"
 	icon_state = "sheet-metal"
-	m_amt = 0
+	materials = list()
 	throwforce = 10.0
 	flags = CONDUCT
 
@@ -127,7 +124,7 @@ var/global/list/datum/stack_recipe/plasteel_recipes = list ( \
 	desc = "This sheet is an alloy of iron and plasma."
 	icon_state = "sheet-plasteel"
 	item_state = "sheet-metal"
-	m_amt = 7500
+	materials = list(MAT_METAL=6000, MAT_PLASMA=6000)
 	throwforce = 10.0
 	flags = CONDUCT
 	origin_tech = "materials=2"
@@ -135,10 +132,6 @@ var/global/list/datum/stack_recipe/plasteel_recipes = list ( \
 /obj/item/stack/sheet/plasteel/New(var/loc, var/amount=null)
 	recipes = plasteel_recipes
 	return ..()
-
-/obj/item/stack/sheet/plasteel/full/New(var/loc, var/amount=null)
-	amount = 50
-	..(loc, amount)
 
 /*
  * Wood
@@ -155,11 +148,13 @@ var/global/list/datum/stack_recipe/wood_recipes = list ( \
 	new/datum/stack_recipe("wooden door", /obj/structure/mineral_door/wood, 10, time = 20, one_per_turf = 1, on_floor = 1), \
 	new/datum/stack_recipe("coffin", /obj/structure/closet/coffin, 5, time = 15, one_per_turf = 1, on_floor = 1), \
 	new/datum/stack_recipe("apiary", /obj/item/apiary, 10, time = 25, one_per_turf = 0, on_floor = 0), \
+	new/datum/stack_recipe("easel", /obj/structure/easel, 3, one_per_turf = 1, on_floor = 1), \
 	)
 
 /obj/item/stack/sheet/wood
 	name = "wooden planks"
 	desc = "One can only guess that this is a bunch of wood."
+	gender = PLURAL
 	singular_name = "wood plank"
 	icon_state = "sheet-wood"
 	origin_tech = "materials=1;biotech=1"

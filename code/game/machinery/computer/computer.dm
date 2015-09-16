@@ -1,6 +1,7 @@
 /obj/machinery/computer
 	name = "computer"
 	icon = 'icons/obj/computer.dmi'
+	icon_state = "computer"
 	density = 1
 	anchored = 1.0
 	use_power = 1
@@ -8,34 +9,25 @@
 	active_power_usage = 300
 	var/obj/item/weapon/circuitboard/circuit = null //if circuit==null, computer can't disassembly
 	var/processing = 0
-
+	var/icon_keyboard = "generic_key"
+	var/icon_screen = "generic"
 	var/light_range_on = 3
 	var/light_power_on = 2
+	var/overlay_layer
+	atom_say_verb = "beeps"
 
 /obj/machinery/computer/New()
-	..()
-	if(ticker)
-		initialize()
-
+	overlay_layer = layer
+	..()	
+	
 /obj/machinery/computer/initialize()
 	power_change()
+	update_icon()
 
 /obj/machinery/computer/process()
 	if(stat & (NOPOWER|BROKEN))
-		luminosity = 0
 		return 0
-	luminosity = 2
 	return 1
-
-/obj/machinery/computer/meteorhit(var/obj/O as obj)
-	for(var/x in verbs)
-		verbs -= x
-	set_broken()
-	var/datum/effect/effect/system/harmless_smoke_spread/smoke = new /datum/effect/effect/system/harmless_smoke_spread()
-	smoke.set_up(5, 0, src)
-	smoke.start()
-	return
-
 
 /obj/machinery/computer/emp_act(severity)
 	if(prob(20/severity)) set_broken()
@@ -77,18 +69,19 @@
 		density = 0
 
 /obj/machinery/computer/update_icon()
-	..()
-	icon_state = initial(icon_state)
-	// Broken
+	overlays.Cut()
+	if(stat & NOPOWER)
+		if(icon_keyboard)
+			overlays += image(icon,"[icon_keyboard]_off",overlay_layer)
+		return
+
 	if(stat & BROKEN)
-		icon_state += "b"
-
-	// Powered
-	else if(stat & NOPOWER)
-		icon_state = initial(icon_state)
-		icon_state += "0"
-		luminosity = 0
-
+		overlays += image(icon,"[icon_state]_broken",overlay_layer)
+	else
+		overlays += image(icon,icon_screen,overlay_layer)
+	
+	if(icon_keyboard)
+		overlays += image(icon, icon_keyboard ,overlay_layer)
 
 
 /obj/machinery/computer/power_change()
@@ -98,7 +91,6 @@
 		set_light(0)
 	else
 		set_light(light_range_on, light_power_on)
-
 
 /obj/machinery/computer/proc/set_broken()
 	stat |= BROKEN
@@ -120,7 +112,7 @@
 /obj/machinery/computer/attackby(I as obj, user as mob, params)
 	if(istype(I, /obj/item/weapon/screwdriver) && circuit)
 		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
-		if(do_after(user, 20))
+		if(do_after(user, 20, target = src))
 			var/obj/structure/computerframe/A = new /obj/structure/computerframe( src.loc )
 			var/obj/item/weapon/circuitboard/M = new circuit( A )
 			A.circuit = M
@@ -129,14 +121,14 @@
 				C.loc = src.loc
 			if (src.stat & BROKEN)
 				user << "\blue The broken glass falls out."
-				getFromPool(/obj/item/weapon/shard, loc)
+				PoolOrNew(/obj/item/weapon/shard, loc)
 				A.state = 3
 				A.icon_state = "3"
 			else
 				user << "\blue You disconnect the monitor."
 				A.state = 4
 				A.icon_state = "4"
-			del(src)
+			qdel(src)
 	else
 		src.attack_hand(user)
 	return

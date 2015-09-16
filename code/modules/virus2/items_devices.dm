@@ -64,13 +64,13 @@
 				if(airborne_can_reach(get_turf(src), get_turf(target)))
 					if(get_infection_chance(target))
 						infect_virus2(target,src.virus2)
-		del src
+		qdel(src)
 
-/obj/item/weapon/virusdish/examine()
-	usr << "This is a virus containment dish."
+/obj/item/weapon/virusdish/examine(mob/user)
+	user << "This is a virus containment dish."
 	if(src.info)
-		usr << "It has the following information about its contents:"
-		usr << src.info
+		user << "It has the following information about its contents:"
+		user << src.info
 
 /obj/item/weapon/ruinedvirusdish
 	name = "ruined virus sample"
@@ -84,7 +84,7 @@
 
 	if(prob(50))
 		user << "\The [src] shatters!"
-		del src
+		qdel(src)
 
 ///////////////GNA DISK///////////////
 

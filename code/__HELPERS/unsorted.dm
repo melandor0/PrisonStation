@@ -1,3 +1,4 @@
+
 //This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:31
 
 /*
@@ -319,10 +320,10 @@ Turf and target are seperate in case you want to teleport some distance from a t
 	return 1
 
 //Ensure the frequency is within bounds of what it should be sending/recieving at
-/proc/sanitize_frequency(var/f)
+/proc/sanitize_frequency(var/f, var/low = PUBLIC_LOW_FREQ, var/high = PUBLIC_HIGH_FREQ)
 	f = round(f)
-	f = max(1441, f) // 144.1
-	f = min(1489, f) // 148.9
+	f = max(low, f)
+	f = min(high, f)
 	if ((f % 2) == 0) //Ensure the last digit is an odd number
 		f += 1
 	return f
@@ -331,7 +332,32 @@ Turf and target are seperate in case you want to teleport some distance from a t
 /proc/format_frequency(var/f)
 	return "[round(f / 10)].[f % 10]"
 
+/obj/proc/atmosanalyzer_scan(var/datum/gas_mixture/air_contents, mob/user, var/obj/target = src)
+	var/obj/icon = target
+	user.visible_message("[user] has used the analyzer on \icon[icon] [target].", "<span class='notice'>You use the analyzer on \icon[icon] [target].</span>")
+	var/pressure = air_contents.return_pressure()
+	var/total_moles = air_contents.total_moles()
 
+	user << "<span class='notice'>Results of analysis of \icon[icon] [target].</span>"
+	if(total_moles>0)
+		var/o2_concentration = air_contents.oxygen/total_moles
+		var/n2_concentration = air_contents.nitrogen/total_moles
+		var/co2_concentration = air_contents.carbon_dioxide/total_moles
+		var/plasma_concentration = air_contents.toxins/total_moles
+
+		var/unknown_concentration =  1-(o2_concentration+n2_concentration+co2_concentration+plasma_concentration)
+
+		user << "<span class='notice'>Pressure: [round(pressure,0.1)] kPa</span>"
+		user << "<span class='notice'>Nitrogen: [round(n2_concentration*100)] %</span>"
+		user << "<span class='notice'>Oxygen: [round(o2_concentration*100)] %</span>"
+		user << "<span class='notice'>CO2: [round(co2_concentration*100)] %</span>"
+		user << "<span class='notice'>Plasma: [round(plasma_concentration*100)] %</span>"
+		if(unknown_concentration>0.01)
+			user << "<span class='danger'>Unknown: [round(unknown_concentration*100)] %</span>"
+		user << "<span class='notice'>Temperature: [round(air_contents.temperature-T0C)] &deg;C</span>"
+	else
+		user << "<span class='notice'>[target] is empty!</span>"
+	return
 
 //This will update a mob's name, real_name, mind.name, data_core records, pda and id
 //Calling this proc without an oldname will only update the mob and skip updating the pda, id and records ~Carn
@@ -348,9 +374,8 @@ Turf and target are seperate in case you want to teleport some distance from a t
 		var/mob/living/silicon/robot/R = src
 		if(oldname != real_name)
 			R.notify_ai(3, oldname, newname)
-		if(R.camera)
-			R.camera.c_tag = real_name
-
+		R.custom_name = newname
+		R.updatename()
 	if(oldname)
 		//update the datacore records! This is goig to be a bit costly.
 		for(var/list/L in list(data_core.general,data_core.medical,data_core.security,data_core.locked))
@@ -382,7 +407,7 @@ Turf and target are seperate in case you want to teleport some distance from a t
 					search_pda = 0
 
 		//Fixes renames not being reflected in objective text
-		var/list/O = (typesof(/datum/objective)  - /datum/objective)
+		var/list/O = subtypesof(/datum/objective)
 		var/length
 		var/pos
 		for(var/datum/objective/objective in O)
@@ -581,54 +606,12 @@ Turf and target are seperate in case you want to teleport some distance from a t
 	if(M < 0)
 		return -M
 
-
-/proc/key_name(var/whom, var/include_link = null, var/include_name = 1, var/type = null)
-	var/mob/M
-	var/client/C
-	var/key
-
-	if(!whom)	return "*null*"
-	if(istype(whom, /client))
-		C = whom
-		M = C.mob
-		key = C.key
-	else if(ismob(whom))
-		M = whom
-		C = M.client
-		key = M.key
-	else if(istype(whom, /datum))
-		var/datum/D = whom
-		return "*invalid:[D.type]*"
-	else
-		return "*invalid*"
-
-	. = ""
-
-	if(key)
-		if(include_link && C)
-			. += "<a href='?priv_msg=\ref[C];type=[type]'>"
-
-		if(C && C.holder && C.holder.fakekey && !include_name)
-			. += "Administrator"
-		else
-			. += key
-
-		if(include_link)
-			if(C)	. += "</a>"
-			else	. += " (DC)"
-	else
-		. += "*no key*"
-
-	if(include_name && M)
-		if(M.real_name)
-			. += "/([M.real_name])"
-		else if(M.name)
-			. += "/([M.name])"
-
-	return .
-
-/proc/key_name_admin(var/whom, var/include_name = 1)
-	return key_name(whom, 1, include_name)
+/proc/get_mob_by_ckey(key)
+	if(!key)
+		return
+	for(var/mob/M in mob_list)
+		if(M.ckey == key)
+			return M
 
 // Returns the atom sitting on the turf.
 // For example, using this on a disk, which is in a bag, on a mob, will return the mob because it's on the turf.
@@ -643,15 +626,7 @@ Turf and target are seperate in case you want to teleport some distance from a t
 // called when a browser popup window is closed after registering with proc/onclose()
 // if a valid atom reference is supplied, call the atom's Topic() with "close=1"
 // otherwise, just reset the client mob's machine var.
-//
 
-//Will return the location of the turf an atom is ultimatly sitting on
-/proc/get_turf_loc(var/atom/movable/M) //gets the location of the turf that the atom is on, or what the atom is in is on, etc
-	//in case they're in a closet or sleeper or something
-	var/atom/loc = M.loc
-	while(!istype(loc, /turf/))
-		loc = loc.loc
-	return loc
 
 // returns the turf located at the map edge in the specified direction relative to A
 // used for mass driver
@@ -739,7 +714,7 @@ proc/anim(turf/location as turf,target as mob|obj,a_icon,a_icon_state as text,fl
 		animation.master = target
 		flick(flick_anim, animation)
 	sleep(max(sleeptime, 15))
-	del(animation)
+	qdel(animation)
 
 //Will return the contents of an atom recursivly to a depth of 'searchDepth'
 /atom/proc/GetAllContents(searchDepth = 5)
@@ -804,39 +779,95 @@ proc/anim(turf/location as turf,target as mob|obj,a_icon,a_icon_state as text,fl
 
 	else return get_step(ref, base_dir)
 
-/proc/do_mob(var/mob/user , var/mob/target, var/time = 30) //This is quite an ugly solution but i refuse to use the old request system.
-	if(!user || !target) return 0
-	var/user_loc = user.loc
-	var/target_loc = target.loc
-	var/holding = user.get_active_hand()
-	sleep(time)
-	if(!user || !target) return 0
-	if ( user.loc == user_loc && target.loc == target_loc && user.get_active_hand() == holding && !( user.stat ) && ( !user.stunned && !user.weakened && !user.paralysis && !user.lying ) )
-		return 1
-	else
-		return 0
-
-/proc/do_after(var/mob/user as mob, delay as num, var/numticks = 5, var/needhand = 1)
-	if(!user || isnull(user))
+/proc/do_mob(var/mob/user , var/mob/target, var/time = 30, numticks = 5, var/uninterruptible = 0) //This is quite an ugly solution but i refuse to use the old request system.
+	if(!user || !target)
 		return 0
 	if(numticks == 0)
 		return 0
-
-	var/delayfraction = round(delay/numticks)
-	var/original_loc = user.loc
+	var/user_loc = user.loc
+	var/target_loc = target.loc
 	var/holding = user.get_active_hand()
-
-	for(var/i = 0, i<numticks, i++)
-		sleep(delayfraction)
-
-
-		if(!user || user.stat || user.weakened || user.stunned || (user.loc != original_loc))
+	var/timefraction = round(time/numticks)
+	var/image/progbar
+	for(var/i = 1 to numticks)
+		if(user.client)
+			progbar = make_progress_bar(i, numticks, target)
+			user.client.images |= progbar
+		sleep(timefraction)
+		if(!user || !target)
+			if(user && user.client)
+				user.client.images -= progbar
 			return 0
-		if(needhand && !(user.get_active_hand() == holding))	//Sometimes you don't want the user to have to keep their active hand
+		if (!uninterruptible && (user.loc != user_loc || target.loc != target_loc || user.get_active_hand() != holding || user.stat || user.stunned || user.weakened || user.paralysis || user.lying))
+			if(user && user.client)
+				user.client.images -= progbar
 			return 0
-
+		if(user && user.client)
+			user.client.images -= progbar
+	if(user && user.client)
+		user.client.images -= progbar
 	return 1
 
+/proc/make_progress_bar(var/current_number, var/goal_number, var/atom/target)
+	if(current_number && goal_number && target)
+		var/image/progbar
+		progbar = image("icon" = 'icons/effects/doafter_icon.dmi', "loc" = target, "icon_state" = "prog_bar_0")
+		progbar.icon_state = "prog_bar_[round(((current_number / goal_number) * 100), 10)]"
+		progbar.pixel_y = 32
+		return progbar
+
+/proc/do_after(mob/user, delay, numticks = 5, needhand = 1, atom/target = null)
+	if(!user)
+		return 0
+
+	if(numticks == 0)
+		return 0
+
+	var/atom/Tloc = null
+	if(target)
+		Tloc = target.loc
+
+	var/delayfraction = round(delay/numticks)
+	var/atom/Uloc = user.loc
+	var/holding = user.get_active_hand()
+	var/holdingnull = 1 //User is not holding anything
+	if(holding)
+		holdingnull = 0 //User is holding a tool of some kind
+	var/image/progbar
+	for (var/i = 1 to numticks)
+		if(user.client)
+			progbar = make_progress_bar(i, numticks, target)
+			user.client.images |= progbar
+		sleep(delayfraction)
+		if(!user || user.stat || user.weakened || user.stunned  || !(user.loc == Uloc))
+			if(user && user.client)
+				user.client.images -= progbar
+			return 0
+
+		if(Tloc && (!target || Tloc != target.loc)) //Tloc not set when we don't want to track target
+			if(user && user.client)
+				user.client.images -= progbar
+			return 0 // Target no longer exists or has moved
+
+		if(needhand)
+			//This might seem like an odd check, but you can still need a hand even when it's empty
+			//i.e the hand is used to insert some item/tool into the construction
+			if(!holdingnull)
+				if(!holding)
+					if(user && user.client)
+						user.client.images -= progbar
+					return 0
+			if(user.get_active_hand() != holding)
+				if(user && user.client)
+					user.client.images -= progbar
+				return 0
+			if(user && user.client)
+				user.client.images -= progbar
+		if(user && user.client)
+			user.client.images -= progbar
+	if(user && user.client)
+		user.client.images -= progbar
+	return 1
 //Takes: Anything that could possibly have variables and a varname to check.
 //Returns: 1 if found, 0 if not.
 /proc/hasvar(var/datum/A, var/varname)
@@ -1000,7 +1031,7 @@ proc/anim(turf/location as turf,target as mob|obj,a_icon,a_icon_state as text,fl
 							X.icon = 'icons/turf/shuttle.dmi'
 							X.icon_state = replacetext(O.icon_state, "_f", "_s") // revert the turf to the old icon_state
 							X.name = "wall"
-							del(O) // prevents multiple shuttle corners from stacking
+							qdel(O) // prevents multiple shuttle corners from stacking
 							continue
 						if(!istype(O,/obj)) continue
 						O.loc.Exited(O)
@@ -1242,21 +1273,11 @@ proc/get_mob_with_client_list()
 	else return zone
 
 
-/proc/get_turf(const/atom/O)
-	if (isnull(O) || isarea(O))
+/proc/get_turf(atom/A)
+	if (!istype(A))
 		return
-
-	var/atom/A = O
-
-	for (var/i = 0, ++i <= 20)
-		if (isturf(A))
-			return A
-
-		switch (istype(A))
-			if (1)
-				A = A.loc
-			if (0)
-				return
+	for(A, A && !isturf(A), A=A.loc); //semicolon is for the empty statement
+	return A
 
 //Finds the distance between two atoms, in pixels
 //centered = 0 counts from turf edge to edge
@@ -1372,7 +1393,7 @@ var/global/list/common_tools = list(
 			return 1000
 		else
 			return 0
-	if(istype(W, /obj/item/weapon/pickaxe/plasmacutter))
+	if(istype(W, /obj/item/weapon/gun/energy/plasmacutter))
 		return 3800
 	if(istype(W, /obj/item/weapon/melee/energy))
 		var/obj/item/weapon/melee/energy/O = W
@@ -1677,3 +1698,106 @@ atom/proc/GetTypeInAllContents(typepath)
 		dest_x = max(0, dest_x-distance)
 
 	return locate(dest_x,dest_y,dest_z)
+
+var/mob/dview/dview_mob = new
+
+//Version of view() which ignores darkness, because BYOND doesn't have it.
+/proc/dview(var/range = world.view, var/center, var/invis_flags = 0)
+	if(!center)
+		return
+
+	dview_mob.loc = center
+
+	dview_mob.see_invisible = invis_flags
+
+	. = view(range, dview_mob)
+	dview_mob.loc = null
+
+/mob/dview
+	invisibility = 101
+	density = 0
+
+	anchored = 1
+	simulated = 0
+
+	see_in_dark = 1e6
+
+/mob/dview/New() //For whatever reason, if this isn't called, then BYOND will throw a type mismatch runtime when attempting to add this to the mobs list. -Fox
+
+/proc/IsValidSrc(var/A)
+	if(istype(A, /datum))
+		var/datum/B = A
+		return isnull(B.gcDestroyed)
+	if(istype(A, /client))
+		return 1
+	return 0
+
+//ORBITS
+/atom/movable/var/atom/orbiting = null
+//This is just so you can stop an orbit.
+//orbit() can run without it (swap orbiting for A)
+//but then you can never stop it and that's just silly.
+
+/atom/movable/proc/orbit(atom/A, radius = 10, clockwise = 1, angle_increment = 15)
+	if(!istype(A))
+		return
+	orbiting = A
+	var/angle = 0
+	var/matrix/initial_transform = matrix(transform)
+	spawn
+		while(orbiting)
+			loc = orbiting.loc
+
+			angle += angle_increment
+
+			var/matrix/shift = matrix(initial_transform)
+			shift.Translate(radius,0)
+			if(clockwise)
+				shift.Turn(angle)
+			else
+				shift.Turn(-angle)
+			animate(src,transform = shift,2)
+
+			sleep(0.6) //the effect breaks above 0.6 delay
+		animate(src,transform = initial_transform,2)
+
+
+/atom/movable/proc/stop_orbit()
+	if(orbiting)
+		loc = get_turf(orbiting)
+		orbiting = null
+		
+//Centers an image.
+//Requires:
+//The Image
+//The x dimension of the icon file used in the image
+//The y dimension of the icon file used in the image
+// eg: center_image(I, 32,32)
+// eg2: center_image(I, 96,96)
+/proc/center_image(var/image/I, x_dimension = 0, y_dimension = 0)
+	if(!I)
+		return
+
+	if(!x_dimension || !y_dimension)
+		return
+
+	//Get out of here, punk ass kids calling procs needlessly
+	if((x_dimension == world.icon_size) && (y_dimension == world.icon_size))
+		return I
+
+	//Offset the image so that it's bottom left corner is shifted this many pixels
+	//This makes it infinitely easier to draw larger inhands/images larger than world.iconsize
+	//but still use them in game
+	var/x_offset = -((x_dimension/world.icon_size)-1)*(world.icon_size*0.5)
+	var/y_offset = -((y_dimension/world.icon_size)-1)*(world.icon_size*0.5)
+
+	//Correct values under world.icon_size
+	if(x_dimension < world.icon_size)
+		x_offset *= -1
+	if(y_dimension < world.icon_size)
+		y_offset *= -1
+
+	I.pixel_x = x_offset
+	I.pixel_y = y_offset
+
+	return I

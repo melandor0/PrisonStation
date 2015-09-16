@@ -115,10 +115,10 @@
 	flags = ABSTRACT
 
 /obj/item/weapon/twohanded/offhand/unwield()
-	del(src)
+	qdel(src)
 
 /obj/item/weapon/twohanded/offhand/wield()
-	del(src)
+	qdel(src)
 
 /obj/item/weapon/twohanded/offhand/IsShield()//if the actual twohanded weapon is a shield, we count as a shield too!
 	var/mob/user = loc
@@ -199,7 +199,6 @@ obj/item/weapon/twohanded/
 /obj/item/weapon/twohanded/dualsaber
 	var/hacked = 0
 	var/blade_color
-	icon_override = 'icons/mob/in-hand/swords.dmi'
 	icon_state = "dualsaber0"
 	name = "double-bladed energy sword"
 	desc = "Handle with care."
@@ -225,10 +224,8 @@ obj/item/weapon/twohanded/
 /obj/item/weapon/twohanded/dualsaber/update_icon()
 	if(wielded)
 		icon_state = "dualsaber[blade_color][wielded]"
-		reflect_chance = 100
 	else
 		icon_state = "dualsaber0"
-		reflect_chance = 0
 
 /obj/item/weapon/twohanded/dualsaber/attack(target as mob, mob/living/user as mob)
 	..()
@@ -268,6 +265,10 @@ obj/item/weapon/twohanded/
 	..()
 	hitsound = "swing_hit"
 
+/obj/item/weapon/twohanded/dualsaber/IsReflect()
+	if(wielded)
+		return 1
+
 /obj/item/weapon/twohanded/dualsaber/wield()
 	..()
 	hitsound = 'sound/weapons/blade1.ogg'
@@ -296,7 +297,7 @@ obj/item/weapon/twohanded/
 	force_wielded = 18 // Was 13, Buffed - RR
 	throwforce = 20
 	throw_speed = 3
-	no_spin = 1
+	no_spin_thrown = 1 // Thrown spears that spin look dumb. -Fox
 	flags = NOSHIELD
 	attack_verb = list("attacked", "poked", "jabbed", "torn", "gored")
 
@@ -363,17 +364,16 @@ obj/item/weapon/twohanded/
 ///CHAINSAW///
 
 /obj/item/weapon/twohanded/chainsaw
-	icon_override = 'icons/mob/in-hand/swords.dmi'
 	icon_state = "chainsaw0"
 	name = "Chainsaw"
-	desc = "Perfect for felling trees or fellow spaceman."
+	desc = "Perfect for felling trees or fellow spacemen."
 	force = 15
 	throwforce = 15
 	throw_speed = 1
 	throw_range = 5
 	w_class = 4.0 // can't fit in backpacks
 	force_unwielded = 15 //still pretty robust
-	force_wielded = 50  //you'll gouge their eye out! Or a limb...maybe even their entire body!
+	force_wielded = 40  //you'll gouge their eye out! Or a limb...maybe even their entire body!
 	wieldsound = 'sound/weapons/chainsawstart.ogg'
 	hitsound = null
 	flags = NOSHIELD
@@ -407,19 +407,20 @@ obj/item/weapon/twohanded/
 		playsound(loc, "swing_hit", 50, 1, -1)
 		return ..()
 
-/obj/item/weapon/twohanded/chainsaw/IsShield() //Disarming someone with a chainsaw should be difficult.
-	if(wielded)
-		return 1
-	else
-		return 0
+/obj/item/weapon/twohanded/chainsaw/wield() //you can't disarm an active chainsaw, you crazy person.
+	..()
+	flags |= NODROP
+
+/obj/item/weapon/twohanded/chainsaw/unwield()
+	..()
+	flags &= ~NODROP
+
 
 // SINGULOHAMMER
 
 /obj/item/weapon/twohanded/singularityhammer
 	name = "singularity hammer"
 	desc = "The pinnacle of close combat technology, the hammer harnesses the power of a miniaturized singularity to deal crushing blows."
-
-	icon_override = 'icons/mob/in-hand/swords.dmi'
 	icon_state = "mjollnir0"
 	flags = CONDUCT
 	slot_flags = SLOT_BACK
@@ -442,7 +443,7 @@ obj/item/weapon/twohanded/
 
 /obj/item/weapon/twohanded/singularityhammer/Destroy()
 	processing_objects.Remove(src)
-	..()
+	return ..()
 
 
 /obj/item/weapon/twohanded/singularityhammer/process()
@@ -493,7 +494,6 @@ obj/item/weapon/twohanded/
 /obj/item/weapon/twohanded/mjollnir
 	name = "Mjollnir"
 	desc = "A weapon worthy of a god, able to strike with the force of a lightning bolt. It crackles with barely contained energy."
-	icon_override = 'icons/mob/in-hand/swords.dmi'
 	icon_state = "mjollnir0"
 	flags = CONDUCT
 	slot_flags = SLOT_BACK
@@ -541,9 +541,7 @@ obj/item/weapon/twohanded/
 /obj/item/weapon/twohanded/knighthammer
 	name = "singuloth knight's hammer"
 	desc = "A hammer made of sturdy metal with a golden skull adorned with wings on either side of the head. <br>This weapon causes devastating damage to those it hits due to a power field sustained by a mini-singularity inside of the hammer."
-
-	icon_override = 'icons/mob/in-hand/swords.dmi'
-	icon_state = "adrhammer0"
+	icon_state = "knighthammer0"
 	flags = CONDUCT
 	slot_flags = SLOT_BACK
 	no_embed = 1
@@ -565,7 +563,7 @@ obj/item/weapon/twohanded/
 
 /obj/item/weapon/twohanded/knighthammer/Destroy()
 	processing_objects.Remove(src)
-	..()
+	return ..()
 
 
 /obj/item/weapon/twohanded/knighthammer/process()
@@ -574,7 +572,7 @@ obj/item/weapon/twohanded/
 	return
 
 /obj/item/weapon/twohanded/knighthammer/update_icon()  //Currently only here to fuck with the on-mob icons.
-	icon_state = "adrhammer[wielded]"
+	icon_state = "knighthammer[wielded]"
 	return
 
 

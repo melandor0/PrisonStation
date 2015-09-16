@@ -144,7 +144,7 @@
 
 /obj/vehicle/train/cargo/trolley/RunOver(var/mob/living/carbon/human/H)
 	..()
-	attack_log += text("\[[time_stamp()]\] <font color='red'>ran over [H.name] ([H.ckey])</font>")
+	attack_log += text("\[[time_stamp()]\] <font color='red'>ran over [key_name(H)]</font>")
 
 /obj/vehicle/train/cargo/engine/RunOver(var/mob/living/carbon/human/H)
 	..()
@@ -153,10 +153,10 @@
 		var/mob/living/carbon/human/D = load
 		D << "\red \b You ran over [H]!"
 		visible_message("<B>\red \The [src] ran over [H]!</B>")
-		attack_log += text("\[[time_stamp()]\] <font color='red'>ran over [H.name] ([H.ckey]), driven by [D.name] ([D.ckey])</font>")
-		msg_admin_attack("[D.name] ([D.ckey])[isAntag(D) ? "(ANTAG)" : ""] ran over [H.name] ([H.ckey]). (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>JMP</a>)")
+		attack_log += text("\[[time_stamp()]\] <font color='red'>ran over [key_name(H)], driven by [key_name(D)]</font>")
+		msg_admin_attack("[key_name_admin(D)] ran over [key_name_admin(H)]")
 	else
-		attack_log += text("\[[time_stamp()]\] <font color='red'>ran over [H.name] ([H.ckey])</font>")
+		attack_log += text("\[[time_stamp()]\] <font color='red'>ran over [key_name(H)]</font>")
 
 
 //-------------------------------------------
@@ -175,15 +175,12 @@
 	else
 		return ..()
 
-/obj/vehicle/train/cargo/engine/examine()
-	..()
-
-	if(!istype(usr, /mob/living/carbon/human))
+/obj/vehicle/train/cargo/engine/examine(mob/user)
+	if(!..(user, 1))
 		return
 
-	if(get_dist(usr,src) <= 1)
-		usr << "The power light is [on ? "on" : "off"].\nThere are[key ? "" : " no"] keys in the ignition."
-		usr << "The charge meter reads [cell? round(cell.percent(), 0.01) : 0]%"
+	user << "The power light is [on ? "on" : "off"].\nThere are[key ? "" : " no"] keys in the ignition."
+	user << "The charge meter reads [cell? round(cell.percent(), 0.01) : 0]%"
 
 /obj/vehicle/train/cargo/engine/verb/start_engine()
 	set name = "Start engine"

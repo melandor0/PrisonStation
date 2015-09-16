@@ -22,7 +22,6 @@
 	anchored = 1
 	density = 1
 	var/obj/machinery/compressor/compressor
-	directwired = 1
 	var/turf/simulated/outturf
 	var/lastgen
 
@@ -225,11 +224,11 @@
 /obj/machinery/computer/turbine_computer/attackby(I as obj, user as mob, params)
 	if(istype(I, /obj/item/weapon/screwdriver))
 		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
-		if(do_after(user, 20))
+		if(do_after(user, 20, target = src))
 			if (src.stat & BROKEN)
 				user << "\blue The broken glass falls out."
 				var/obj/structure/computerframe/A = new /obj/structure/computerframe( src.loc )
-				getFromPool(/obj/item/weapon/shard, loc)
+				PoolOrNew(/obj/item/weapon/shard, loc)
 				var/obj/item/weapon/circuitboard/turbine_control/M = new /obj/item/weapon/circuitboard/turbine_control( A )
 				for (var/obj/C in src)
 					C.loc = src.loc

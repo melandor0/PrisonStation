@@ -7,7 +7,7 @@
 	w_class = 3
 	throw_speed = 3
 	throw_range = 7
-	pressure_resistance = 10
+	pressure_resistance = 8
 	var/amount = 30					//How much paper is in the bin.
 	var/list/papers = new/list()	//List of papers put in the bin for reference.
 /*
@@ -94,14 +94,12 @@
 	amount++
 
 
-/obj/item/weapon/paper_bin/examine()
-	set src in oview(1)
-
-	if(amount)
-		usr << "<span class='notice'>There " + (amount > 1 ? "are [amount] papers" : "is one paper") + " in the bin.</span>"
-	else
-		usr << "<span class='notice'>There are no papers in the bin.</span>"
-	return
+/obj/item/weapon/paper_bin/examine(mob/user)
+	if(..(user, 1))
+		if(amount)
+			usr << "<span class='notice'>There " + (amount > 1 ? "are [amount] papers" : "is one paper") + " in the bin.</span>"
+		else
+			usr << "<span class='notice'>There are no papers in the bin.</span>"
 
 
 /obj/item/weapon/paper_bin/update_icon()

@@ -10,6 +10,7 @@
 	throw_speed = 2
 	throw_range = 7
 	w_class = 4.0
+	materials = list(MAT_METAL = 500)
 	origin_tech = "combat=1"
 	attack_verb = list("robusted")
 	hitsound = "sound/weapons/smash.ogg"
@@ -18,7 +19,7 @@
 		..()
 		if (src.type == /obj/item/weapon/storage/toolbox)
 			world << "BAD: [src] ([src.type]) spawned at [src.x] [src.y] [src.z]"
-			del(src)
+			qdel(src)
 
 /obj/item/weapon/storage/toolbox/emergency
 	name = "emergency toolbox"
@@ -76,16 +77,16 @@
 	icon_state = "syndicate"
 	item_state = "toolbox_syndi"
 	origin_tech = "combat=1;syndicate=1"
+	silent = 1
 	force = 15.0
 	throwforce = 18.0
 
 	New()
 		..()
-		var/color = pick("red","yellow","green","blue","pink","orange","cyan","white")
 		new /obj/item/weapon/screwdriver(src)
 		new /obj/item/weapon/wrench(src)
 		new /obj/item/weapon/weldingtool(src)
 		new /obj/item/weapon/crowbar(src)
-		new /obj/item/stack/cable_coil(src,30,color)
 		new /obj/item/weapon/wirecutters(src)
 		new /obj/item/device/multitool(src)
+		new /obj/item/clothing/gloves/combat(src)

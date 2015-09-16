@@ -170,17 +170,26 @@
 			if(!mob.control_object)	return
 			mob.control_object.dir = direct
 		else
-			mob.control_object.loc = get_step(mob.control_object,direct)
+			mob.control_object.forceMove(get_step(mob.control_object,direct))
 	return
 
 
 /client/Move(n, direct)
 
+	if(viewingCanvas)
+		view = world.view //Reset the view
+		winset(src, "mapwindow.map", "icon-size=[src.reset_stretch]")
+		viewingCanvas = 0
+		mob.reset_view()
+		mob.button_pressed_F12()
+		if(!mob.hud_used.hud_shown)
+			mob.button_pressed_F12()
+		mob.update_hud()
+		mob.update_action_buttons()
+
 	if(mob.control_object)	Move_object(direct)
 
 	if(world.time < move_delay)  return
-
-	if(isAI(mob))  return AIMove(n,direct,mob)
 
 	if(!isliving(mob))  return mob.Move(n,direct)
 
@@ -199,10 +208,6 @@
 	if(istype(mob,/mob/spirit))
 		var/mob/spirit/currentSpirit = mob
 		return currentSpirit.Spirit_Move(direct)
-
-	// handle possible AI movement
-	if(isAI(mob))
-		return AIMove(n,direct,mob)
 
 	if(mob.notransform)	return//This is sota the goto stop mobs from moving var
 
@@ -224,6 +229,9 @@
 	if(mob.remote_control)					//we're controlling something, our movement is relayed to it
 		return mob.remote_control.relaymove(mob, direct)
 
+	if(isAI(mob))
+		return AIMove(n,direct,mob)		
+		
 	if(!mob.canmove)
 		return
 
@@ -274,10 +282,6 @@
 
 		if(istype(mob.buckled, /obj/vehicle) || istype(mob.buckled, /obj/structure/stool/bed/chair/cart))
 			return mob.buckled.relaymove(mob,direct)
-
-		if(istype(mob.machine, /obj/machinery))
-			if(mob.machine.relaymove(mob,direct))
-				return
 
 		if(mob.pulledby || mob.buckled) // Wheelchair driving!
 			if(istype(mob.loc, /turf/space))
@@ -363,17 +367,17 @@
 			var/obj/item/weapon/grab/G = mob.r_hand
 			grabbing += G.affecting
 		for(var/obj/item/weapon/grab/G in mob.grabbed_by)
-			if((G.state == 1)&&(!grabbing.Find(G.assailant)))	del(G)
+			if((G.state == 1)&&(!grabbing.Find(G.assailant)))	qdel(G)
 			if(G.state == 2)
 				move_delay = world.time + 10
 				if(!prob(25))	return 1
 				mob.visible_message("\red [mob] has broken free of [G.assailant]'s grip!")
-				del(G)
+				qdel(G)
 			if(G.state == 3)
 				move_delay = world.time + 10
 				if(!prob(5))	return 1
 				mob.visible_message("\red [mob] has broken free of [G.assailant]'s headlock!")
-				del(G)
+				qdel(G)
 	return 0
 
 
@@ -387,7 +391,7 @@
 	var/mob/living/L = mob
 	switch(L.incorporeal_move)
 		if(1)
-			L.loc = get_step(L, direct)
+			L.forceMove(get_step(L, direct))
 			L.dir = direct
 		if(2)
 			if(prob(50))
@@ -416,7 +420,7 @@
 							return
 					else
 						return
-				L.loc = locate(locx,locy,mobloc.z)
+				L.forceMove(locate(locx,locy,mobloc.z))
 				spawn(0)
 					var/limit = 2//For only two trailing shadows.
 					for(var/turf/T in getline(mobloc, L.loc))
@@ -427,8 +431,18 @@
 			else
 				spawn(0)
 					anim(mobloc,mob,'icons/mob/mob.dmi',,"shadow",,L.dir)
-				L.loc = get_step(L, direct)
+				L.forceMove(get_step(L, direct))
 			L.dir = direct
+		if(3) //Incorporeal move, but blocked by holy-watered tiles
+			var/turf/simulated/floor/stepTurf = get_step(L, direct)
+			if(stepTurf.flags & NOJAUNT)
+				L << "<span class='warning'>Holy energies block your path.</span>"
+				L.notransform = 1
+				spawn(2)
+					L.notransform = 0
+			else
+				L.forceMove(get_step(L, direct))
+				L.dir = direct
 	return 1
 
 

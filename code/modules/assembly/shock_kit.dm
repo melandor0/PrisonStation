@@ -10,10 +10,9 @@
 	flags = CONDUCT
 
 /obj/item/assembly/shock_kit/Destroy()
-	del(part1)
-	del(part2)
-	..()
-	return
+	qdel(part1)
+	qdel(part2)
+	return ..()
 
 /obj/item/assembly/shock_kit/attackby(obj/item/weapon/W as obj, mob/user as mob, params)
 	if(istype(W, /obj/item/weapon/wrench) && !status)
@@ -26,7 +25,7 @@
 		part2.master = null
 		part1 = null
 		part2 = null
-		del(src)
+		qdel(src)
 		return
 	if(istype(W, /obj/item/weapon/screwdriver))
 		status = !status

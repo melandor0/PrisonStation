@@ -8,7 +8,7 @@
 	icon_state = "pistol"
 	origin_tech = "combat=2;materials=2"
 	w_class = 3.0
-	m_amt = 1000
+	materials = list(MAT_METAL=1000)
 //	recoil = 1
 	var/mag_type = "/obj/item/ammo_box/magazine/m10mm" //Removes the need for max_ammo and caliber info
 	var/obj/item/ammo_box/magazine/magazine
@@ -41,7 +41,7 @@
 		if(AC.reagents && AC.BB.reagents)
 			var/datum/reagents/casting_reagents = AC.reagents
 			casting_reagents.trans_to(AC.BB, casting_reagents.total_volume) //For chemical darts/bullets
-			casting_reagents.delete()
+			qdel(casting_reagents)
 		in_chamber = AC.BB //Load projectile into chamber.
 		AC.BB.loc = src //Set projectile loc to gun.
 		AC.update_icon()
@@ -126,10 +126,9 @@
 	update_icon()
 	return
 
-/obj/item/weapon/gun/projectile/examine()
-	..()
-	usr << "Has [get_ammo()] round\s remaining."
-	return
+/obj/item/weapon/gun/projectile/examine(mob/user)
+	..(user)
+	user << "Has [get_ammo()] round\s remaining."
 
 /obj/item/weapon/gun/projectile/proc/get_ammo(var/countchambered = 1)
 	var/boolets = 0 //mature var names for mature people

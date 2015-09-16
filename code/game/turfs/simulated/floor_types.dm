@@ -74,7 +74,7 @@
 	if(istype(C, /obj/item/weapon/wrench))
 		user << "<span class='notice'>You begin removing rods...</span>"
 		playsound(src, 'sound/items/Ratchet.ogg', 80, 1)
-		if(do_after(user, 30))
+		if(do_after(user, 30, target = src))
 			new /obj/item/stack/rods(src, 2)
 			ChangeTurf(/turf/simulated/floor/plating)
 			return
@@ -96,6 +96,8 @@
 	name = "engraved floor"
 	icon_state = "cult"
 
+/turf/simulated/floor/engine/cult/narsie_act()
+	return
 
 /turf/simulated/floor/engine/n20/New()
 	..()
@@ -107,6 +109,14 @@
 	adding.temperature = T20C
 
 	assume_air(adding)
+
+/turf/simulated/floor/engine/singularity_pull(S, current_size)
+	if(current_size >= STAGE_FIVE)
+		if(prob(30))
+			make_plating()
+		else
+			if(prob(30))
+				ReplaceWithLattice()
 
 /turf/simulated/floor/engine/vacuum
 	name = "vacuum floor"

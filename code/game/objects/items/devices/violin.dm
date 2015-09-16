@@ -15,9 +15,9 @@
 	song.instrumentExt = "ogg"
 
 /obj/item/device/violin/Destroy()
-	del(song)
+	qdel(song)
 	song = null
-	..()
+	return ..()
 
 /obj/item/device/violin/attack_self(mob/user as mob)
 	interact(user)

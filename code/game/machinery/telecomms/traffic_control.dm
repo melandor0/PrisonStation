@@ -1,6 +1,5 @@
 /obj/machinery/computer/telecomms/traffic
 	name = "Telecommunications Traffic Control"
-	icon_state = "computer_generic"
 
 	var/screen = 0				// the screen number:
 	var/list/servers = list()	// the servers located by the computer
@@ -209,11 +208,11 @@
 /obj/machinery/computer/telecomms/traffic/attackby(var/obj/item/weapon/D as obj, var/mob/user as mob, params)
 	if(istype(D, /obj/item/weapon/screwdriver))
 		playsound(get_turf(src), 'sound/items/Screwdriver.ogg', 50, 1)
-		if(do_after(user, 20))
+		if(do_after(user, 20, target = src))
 			if (src.stat & BROKEN)
 				user << "\blue The broken glass falls out."
 				var/obj/structure/computerframe/A = new /obj/structure/computerframe( src.loc )
-				getFromPool(/obj/item/weapon/shard, loc)
+				PoolOrNew(/obj/item/weapon/shard, loc)
 				var/obj/item/weapon/circuitboard/comm_traffic/M = new /obj/item/weapon/circuitboard/comm_traffic( A )
 				for (var/obj/C in src)
 					C.loc = src.loc
@@ -221,7 +220,7 @@
 				A.state = 3
 				A.icon_state = "3"
 				A.anchored = 1
-				del(src)
+				qdel(src)
 			else
 				user << "\blue You disconnect the monitor."
 				var/obj/structure/computerframe/A = new /obj/structure/computerframe( src.loc )
@@ -232,7 +231,7 @@
 				A.state = 4
 				A.icon_state = "4"
 				A.anchored = 1
-				del(src)
+				qdel(src)
 	src.updateUsrDialog()
 	return
 

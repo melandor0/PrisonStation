@@ -73,7 +73,7 @@
 
 /obj/spacepod/Destroy()
 	spacepods_list -= src
-	..()
+	return ..()
 
 /obj/spacepod/process()
 	if(src.empcounter > 0)
@@ -179,8 +179,8 @@
 				H2.forceMove(get_turf(src))
 				H2.ex_act(severity + 1)
 				H2 << "<span class='warning'>You are forcefully thrown from \the [src]!</span>"
-			del(ion_trail)
-			del(src)
+			qdel(ion_trail)
+			qdel(src)
 		if(2)
 			deal_damage(100)
 		if(3)
@@ -241,7 +241,7 @@
 			else
 				user << "<span class='notice'>You insert \the [W] into the equipment system.</span>"
 				user.drop_item(W)
-				W.forceMove(equipment_system)
+				W.forceMove(src)
 				equipment_system.weapon_system = W
 				equipment_system.weapon_system.my_atom = src
 				return
@@ -253,7 +253,7 @@
 			else
 				user << "<span class='notice'>You insert \the [W] into the equipment system.</span>"
 				user.drop_item(W)
-				W.forceMove(equipment_system)
+				W.forceMove(src)
 				equipment_system.misc_system = W
 				equipment_system.misc_system.my_atom = src
 				return
@@ -269,7 +269,7 @@
 		if (health < initial(health))
 			user << "\blue You start welding the spacepod..."
 			playsound(loc, 'sound/items/Welder.ogg', 50, 1)
-			if(do_after(user, 20))
+			if(do_after(user, 20, target = src))
 				if(!src || !WT.remove_fuel(3, user)) return
 				repair_damage(10)
 				user << "\blue You mend some [pick("dents","bumps","damage")] with \the [WT]"
@@ -638,7 +638,7 @@
 									/obj/machinery/door/poddoor/four_tile_hor, /obj/machinery/door/poddoor/four_tile_ver)
 
 	if(CheckIfOccupant2(usr))	return
-	for(var/obj/machinery/door/poddoor/P in oview(3,src))
+	for(var/obj/machinery/door/poddoor/P in orange(3,src))
 		if(is_type_in_list(P,pod_door_types))
 			var/mob/living/carbon/human/L = usr
 			if(P.check_access(L.get_active_hand()) || P.check_access(L.wear_id))
@@ -731,7 +731,7 @@ obj/spacepod/verb/toggleLights()
 					if(t_air)
 						t_air.merge(removed)
 					else //just delete the cabin gas, we're in space or some shit
-						del(removed)
+						qdel(removed)
 		else
 			return stop()
 		return

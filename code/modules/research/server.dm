@@ -17,16 +17,25 @@
 /obj/machinery/r_n_d/server/New()
 	..()
 	component_parts = list()
-	component_parts += new /obj/item/weapon/circuitboard/rdserver(src)
-	component_parts += new /obj/item/weapon/stock_parts/scanning_module(src)
-	component_parts += new /obj/item/stack/cable_coil(src,1)
-	component_parts += new /obj/item/stack/cable_coil(src,1)
+	component_parts += new /obj/item/weapon/circuitboard/rdserver(null)
+	component_parts += new /obj/item/weapon/stock_parts/scanning_module(null)
+	component_parts += new /obj/item/stack/cable_coil(null,1)
+	component_parts += new /obj/item/stack/cable_coil(null,1)
 	RefreshParts()
-	src.initialize(); //Agouri
+	initialize(); //Agouri
+
+/obj/machinery/r_n_d/server/upgraded/New()
+	..()
+	component_parts = list()
+	component_parts += new /obj/item/weapon/circuitboard/rdserver(null)
+	component_parts += new /obj/item/weapon/stock_parts/scanning_module/phasic(null)
+	component_parts += new /obj/item/stack/cable_coil(null,1)
+	component_parts += new /obj/item/stack/cable_coil(null,1)
+	RefreshParts()
 
 /obj/machinery/r_n_d/server/Destroy()
 	griefProtection()
-	..()
+	return ..()
 
 /obj/machinery/r_n_d/server/RefreshParts()
 	var/tot_rating = 0
@@ -54,26 +63,25 @@
 		if(0 to T0C)
 			health = min(100, health + 1)
 		if(T0C to (T20C + 20))
-			health = between(0, health, 100)
+			health = Clamp(health, 0, 100)
 		if((T20C + 20) to (T0C + 70))
 			health = max(0, health - 1)
 	if(health <= 0)
-		griefProtection() //I dont like putting this in process() but it's the best I can do without re-writing a chunk of rd servers.
+		/*griefProtection() This seems to get called twice before running any code that deletes/damages the server or it's files anwyay.
+							refreshParts and the hasReq procs that get called by this are laggy and do not need to be called by every server on the map every tick */
+		var/updateRD = 0
 		files.known_designs = list()
 		for(var/datum/tech/T in files.known_tech)
 			if(prob(1))
+				updateRD++
 				T.level--
-		files.RefreshResearch()
+		if(updateRD)
+			files.RefreshResearch()
 	if(delay)
 		delay--
 	else
 		produce_heat(heat_gen)
 		delay = initial(delay)
-
-/obj/machinery/r_n_d/server/meteorhit(var/obj/O as obj)
-	griefProtection()
-	..()
-
 
 /obj/machinery/r_n_d/server/emp_act(severity)
 	griefProtection()
@@ -127,7 +135,7 @@
 		shock(user,50)
 
 	if(istype(O, /obj/item/weapon/screwdriver))
-		default_deconstruction_screwdriver(user, "server_o", "server")
+		default_deconstruction_screwdriver(user, "server_o", "server", O)
 		return 1
 
 	if(exchange_parts(user, O))
@@ -180,7 +188,8 @@
 
 /obj/machinery/computer/rdservercontrol
 	name = "R&D Server Controller"
-	icon_state = "rdcomp"
+	icon_screen = "rdcomp"
+	icon_keyboard = "rd_key"
 	light_color = LIGHT_COLOR_FADEDPURPLE
 	circuit = /obj/item/weapon/circuitboard/rdservercontrol
 	var/screen = 0
@@ -239,7 +248,7 @@
 			temp_server.id_with_download += num
 
 	else if(href_list["reset_tech"])
-		var/choice = alert("Technology Data Rest", "Are you sure you want to reset this technology to its default data? Data lost cannot be recovered.", "Continue", "Cancel")
+		var/choice = alert("Technology Data Reset", "Are you sure you want to reset this technology to its default data? Data lost cannot be recovered.", "Continue", "Cancel")
 		if(choice == "Continue")
 			for(var/datum/tech/T in temp_server.files.known_tech)
 				if(T.id == href_list["reset_tech"])
@@ -252,7 +261,6 @@
 		if(choice == "Continue")
 			for(var/datum/design/D in temp_server.files.known_designs)
 				if(D.id == href_list["reset_design"])
-					D.reliability_mod = 0
 					temp_server.files.known_designs -= D
 					break
 		temp_server.files.RefreshResearch()
@@ -274,7 +282,7 @@
 				if(istype(S, /obj/machinery/r_n_d/server/centcom) && !badmin)
 					continue
 				dat += "[S.name] || "
-				dat += "<A href='?src=\ref[src];access=[S.server_id]'> Access Rights</A> | "
+				dat += "<A href='?src=\ref[src];access=[S.server_id]'>Access Rights</A> | "
 				dat += "<A href='?src=\ref[src];data=[S.server_id]'>Data Management</A>"
 				if(badmin) dat += " | <A href='?src=\ref[src];transfer=[S.server_id]'>Server-to-Server Transfer</A>"
 				dat += "<BR>"

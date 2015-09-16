@@ -50,6 +50,12 @@
 		dna.ready_dna(src)
 	UpdateAppearance()
 
+/mob/living/carbon/human/Destroy()
+	for(var/atom/movable/organelle in organs)
+		qdel(organelle)
+	organs = list()
+	return ..()
+
 /mob/living/carbon/human/dummy
 	real_name = "Test Dummy"
 	status_flags = GODMODE|CANPUSH
@@ -175,7 +181,7 @@
 			return
 
 		//BubbleWrap: people in handcuffs are always switched around as if they were on 'help' intent to prevent a person being pulled from being seperated from their puller
-		if((tmob.a_intent == "help" || tmob.restrained()) && (a_intent == "help" || src.restrained()) && tmob.canmove && !tmob.buckled && canmove) // mutual brohugs all around!
+		if((tmob.a_intent == I_HELP || tmob.restrained()) && (a_intent == I_HELP || src.restrained()) && tmob.canmove && !tmob.buckled && canmove) // mutual brohugs all around!
 			var/turf/oldloc = loc
 			loc = tmob.loc
 			tmob.loc = oldloc
@@ -238,9 +244,11 @@
 			stat(null, eta_status)
 
 	if (client.statpanel == "Status")
+		if(locate(/obj/item/device/assembly/health) in src)
+			stat(null, "Health: [health]")
 		if (internal)
 			if (!internal.air_contents)
-				del(internal)
+				qdel(internal)
 			else
 				stat("Internal Atmosphere Info", internal.name)
 				stat("Tank Pressure", internal.air_contents.return_pressure())
@@ -375,27 +383,11 @@
 	..()
 
 /mob/living/carbon/human/blob_act()
-	if(stat == 2)	return
-	show_message("\red The blob attacks you!")
-	var/dam_zone = pick("chest", "l_hand", "r_hand", "l_leg", "r_leg")
+	if(stat == DEAD)	return
+	show_message("<span class='userdanger'>The blob attacks you!</span>")
+	var/dam_zone = pick("head", "chest", "groin", "l_arm", "l_hand", "r_arm", "r_hand", "l_leg", "l_foot", "r_leg", "r_foot")
 	var/obj/item/organ/external/affecting = get_organ(ran_zone(dam_zone))
-	apply_damage(rand(20,30), BRUTE, affecting, run_armor_check(affecting, "melee"))
-	return
-
-/mob/living/carbon/human/meteorhit(O as obj)
-	for(var/mob/M in viewers(src, null))
-		if ((M.client && !( M.blinded )))
-			M.show_message("\red [src] has been hit by [O]", 1)
-	if (health > 0)
-		var/obj/item/organ/external/affecting = get_organ(pick("chest", "chest", "chest", "head"))
-		if(!affecting)	return
-		if (istype(O, /obj/effect/immovablerod))
-			if(affecting.take_damage(101, 0))
-				UpdateDamageIcon()
-		else
-			if(affecting.take_damage((istype(O, /obj/effect/meteor/small) ? 10 : 25), 30))
-				UpdateDamageIcon()
-		updatehealth()
+	apply_damage(5, BRUTE, affecting, run_armor_check(affecting, "melee"))
 	return
 
 /mob/living/carbon/human/attack_animal(mob/living/simple_animal/M as mob)
@@ -410,19 +402,21 @@
 		M.attack_log += text("\[[time_stamp()]\] <font color='red'>attacked [src.name] ([src.ckey])</font>")
 		src.attack_log += text("\[[time_stamp()]\] <font color='orange'>was attacked by [M.name] ([M.ckey])</font>")
 		var/damage = rand(M.melee_damage_lower, M.melee_damage_upper)
-		var/dam_zone = pick("chest", "l_hand", "r_hand", "l_leg", "r_leg")
+		if(check_shields(damage, "the [M.name]"))
+			return 0
+		var/dam_zone = pick("head", "chest", "groin", "l_arm", "l_hand", "r_arm", "r_hand", "l_leg", "l_foot", "r_leg", "r_foot")
 		var/obj/item/organ/external/affecting = get_organ(ran_zone(dam_zone))
 		var/armor = run_armor_check(affecting, "melee")
 
 		var/obj/item/organ/external/affected = src.get_organ(dam_zone)
 		affected.add_autopsy_data(M.name, damage) // Add the mob's name to the autopsy data
 		apply_damage(damage, BRUTE, affecting, armor, M.name)
-		if(armor >= 2)	return
+		updatehealth()
 
 /mob/living/carbon/human/attack_larva(mob/living/carbon/alien/larva/L as mob)
 
 	switch(L.a_intent)
-		if("help")
+		if(I_HELP)
 			visible_message("<span class='notice'>[L] rubs its head against [src].</span>")
 
 
@@ -439,10 +433,10 @@
 			var/armor_block = run_armor_check(affecting, "melee")
 			apply_damage(damage, BRUTE, affecting, armor_block)
 
-/mob/living/carbon/human/proc/is_loyalty_implanted(mob/living/carbon/human/M)
-	for(var/L in M.contents)
+/mob/living/carbon/human/proc/is_loyalty_implanted()
+	for(var/L in contents)
 		if(istype(L, /obj/item/weapon/implant/loyalty))
-			for(var/obj/item/organ/external/O in M.organs)
+			for(var/obj/item/organ/external/O in organs)
 				if(L in O.implants)
 					return 1
 	return 0
@@ -463,8 +457,10 @@
 		else
 			damage = rand(5, 25)
 
+		if(check_shields(damage, "the [M.name]"))
+			return 0
 
-		var/dam_zone = pick("head", "chest", "l_arm", "r_arm", "l_leg", "r_leg", "groin")
+		var/dam_zone = pick("head", "chest", "groin", "l_arm", "l_hand", "r_arm", "r_hand", "l_leg", "l_foot", "r_leg", "r_foot")
 
 		var/obj/item/organ/external/affecting = get_organ(ran_zone(dam_zone))
 		var/armor_block = run_armor_check(affecting, "melee")
@@ -700,6 +696,12 @@
 
 		// if looting pockets with gloves, do it quietly
 		if(href_list["pockets"])
+			if(isanimal(usr))
+				return //animals cannot strip people
+
+			if(frozen)
+				usr << "\red Do not attempt to strip frozen people."
+				return
 			var/pocket_side = href_list["pockets"]
 			var/pocket_id = (pocket_side == "right" ? slot_r_store : slot_l_store)
 			var/obj/item/pocket_item = (pocket_id == slot_r_store ? src.r_store : src.l_store)
@@ -727,15 +729,18 @@
 				if(usr.machine == src && in_range(src, usr))
 					show_inv(usr)
 
-
-
 			else if(!pickpocket)
 				// Display a warning if the user mocks up
 				src << "<span class='warning'>You feel your [pocket_side] pocket being fumbled with!</span>"
 
-
 		// if looting id with gloves, do it quietly - this allows pickpocket gloves to take/place id stealthily - Bone White
 		if(href_list["item"])
+			if(isanimal(usr))
+				return //animals cannot strip people
+
+			if(frozen)
+				usr << "\red Do not attempt to strip frozen people."
+				return
 			var/itemTarget = href_list["item"]
 			if(itemTarget == "id")
 				if(pickpocket)
@@ -767,9 +772,6 @@
 					else if(!pickpocket)
 						// Display a warning if the user mocks up
 						src << "<span class='warning'>You feel your ID slot being fumbled with!</span>"
-
-
-
 
 	if (href_list["refresh"])
 		if((machine)&&(in_range(src, usr)))
@@ -1057,11 +1059,11 @@
 
 	if (href_list["lookitem"])
 		var/obj/item/I = locate(href_list["lookitem"])
-		I.examine()
+		src.examinate(I)
 
 	if (href_list["lookmob"])
 		var/mob/M = locate(href_list["lookmob"])
-		M.examine()
+		src.examinate(M)
 	..()
 	return
 
@@ -1130,26 +1132,47 @@
 	return
 
 /mob/living/carbon/human/can_inject(var/mob/user, var/error_msg, var/target_zone)
-	. = 1 // Default to returning true.
-	if(user && !target_zone)
-		target_zone = user.zone_sel.selecting
-	// If targeting the head, see if the head item is thin enough.
-	// If targeting anything else, see if the wear suit is thin enough.
-	if(above_neck(target_zone))
-		if(head && head.flags & THICKMATERIAL)
-			. = 0
+	. = 1
+
+	if(!target_zone)
+		if(!user)
+			target_zone = pick("chest","chest","chest","left leg","right leg","left arm", "right arm", "head")
+		else
+			target_zone = user.zone_sel.selecting
+
+	var/obj/item/organ/external/affecting = get_organ(target_zone)
+	var/fail_msg
+	if(!affecting)
+		. = 0
+		fail_msg = "They are missing that limb."
+	else if (affecting.status & ORGAN_ROBOT)
+		. = 0
+		fail_msg = "That limb is robotic."
 	else
-		if(wear_suit && wear_suit.flags & THICKMATERIAL)
-			. = 0
+		switch(target_zone)
+			if("head")
+				if(head && head.flags & THICKMATERIAL)
+					. = 0
+			else
+				if(wear_suit && wear_suit.flags & THICKMATERIAL)
+					. = 0
 	if(!. && error_msg && user)
-		// Might need re-wording.
-		user << "<span class='alert'>There is no exposed flesh or thin material [target_zone == "head" ? "on their head" : "on their body"].</span>"
+		if(!fail_msg)
+			fail_msg = "There is no exposed flesh or thin material [target_zone == "head" ? "on their head" : "on their body"] to inject into."
+		user << "<span class='alert'>[fail_msg]</span>"
+
+/mob/living/carbon/human/proc/check_has_mouth()
+	// Todo, check stomach organ when implemented.
+	var/obj/item/organ/external/head/H = get_organ("head")
+	if(!H || !H.can_intake_reagents)
+		return 0
+	return 1
 
 /mob/living/carbon/human/proc/vomit(hairball=0)
-	if(stat==2)return
+	if(stat==DEAD)return
 
-	if(species.flags & IS_SYNTHETIC)
-		return //Machines don't throw up.
+	if(!check_has_mouth())
+		return
 
 	if(!lastpuke)
 		lastpuke = 1
@@ -1211,7 +1234,7 @@
 				if(H.brainmob.real_name == src.real_name)
 					if(H.brainmob.mind)
 						H.brainmob.mind.transfer_to(src)
-						del(H)
+						qdel(H)
 
 
 
@@ -1285,7 +1308,7 @@
 	.=..()
 	if(clean_feet && !shoes && istype(feet_blood_DNA, /list) && feet_blood_DNA.len)
 		feet_blood_color = null
-		del(feet_blood_DNA)
+		qdel(feet_blood_DNA)
 		update_inv_shoes(1)
 		return 1
 
@@ -1496,22 +1519,32 @@
 
 		W.add_fingerprint(src)
 
+// Allows IPC's to change their monitor display
+/mob/living/carbon/human/proc/change_monitor()
+	set category = "IC"
+	set name = "Change Monitor Display"
+	set desc = "Change the display on your monitor."
 
+	if(stat || paralysis || stunned || weakened)
+		src << "<span class='warning'>You cannot change your monitor display in your current state.</span>"
+		return
 
-/mob/living/carbon/human/canSingulothPull(var/obj/machinery/singularity/singulo)
-	if(!..())
-		return 0
+	var/list/hair = list()
+	for(var/i in hair_styles_list)
+		var/datum/sprite_accessory/hair/tmp_hair = hair_styles_list[i]
+		if(species.name in tmp_hair.species_allowed)
+			hair += i
 
-	if(istype(shoes,/obj/item/clothing/shoes/magboots))
-		var/obj/item/clothing/shoes/magboots/M = shoes
-		if(M.magpulse)
-			return 0
-	return 1
+	var/new_style = input(src, "Select a monitor display", "Monitor Display")  as null|anything in hair
+	if(stat || paralysis || stunned || weakened)
+		return
+	if(new_style)
+		h_style = new_style
 
+	update_hair()
 
 //Putting a couple of procs here that I don't know where else to dump.
 //Mostly going to be used for Vox and Vox Armalis, but other human mobs might like them (for adminbuse).
-
 /mob/living/carbon/human/proc/leap()
 	set category = "Abilities"
 	set name = "Leap"
@@ -1691,6 +1724,29 @@
 
 	return threatcount
 
+/mob/living/carbon/human/singularity_act()
+	var/gain = 20
+	if(mind)
+		if((mind.assigned_role == "Station Engineer") || (mind.assigned_role == "Chief Engineer") )
+			gain = 100
+		if(mind.assigned_role == "Clown")
+			gain = rand(-300, 300)
+	investigate_log("([key_name(src)]) has been consumed by the singularity.","singulo") //Oh that's where the clown ended up!
+	gib()
+	return(gain)
+
+/mob/living/carbon/human/singularity_pull(S, current_size)
+	if(current_size >= STAGE_THREE)
+		var/list/handlist = list(l_hand, r_hand)
+		for(var/obj/item/hand in handlist)
+			if(prob(current_size * 5) && hand.w_class >= ((11-current_size)/2)  && unEquip(hand))
+				step_towards(hand, src)
+				src << "<span class='warning'>\The [S] pulls \the [hand] from your grip!</span>"
+	apply_effect(current_size * 3, IRRADIATE)
+	if(mob_negates_gravity())
+		return
+	..()
+
 /mob/living/carbon/human/canBeHandcuffed()
 	return 1
 
@@ -1704,3 +1760,28 @@
 	if(!silent)
 		src << "<span class='warning'>You don't have the dexterity to use that!<span>"
 	return 0
+
+/mob/living/carbon/human/get_permeability_protection()
+	var/list/prot = list("hands"=0, "chest"=0, "groin"=0, "legs"=0, "feet"=0, "arms"=0, "head"=0)
+	for(var/obj/item/I in get_equipped_items())
+		if(I.body_parts_covered & HANDS)
+			prot["hands"] = max(1 - I.permeability_coefficient, prot["hands"])
+		if(I.body_parts_covered & UPPER_TORSO)
+			prot["chest"] = max(1 - I.permeability_coefficient, prot["chest"])
+		if(I.body_parts_covered & LOWER_TORSO)
+			prot["groin"] = max(1 - I.permeability_coefficient, prot["groin"])
+		if(I.body_parts_covered & LEGS)
+			prot["legs"] = max(1 - I.permeability_coefficient, prot["legs"])
+		if(I.body_parts_covered & FEET)
+			prot["feet"] = max(1 - I.permeability_coefficient, prot["feet"])
+		if(I.body_parts_covered & ARMS)
+			prot["arms"] = max(1 - I.permeability_coefficient, prot["arms"])
+		if(I.body_parts_covered & HEAD)
+			prot["head"] = max(1 - I.permeability_coefficient, prot["head"])
+	var/protection = (prot["head"] + prot["arms"] + prot["feet"] + prot["legs"] + prot["groin"] + prot["chest"] + prot["hands"])/7
+	return protection
+	
+/mob/living/carbon/human/proc/get_full_print()
+	if(!dna || !dna.uni_identity)
+		return
+	return md5(dna.uni_identity)

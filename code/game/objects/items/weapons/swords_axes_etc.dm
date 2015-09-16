@@ -73,8 +73,8 @@
 			if(src.hacked) // That's right, we'll only check the "original" esword.
 				newSaber.hacked = 1
 				newSaber.blade_color = "rainbow"
-			del(W)
-			del(src)
+			qdel(W)
+			qdel(src)
 
 	else if(istype(W, /obj/item/device/multitool))
 		if(hacked == 0)
@@ -92,9 +92,11 @@
 					user.update_inv_l_hand(0)
 		else
 			user << "<span class='warning'>It's already fabulous!</span>"
+
 /*
  * Classic Baton
  */
+
 /obj/item/weapon/melee/classic_baton
 	name = "police baton"
 	desc = "A wooden truncheon for beating criminal scum."
@@ -138,7 +140,7 @@
 	return
 
 //Telescopic baton
-/obj/item/weapon/melee/telebaton
+/obj/item/weapon/melee/classic_baton/telescopic
 	name = "telescopic baton"
 	desc = "A compact yet robust personal defense weapon. Can be concealed when folded."
 	icon = 'icons/obj/weapons.dmi'
@@ -149,43 +151,7 @@
 	force = 3
 	var/on = 0
 
-/obj/item/weapon/melee/telebaton/attack_self(mob/user as mob)
-	on = !on
-	if(on)
-		user << "<span class ='warning'>You extend the baton.</span>"
-		icon_state = "telebaton_1"
-		item_state = "nullrod"
-		w_class = 4 //doesnt fit in backpack when its on for balance
-		force = 10 //seclite damage
-		attack_verb = list("smacked", "struck", "cracked", "beaten")
-	else
-		user << "<span class ='notice'>You collapse the baton.</span>"
-		icon_state = "telebaton_0"
-		item_state = "telebaton_0" //no sprite in other words
-		slot_flags = SLOT_BELT
-		w_class = 2
-		force = 3 //not so robust now
-		attack_verb = list("hit", "poked")
-	if(istype(user,/mob/living/carbon/human))
-		var/mob/living/carbon/human/H = user
-		H.update_inv_l_hand()
-		H.update_inv_r_hand()
-	playsound(src.loc, 'sound/weapons/batonextend.ogg', 50, 1)
-	add_fingerprint(user)
-	if (!blood_DNA) return
-	if(blood_overlay && (blood_DNA.len >= 1)) //updates blood overlay, if any
-		overlays.Cut()//this might delete other item overlays as well but eeeeeeeh
-
-		var/icon/I = new /icon(src.icon, src.icon_state)
-		I.Blend(new /icon('icons/effects/blood.dmi', rgb(255,255,255)),ICON_ADD)
-		I.Blend(new /icon('icons/effects/blood.dmi', "itemblood"),ICON_MULTIPLY)
-		blood_overlay = I
-
-		overlays += blood_overlay
-
-	return
-
-/obj/item/weapon/melee/telebaton/attack(mob/target as mob, mob/living/user as mob)
+/obj/item/weapon/melee/classic_baton/telescopic/attack(mob/target as mob, mob/living/user as mob)
 	if(on)
 		add_fingerprint(user)
 		if((CLUMSY in user.mutations) && prob(50))
@@ -202,7 +168,7 @@
 			return
 		if(!isliving(target))
 			return
-		if (user.a_intent == "harm")
+		if (user.a_intent == I_HARM)
 			if(!..()) return
 			if(!isrobot(target)) return
 		else
@@ -219,6 +185,27 @@
 	else
 		return ..()
 
+/obj/item/weapon/melee/classic_baton/telescopic/attack_self(mob/user as mob)
+	on = !on
+	if(on)
+		user << "<span class ='warning'>You extend the baton.</span>"
+		icon_state = "telebaton_1"
+		item_state = "nullrod"
+		w_class = 4 //doesnt fit in backpack when its on for balance
+		force = 10 //stunbaton damage
+		attack_verb = list("smacked", "struck", "cracked", "beaten")
+	else
+		user << "<span class ='notice'>You collapse the baton.</span>"
+		icon_state = "telebaton_0"
+		item_state = null //no sprite for concealment even when in hand
+		slot_flags = SLOT_BELT
+		w_class = 2
+		force = 0 //not so robust now
+		attack_verb = list("hit", "poked")
+
+	playsound(src.loc, 'sound/weapons/batonextend.ogg', 50, 1)
+	add_fingerprint(user)
+
 /*
  *Energy Blade
  */
@@ -226,11 +213,11 @@
 
 /obj/item/weapon/melee/energy/sword/green
 	New()
-		_color = "green"
+		blade_color = "green"
 
 /obj/item/weapon/melee/energy/sword/red
 	New()
-		_color = "red"
+		blade_color = "red"
 
 /obj/item/weapon/melee/energy/blade/New()
 	spark_system = new /datum/effect/effect/system/spark_spread()
@@ -239,11 +226,11 @@
 	return
 
 /obj/item/weapon/melee/energy/blade/dropped()
-	del(src)
+	qdel(src)
 	return
 
-/obj/item/weapon/melee/energy/blade/proc/throw()
-	del(src)
+/obj/item/weapon/melee/energy/blade/proc/toss()
+	qdel(src)
 	return
 
 /*

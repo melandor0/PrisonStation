@@ -10,8 +10,8 @@
                 user.put_in_hands(W)
                 user << "<span  class='notice'>You stuff the [I] in the [src], emptying the contents beforehand.</span>"
                 W.underlays += image(src.icon, icon_state = src.icon_state)
-                del(I)
-                del(src)
+                qdel(I)
+                qdel(src)
 
 
 /obj/item/weapon/grenade/iedcasing
@@ -110,8 +110,8 @@
 			var/turf/bombturf = get_turf(src)
 			var/area/A = get_area(bombturf)
 
-			message_admins("[key_name(usr)]<A HREF='?_src_=holder;adminmoreinfo=\ref[usr]'>?</A> has primed a [name] for detonation at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[bombturf.x];Y=[bombturf.y];Z=[bombturf.z]'>[A.name] (JMP)</a>.")
-			log_game("[key_name(usr)] has primed a [name] for detonation at [A.name] ([bombturf.x],[bombturf.y],[bombturf.z]).")
+			message_admins("[key_name_admin(usr)] has primed a [name] for detonation at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[bombturf.x];Y=[bombturf.y];Z=[bombturf.z]'>[A.name] (JMP)</a>")
+			log_game("[key_name(usr)] has primed a [name] for detonation at [A.name] ([bombturf.x],[bombturf.y],[bombturf.z])")
 			if(iscarbon(user))
 				var/mob/living/carbon/C = user
 				C.throw_mode_on()
@@ -120,9 +120,9 @@
 
 /obj/item/weapon/grenade/iedcasing/prime() //Blowing that can up
 	update_mob()
-	explosion(src.loc,0,0,2,2) //explosion(src.loc,-1,-1,-1, flame_range = range)
+	explosion(src.loc,-1,-1,-1, flame_range = range)	// no explosive damage, only a large fireball.
 	qdel(src)
 
 /obj/item/weapon/grenade/iedcasing/examine(mob/user)
-	..()
+	..(user)
 	user << "You can't tell when it will explode!"

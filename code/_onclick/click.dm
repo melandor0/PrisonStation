@@ -167,10 +167,10 @@
 	animals lunging, etc.
 */
 /mob/proc/RangedAttack(var/atom/A, var/params)
-	if(ishuman(src) && (istype(src:gloves, /obj/item/clothing/gloves/color/yellow/power)) && a_intent == "harm")
+	if(ishuman(src) && (istype(src:gloves, /obj/item/clothing/gloves/color/yellow/power)) && a_intent == I_HARM)
 		PowerGlove(A)
 	if(!mutations.len) return
-	if((LASER in mutations) && a_intent == "harm")
+	if((LASER in mutations) && a_intent == I_HARM)
 		LaserEyes(A) // moved into a proc below
 		return
 	else
@@ -193,12 +193,19 @@
 	A.point()
 	return
 
+// See click_override.dm
+/mob/living/MiddleClickOn(var/atom/A)
+ if(src.middleClickOverride)
+ 	middleClickOverride.onClick(A, src)
+ else
+ 	..()
+
 /mob/living/carbon/MiddleClickOn(var/atom/A)
 	if(!src.stat && src.mind && src.mind.changeling && src.mind.changeling.chosen_sting && (istype(A, /mob/living/carbon)) && (A != src))
 		next_click = world.time + 5
 		mind.changeling.chosen_sting.try_to_sting(src, A)
 	else
-		A.point()
+		..()
 
 // In case of use break glass
 /*
@@ -216,8 +223,7 @@
 	return
 /atom/proc/ShiftClick(var/mob/user)
 	if(user.client && user.client.eye == user)
-		examine()
-		user.face_atom(src)
+		user.examinate(src)
 	return
 
 /*
@@ -241,6 +247,13 @@
 /mob/proc/AltClickOn(var/atom/A)
 	A.AltClick(src)
 	return
+
+// See click_override.dm
+/mob/living/AltClickOn(var/atom/A)
+ if(src.middleClickOverride)
+ 	middleClickOverride.onClick(A, src)
+ else
+ 	..()
 
 /mob/living/carbon/AltClickOn(var/atom/A)
 	if(!src.stat && src.mind && src.mind.changeling && src.mind.changeling.chosen_sting && (istype(A, /mob/living/carbon)) && (A != src))
@@ -351,7 +364,7 @@
 		s.set_up(5, 1, src)
 		s.start()
 	if(L.damage <= 0)
-		del(L)
+		qdel(L)
 	if(L)
 		playsound(get_turf(src), 'sound/effects/eleczap.ogg', 75, 1)
 		L.tang = L.adjustAngle(get_angle(U,T))

@@ -1,7 +1,7 @@
 /obj/item/weapon/grenade/clown_grenade
 	name = "Banana Grenade"
 	desc = "HONK! brand Bananas. In a special applicator for rapid slipping of wide areas."
-	icon_state = "chemg"
+	icon_state = "banana"
 	item_state = "flashbang"
 	w_class = 2.0
 	force = 2.0
@@ -9,9 +9,6 @@
 	var/state = 0
 	var/path = 0
 	var/affected_area = 2
-
-	New()
-		icon_state = initial(icon_state) +"_locked"
 
 	prime()
 		..()
@@ -39,7 +36,7 @@
 				else
 					step(peel,direction)
 		new /obj/item/weapon/bananapeel/traitorpeel(get_turf(src.loc))
-		del(src)
+		qdel(src)
 		return
 /*
 	proc/banana(turf/T as turf)
@@ -85,7 +82,7 @@
 				M.take_organ_damage(2) // Was 5 -- TLE
 				M << "\blue You slipped on \the [name]!"
 				playsound(src.loc, 'sound/misc/slip.ogg', 50, 1, -3)
-				M.Weaken(10)
+				M.Weaken(7)
 				M.take_overall_damage(0, burned)
 
 	throw_impact(atom/hit_atom)

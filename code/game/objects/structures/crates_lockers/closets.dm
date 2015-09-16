@@ -21,12 +21,12 @@
 		if(!opened)		// if closed, any item at the crate's loc is put in the contents
 			for(var/obj/item/I in src.loc)
 				if(I.density || I.anchored || I == src) continue
-				I.loc = src
+				I.forceMove(src)
 
 // Fix for #383 - C4 deleting fridges with corpses
 /obj/structure/closet/Destroy()
 	dump_contents()
-	..()
+	return ..()
 
 /obj/structure/closet/alter_health()
 	return get_turf(src)
@@ -49,13 +49,13 @@
 /obj/structure/closet/proc/dump_contents()
 	//Cham Projector Exception
 	for(var/obj/effect/dummy/chameleon/AD in src)
-		AD.loc = src.loc
+		AD.forceMove(loc)
 
 	for(var/obj/I in src)
-		I.loc = src.loc
+		I.forceMove(loc)
 
 	for(var/mob/M in src)
-		M.loc = src.loc
+		M.forceMove(loc)
 		if(M.client)
 			M.client.eye = M.client.mob
 			M.client.perspective = MOB_PERSPECTIVE
@@ -90,14 +90,14 @@
 	for(var/obj/effect/dummy/chameleon/AD in src.loc)
 		if(itemcount >= storage_capacity)
 			break
-		AD.loc = src
+		AD.forceMove(src)
 		itemcount++
 
 	for(var/obj/item/I in src.loc)
 		if(itemcount >= storage_capacity)
 			break
 		if(!I.anchored)
-			I.loc = src
+			I.forceMove(src)
 			itemcount++
 
 	for(var/mob/M in src.loc)
@@ -112,7 +112,7 @@
 			M.client.perspective = EYE_PERSPECTIVE
 			M.client.eye = src
 
-		M.loc = src
+		M.forceMove(src)
 		itemcount++
 
 	src.icon_state = src.icon_closed
@@ -134,19 +134,19 @@
 	switch(severity)
 		if(1)
 			for(var/atom/movable/A as mob|obj in src)//pulls everything out of the locker and hits it with an explosion
-				A.loc = src.loc
+				A.forceMove(src.loc)
 				A.ex_act(severity++)
 			qdel(src)
 		if(2)
 			if(prob(50))
 				for (var/atom/movable/A as mob|obj in src)
-					A.loc = src.loc
+					A.forceMove(loc)
 					A.ex_act(severity++)
 				qdel(src)
 		if(3)
 			if(prob(5))
 				for(var/atom/movable/A as mob|obj in src)
-					A.loc = src.loc
+					A.forceMove(loc)
 					A.ex_act(severity++)
 				qdel(src)
 
@@ -156,8 +156,8 @@
 		health -= Proj.damage
 		if(health <= 0)
 			for(var/atom/movable/A as mob|obj in src)
-				A.loc = src.loc
-			del(src)
+				A.forceMove(loc)
+			qdel(src)
 	return
 
 /obj/structure/closet/attack_animal(mob/living/simple_animal/user as mob)
@@ -165,22 +165,15 @@
 		user.do_attack_animation(src)
 		visible_message("\red [user] destroys the [src]. ")
 		for(var/atom/movable/A as mob|obj in src)
-			A.loc = src.loc
-		del(src)
+			A.forceMove(loc)
+		qdel(src)
 
 // this should probably use dump_contents()
 /obj/structure/closet/blob_act()
 	if(prob(75))
 		for(var/atom/movable/A as mob|obj in src)
-			A.loc = src.loc
-		del(src)
-
-/obj/structure/closet/meteorhit(obj/O as obj)
-	if(O.icon_state == "flaming")
-		for(var/mob/M in src)
-			M.meteorhit(O)
-		src.dump_contents()
-		del(src)
+			A.forceMove(loc)
+		qdel(src)
 
 /obj/structure/closet/attackby(obj/item/weapon/W as obj, mob/user as mob, params)
 	if(istype(W, /obj/item/weapon/rcs) && !src.opened)
@@ -261,14 +254,14 @@
 			new /obj/item/stack/sheet/metal(src.loc)
 			for(var/mob/M in viewers(src))
 				M.show_message("<span class='notice'>\The [src] has been cut apart by [user] with \the [WT].</span>", 3, "You hear welding.", 2)
-			del(src)
+			qdel(src)
 			return
 		if(isrobot(user))
 			return
 		if(!usr.drop_item())
 			return
 		if(W)
-			W.loc = src.loc
+			W.forceMove(loc)
 	else if(istype(W, /obj/item/stack/packageWrap))
 		return
 	else if(istype(W, /obj/item/weapon/weldingtool))

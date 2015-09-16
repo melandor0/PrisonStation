@@ -3,7 +3,6 @@
 
 var/list/ai_list = list()
 var/list/ai_verbs_default = list(
-	/mob/living/silicon/ai/proc/ai_alerts,
 	/mob/living/silicon/ai/proc/announcement,
 	/mob/living/silicon/ai/proc/ai_call_shuttle,
 	/mob/living/silicon/ai/proc/ai_camera_track,
@@ -15,7 +14,6 @@ var/list/ai_verbs_default = list(
 	/mob/living/silicon/ai/proc/ai_roster,
 	/mob/living/silicon/ai/proc/ai_statuschange,
 	/mob/living/silicon/ai/proc/ai_store_location,
-	/mob/living/silicon/ai/proc/checklaws,
 	/mob/living/silicon/ai/proc/control_integrated_radio,
 	/mob/living/silicon/ai/proc/core,
 	/mob/living/silicon/ai/proc/pick_icon,
@@ -24,8 +22,7 @@ var/list/ai_verbs_default = list(
 	/mob/living/silicon/ai/proc/toggle_acceleration,
 	/mob/living/silicon/ai/proc/toggle_camera_light,
 	/mob/living/silicon/ai/proc/botcall,
-	/mob/living/silicon/ai/proc/change_arrival_message,
-	/mob/living/silicon/ai/proc/nano_crew_monitor
+	/mob/living/silicon/ai/proc/change_arrival_message
 )
 
 //Not sure why this is necessary...
@@ -53,10 +50,8 @@ var/list/ai_verbs_default = list(
 	//var/list/laws = list()
 	var/alarms = list("Motion"=list(), "Fire"=list(), "Atmosphere"=list(), "Power"=list(), "Camera"=list())
 	var/viewalerts = 0
-	var/lawcheck[1]
-	var/ioncheck[1]
-	var/lawchannel = "Common" // Default channel on which to state laws
 	var/icon/holo_icon//Default is assigned when AI is created.
+	var/obj/mecha/controlled_mech //For controlled_mech a mech, to determine whether to relaymove or use the AI eye.
 	var/obj/item/device/pda/ai/aiPDA = null
 	var/obj/item/device/multitool/aiMulti = null
 	var/custom_sprite = 0 //For our custom sprites
@@ -68,7 +63,7 @@ var/list/ai_verbs_default = list(
 	var/processing_time = 100
 	var/list/datum/AI_Module/current_modules = list()
 	var/fire_res_on_core = 0
-
+	var/can_dominate_mechs = 0
 	var/control_disabled = 0 // Set to 1 to stop AI from interacting via Click() -- TLE
 	var/malfhacking = 0 // More or less a copy of the above var, so that malf AIs can hack and still get new cyborgs -- NeoFite
 	var/malf_cooldown = 0 //Cooldown var for malf modules
@@ -95,9 +90,11 @@ var/list/ai_verbs_default = list(
 
 /mob/living/silicon/ai/proc/add_ai_verbs()
 	src.verbs |= ai_verbs_default
+	src.verbs |= silicon_subsystems
 
 /mob/living/silicon/ai/proc/remove_ai_verbs()
 	src.verbs -= ai_verbs_default
+	src.verbs -= silicon_subsystems
 
 /mob/living/silicon/ai/New(loc, var/datum/ai_laws/L, var/obj/item/device/mmi/B, var/safety = 0)
 	var/list/possibleNames = ai_names
@@ -133,6 +130,8 @@ var/list/ai_verbs_default = list(
 	aiRadio = new(src)
 	common_radio = aiRadio
 	aiRadio.myAi = src
+	additional_law_channels += "Binary"
+	additional_law_channels += "Holopad"
 
 	aiCamera = new/obj/item/device/camera/siliconcam/ai_camera(src)
 
@@ -181,8 +180,6 @@ var/list/ai_verbs_default = list(
 	hud_list[SPECIALROLE_HUD] = image('icons/mob/hud.dmi', src, "hudblank")
 	hud_list[NATIONS_HUD]	  = image('icons/mob/hud.dmi', src, "hudblank")
 
-	init_subsystems()
-
 	ai_list += src
 	..()
 	return
@@ -211,9 +208,9 @@ var/list/ai_verbs_default = list(
 
 	job = "AI"
 
-/mob/living/silicon/ai/proc/SetName(pickedName as text)
-	real_name = pickedName
-	name = pickedName
+/mob/living/silicon/ai/SetName(pickedName as text)
+	..()
+
 	if(eyeobj)
 		eyeobj.name = "[pickedName] (AI Eye)"
 
@@ -225,7 +222,7 @@ var/list/ai_verbs_default = list(
 
 /mob/living/silicon/ai/Destroy()
 	ai_list -= src
-	..()
+	return ..()
 
 
 /*
@@ -243,7 +240,8 @@ var/list/ai_verbs_default = list(
 /obj/machinery/ai_powersupply/New(var/mob/living/silicon/ai/ai=null)
 	powered_ai = ai
 	if(isnull(powered_ai))
-		Del()
+		qdel(src)
+		return
 
 	loc = powered_ai.loc
 	use_power(1) // Just incase we need to wake up the power system.
@@ -252,7 +250,8 @@ var/list/ai_verbs_default = list(
 
 /obj/machinery/ai_powersupply/process()
 	if(!powered_ai || powered_ai.stat & DEAD)
-		Del()
+		qdel(src)
+		return
 	if(!powered_ai.anchored)
 		loc = powered_ai.loc
 		use_power = 0
@@ -321,43 +320,6 @@ var/list/ai_verbs_default = list(
 				if (malf.apcs >= 3)
 					stat(null, "Time until station control secured: [max(malf.AI_win_timeleft/(malf.apcs/3), 0)] seconds")
 
-
-/mob/living/silicon/ai/proc/ai_alerts()
-	set name = "Show Alerts"
-	set category = "AI Commands"
-
-	var/dat = "<HEAD><TITLE>Current Station Alerts</TITLE><META HTTP-EQUIV='Refresh' CONTENT='10'></HEAD><BODY>\n"
-	dat += "<A HREF='?src=\ref[src];mach_close=aialerts'>Close</A><BR><BR>"
-	for (var/cat in alarms)
-		dat += text("<B>[]</B><BR>\n", cat)
-		var/list/L = alarms[cat]
-		if (L.len)
-			for (var/alarm in L)
-				var/list/alm = L[alarm]
-				var/area/A = alm[1]
-				var/C = alm[2]
-				var/list/sources = alm[3]
-				dat += "<NOBR>"
-				if (C && istype(C, /list))
-					var/dat2 = ""
-					for (var/obj/machinery/camera/I in C)
-						dat2 += text("[]<A HREF=?src=\ref[];switchcamera=\ref[]>[]</A>", (dat2=="") ? "" : " | ", src, I, I.c_tag)
-					dat += text("-- [] ([])", A.name, (dat2!="") ? dat2 : "No Camera")
-				else if (C && istype(C, /obj/machinery/camera))
-					var/obj/machinery/camera/Ctmp = C
-					dat += text("-- [] (<A HREF=?src=\ref[];switchcamera=\ref[]>[]</A>)", A.name, src, C, Ctmp.c_tag)
-				else
-					dat += text("-- [] (No Camera)", A.name)
-				if (sources.len > 1)
-					dat += text("- [] sources", sources.len)
-				dat += "</NOBR><BR>\n"
-		else
-			dat += "-- All Systems Nominal<BR>\n"
-		dat += "<BR>\n"
-
-	viewalerts = 1
-	src << browse(dat, "window=aialerts&can_close=0")
-
 // this verb lets the ai see the stations manifest
 /mob/living/silicon/ai/proc/ai_roster()
 	set name = "Show Crew Manifest"
@@ -368,20 +330,21 @@ var/list/ai_verbs_default = list(
 	set name = "Call Emergency Shuttle"
 	set category = "AI Commands"
 
-	if(src.stat == 2)
-		src << "You can't call the shuttle because you are dead!"
+	if(src.stat == DEAD)
+		src << "<span class='warning'>You can't call the shuttle because you are dead!</span>"
 		return
 
 	if(check_unable(AI_CHECK_WIRELESS))
 		return
 
-	var/confirm = alert("Are you sure you want to call the shuttle?", "Confirm Shuttle Call", "Yes", "No")
+	var/input = input(usr, "Please enter the reason for calling the shuttle.", "Shuttle Call Reason.","") as text|null
+	if(!input || stat)
+		return
 
 	if(check_unable(AI_CHECK_WIRELESS))
 		return
 
-	if(confirm == "Yes")
-		call_shuttle_proc(src)
+	call_shuttle_proc(src, input)
 
 	// hack to display shuttle timer
 	if(emergency_shuttle.online())
@@ -495,7 +458,7 @@ var/list/ai_verbs_default = list(
 	if (href_list["switchcamera"])
 		switchCamera(locate(href_list["switchcamera"])) in cameranet.cameras
 	if (href_list["showalerts"])
-		ai_alerts()
+		subsystem_alarm_monitor()
 	if(href_list["show_paper"])
 		if(last_paper_seen)
 			src << browse(last_paper_seen, "window=show_paper")
@@ -508,50 +471,24 @@ var/list/ai_verbs_default = list(
 			else
 				src << "<span class='notice'>Unable to locate the holopad.</span>"
 
-	if (href_list["lawc"]) // Toggling whether or not a law gets stated by the State Laws verb --NeoFite
-		var/L = text2num(href_list["lawc"])
-		switch(lawcheck[L+1])
-			if ("Yes") lawcheck[L+1] = "No"
-			if ("No") lawcheck[L+1] = "Yes"
-//		src << text ("Switching Law [L]'s report status to []", lawcheck[L+1])
-		checklaws()
-
-	if (href_list["lawr"]) // Selects on which channel to state laws
-		var/setchannel = input(usr, "Specify channel.", "Channel selection") in list("State","Common","Science","Command","Medical","Engineering","Security","Supply","Binary","Holopad", "Cancel")
-		if(setchannel == "Cancel")
-			return
-		lawchannel = setchannel
-		checklaws()
-
-	if (href_list["lawi"]) // Toggling whether or not a law gets stated by the State Laws verb --NeoFite
-		var/L = text2num(href_list["lawi"])
-		switch(ioncheck[L])
-			if ("Yes") ioncheck[L] = "No"
-			if ("No") ioncheck[L] = "Yes"
-//		src << text ("Switching Law [L]'s report status to []", lawcheck[L+1])
-		checklaws()
-
-	if (href_list["laws"]) // With how my law selection code works, I changed statelaws from a verb to a proc, and call it through my law selection panel. --NeoFite
-		statelaws()
-
 	if(href_list["say_word"])
 		play_vox_word(href_list["say_word"], null, src)
 		return
 
 	if (href_list["track"])
 		var/mob/target = locate(href_list["track"]) in mob_list
-
-		if(target && (!istype(target, /mob/living/carbon/human) || html_decode(href_list["trackname"]) == target:get_face_name()))
+		if(target && trackable(target))
 			ai_actual_track(target)
 		else
-			src << "\red System error. Cannot locate [html_decode(href_list["trackname"])]."
+			src << "<span class='warning'>Target is not on or near any active cameras on the station.</span>"
 		return
 
 	if (href_list["trackbot"])
 		var/obj/machinery/bot/target = locate(href_list["trackbot"]) in aibots
-		var/mob/living/silicon/ai/A = locate(href_list["track2"]) in mob_list
-		if(A && target)
-			A.ai_actual_track(target)
+		if(target && trackable(target))
+			ai_actual_track(target)
+		else
+			src << "<span class='warning'>Target is not on or near any active cameras on the station.</span>"
 		return
 
 	if (href_list["callbot"]) //Command a bot to move to a selected location.
@@ -572,6 +509,14 @@ var/list/ai_verbs_default = list(
 		botcall()
 		return
 
+	if (href_list["ai_take_control"]) //Mech domination
+		var/obj/mecha/M = locate(href_list["ai_take_control"])
+		if(controlled_mech)
+			src << "You are already loaded into an onboard computer!"
+			return
+		if(M)
+			M.transfer_ai(AI_MECH_HACK,src, usr) //Called om the mech itself.
+
 	else if (href_list["faketrack"])
 		var/mob/target = locate(href_list["track"]) in mob_list
 		var/mob/living/silicon/ai/A = locate(href_list["track2"]) in mob_list
@@ -591,17 +536,6 @@ var/list/ai_verbs_default = list(
 
 	return
 
-/mob/living/silicon/ai/meteorhit(obj/O as obj)
-	for(var/mob/M in viewers(src, null))
-		M.show_message(text("\red [] has been hit by []", src, O), 1)
-		//Foreach goto(19)
-	if (health > 0)
-		adjustBruteLoss(30)
-		if ((O.icon_state == "flaming"))
-			adjustFireLoss(40)
-		updatehealth()
-	return
-
 /mob/living/silicon/ai/bullet_act(var/obj/item/projectile/Proj)
 	..(Proj)
 	updatehealth()
@@ -619,7 +553,7 @@ var/list/ai_verbs_default = list(
 
 	switch(M.a_intent)
 
-		if ("help")
+		if (I_HELP)
 			visible_message("<span class='notice'>[M] caresses [src]'s plating with its scythe like arm.</span>")
 
 		else //harm
@@ -732,60 +666,6 @@ var/list/ai_verbs_default = list(
 
 	return 1
 
-/mob/living/silicon/ai/triggerAlarm(var/class, area/A, var/O, var/alarmsource)
-	if (stat == 2)
-		return 1
-	var/list/L = alarms[class]
-	for (var/I in L)
-		if (I == A.name)
-			var/list/alarm = L[I]
-			var/list/sources = alarm[3]
-			if (!(alarmsource in sources))
-				sources += alarmsource
-			return 1
-	var/obj/machinery/camera/C = null
-	var/list/CL = null
-	if (O && istype(O, /list))
-		CL = O
-		if (CL.len == 1)
-			C = CL[1]
-	else if (O && istype(O, /obj/machinery/camera))
-		C = O
-	L[A.name] = list(A, (C) ? C : O, list(alarmsource))
-	if (O)
-		if (C && C.can_use())
-			queueAlarm("--- [class] alarm detected in [A.name]! (<A HREF=?src=\ref[src];switchcamera=\ref[C]>[C.c_tag]</A>)", class)
-		else if (CL && CL.len)
-			var/foo = 0
-			var/dat2 = ""
-			for (var/obj/machinery/camera/I in CL)
-				dat2 += text("[]<A HREF=?src=\ref[];switchcamera=\ref[]>[]</A>", (!foo) ? "" : " | ", src, I, I.c_tag)	//I'm not fixing this shit...
-				foo = 1
-			queueAlarm(text ("--- [] alarm detected in []! ([])", class, A.name, dat2), class)
-		else
-			queueAlarm(text("--- [] alarm detected in []! (No Camera)", class, A.name), class)
-	else
-		queueAlarm(text("--- [] alarm detected in []! (No Camera)", class, A.name), class)
-	if (viewalerts) ai_alerts()
-	return 1
-
-/mob/living/silicon/ai/cancelAlarm(var/class, area/A as area, obj/origin)
-	var/list/L = alarms[class]
-	var/cleared = 0
-	for (var/I in L)
-		if (I == A.name)
-			var/list/alarm = L[I]
-			var/list/srcs  = alarm[3]
-			if (origin in srcs)
-				srcs -= origin
-			if (srcs.len == 0)
-				cleared = 1
-				L -= I
-	if (cleared)
-		queueAlarm(text("--- [] alarm in [] has been cleared.", class, A.name), class, 0)
-		if (viewalerts) ai_alerts()
-	return !cleared
-
 //Replaces /mob/living/silicon/ai/verb/change_network() in ai.dm & camera.dm
 //Adds in /mob/living/silicon/ai/proc/ai_network_change() instead
 //Addition by Mord_Sith to define AI's network change ability
@@ -893,7 +773,7 @@ var/list/ai_verbs_default = list(
 			input = input("Select a crew member:") as null|anything in personnel_list
 			var/icon/character_icon = personnel_list[input]
 			if(character_icon)
-				del(holo_icon)//Clear old icon so we're not storing it in memory.
+				qdel(holo_icon)//Clear old icon so we're not storing it in memory.
 				holo_icon = getHologramIcon(icon(character_icon))
 		else
 			alert("No suitable records found. Aborting.")
@@ -906,7 +786,7 @@ var/list/ai_verbs_default = list(
 		)
 		input = input("Please select a hologram:") as null|anything in icon_list
 		if(input)
-			del(holo_icon)
+			qdel(holo_icon)
 			switch(input)
 				if("default")
 					holo_icon = getHologramIcon(icon('icons/mob/AI.dmi',"holo1"))
@@ -992,7 +872,7 @@ var/list/ai_verbs_default = list(
 	if(istype(W, /obj/item/weapon/wrench))
 		if(anchored)
 			user.visible_message("\blue \The [user] starts to unbolt \the [src] from the plating...")
-			if(!do_after(user,40))
+			if(!do_after(user,40, target = src))
 				user.visible_message("\blue \The [user] decides not to unbolt \the [src].")
 				return
 			user.visible_message("\blue \The [user] finishes unfastening \the [src]!")
@@ -1000,7 +880,7 @@ var/list/ai_verbs_default = list(
 			return
 		else
 			user.visible_message("\blue \The [user] starts to bolt \the [src] to the plating...")
-			if(!do_after(user,40))
+			if(!do_after(user,40, target = src))
 				user.visible_message("\blue \The [user] decides not to bolt \the [src].")
 				return
 			user.visible_message("\blue \The [user] finishes fastening down \the [src]!")
@@ -1028,10 +908,8 @@ var/list/ai_verbs_default = list(
 	spawn(0)
 		if(istype(target, /mob/living/carbon/human))
 			var/mob/living/carbon/human/H = target
-			if(H.wear_id && istype(H.wear_id.GetID(), /obj/item/weapon/card/id/syndicate))
-				src << "Unable to locate an airlock"
-				return
-			if(H.wear_id && istype(H.wear_id.GetID(), /obj/item/weapon/card/id/syndicate))
+			var/obj/item/weapon/card/id/id = H.wear_id
+			if(istype(id) && id.is_untrackable())
 				src << "Unable to locate an airlock"
 				return
 			if(H.digitalcamo)
@@ -1084,6 +962,24 @@ var/list/ai_verbs_default = list(
 
 /mob/living/silicon/ai/proc/is_in_chassis()
 	return istype(loc, /turf)
+
+/mob/living/silicon/ai/transfer_ai(var/interaction, var/mob/user, var/mob/living/silicon/ai/AI, var/obj/item/device/aicard/card)
+	if(!..())
+		return
+	if(interaction == AI_TRANS_TO_CARD)//The only possible interaction. Upload AI mob to a card.
+		if(!mind)
+			user << "<span class='warning'>No intelligence patterns detected.</span>"    //No more magical carding of empty cores, AI RETURN TO BODY!!!11
+			return
+		if (mind.special_role == "malfunction") //AI MALF!!
+			user << "<span class='boldannounce'>ERROR</span>: Remote transfer interface disabled."//Do ho ho ho~
+			return
+		new /obj/structure/AIcore/deactivated(loc)//Spawns a deactivated terminal at AI location.
+		aiRestorePowerRoutine = 0//So the AI initially has power.
+		control_disabled = 1//Can't control things remotely if you're stuck in a card!
+		aiRadio.disabledAi = 1 	//No talking on the built-in radio for you either!
+		loc = card//Throw AI into the card.
+		src << "You have been downloaded to a mobile storage device. Remote device connection severed."
+		user << "<span class='boldnotice'>Transfer successful</span>: [name] ([rand(1000,9999)].exe) removed from host terminal and stored within local memory."
 
 #undef AI_CHECK_WIRELESS
 #undef AI_CHECK_RADIO

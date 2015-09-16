@@ -17,7 +17,7 @@
 		var/damage = round(30/(get_dist(B,get_turf(src))+1))
 		B.health -= damage
 		B.update_icon()
-	del(src)
+	qdel(src)
 
 /obj/item/weapon/grenade/flashbang/proc/bang(var/turf/T , var/mob/living/M)
 	M.show_message("<span class='warning'>BANG</span>", 2)
@@ -40,11 +40,14 @@
 		var/mob/living/carbon/human/H = M
 		var/obj/item/organ/eyes/E = H.internal_organs_by_name["eyes"]
 		flick("e_flash", M.flash)
-		E.damage += rand(1, 3)
+		if (E) E.damage += rand(1, 3)
 		M.Stun(max(10/distance, 6))
 		M.Weaken(max(10/distance, 6))
-		if (E.damage >= E.min_bruised_damage)
-			M << "<span class='warning'>Your eyes start to burn badly!</span>"
+		if (istype(E) && E.damage >= E.min_bruised_damage)
+			if(!(E.status & ORGAN_ROBOT))
+				M << "<span class='warning'>Your eyes start to burn badly!</span>"
+			else
+				M << "<span class='warning'>The flash blinds you!</span>"
 			if(!banglet && !(istype(src , /obj/item/weapon/grenade/flashbang/clusterbang)))
 				if (E.damage >= E.min_broken_damage)
 					M << "<span class='warning'>You can't see anything!</span>"
@@ -95,7 +98,7 @@
 
 	playsound(src.loc, 'sound/weapons/armbomb.ogg', 75, 1, -3)
 
-	del(src)
+	qdel(src)
 
 
 //////////////////////
@@ -125,7 +128,7 @@
 
 	playsound(src.loc, 'sound/weapons/armbomb.ogg', 75, 1, -3)
 
-	del(src)
+	qdel(src)
 
 ////////////////////////////////
 //Clusterbang spawned flashbang

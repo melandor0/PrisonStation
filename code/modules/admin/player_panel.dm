@@ -81,9 +81,9 @@
 					body += "<a href='?src=\ref[src];traitor="+ref+"'>TP</a> - "
 					body += "<a href='?src=\ref[usr];priv_msg=\ref"+ref+"'>PM</a> - "
 					body += "<a href='?src=\ref[src];subtlemessage="+ref+"'>SM</a> - "
-					body += "<a href='?src=\ref[src];adminplayerobservejump="+ref+"'>JMP</a>"
+					body += "<a href='?src=\ref[src];adminplayerobservefollow="+ref+"'>FLW</a>"
 					if(eyeref)
-						body += "|<a href='?src=\ref[src];adminplayerobservejump="+eyeref+"'>EYE</a>"
+						body += "|<a href='?src=\ref[src];adminplayerobservefollow="+eyeref+"'>EYE</a>"
 					body += "<br>"
 					if(antagonist > 0)
 						body += "<font size='2'><a href='?src=\ref[src];check_antagonist=1'><font color='red'><b>Antagonist</b></font></a></font>";
@@ -197,7 +197,7 @@
 			<tr id='title_tr'>
 				<td align='center'>
 					<font size='5'><b>Player panel</b></font><br>
-					Hover over a line to see more information - [check_rights(R_ADMIN,0) ? "<a href='?src=\ref[src];check_antagonist=1'>Check antagonists</a> | " : "" ]
+					Hover over a line to see more information | [check_rights(R_ADMIN,0) ? "<a href='?src=\ref[src];check_antagonist=1'>Check antagonists</a> | Kick <a href='?_src_=holder;kick_all_from_lobby=1;afkonly=0'>everyone</a>/<a href='?_src_=holder;kick_all_from_lobby=1;afkonly=1'>AFKers</a> in lobby" : "" ]
 					<p>
 				</td>
 			</tr>
@@ -395,6 +395,7 @@
 
 
 /datum/admins/proc/check_antagonists()
+	if(!check_rights(R_ADMIN))	return
 	if (ticker && ticker.current_state >= GAME_STATE_PLAYING)
 		var/dat = "<html><head><title>Round Status</title></head><body><h1><B>Round Status</B></h1>"
 		dat += "Current Game Mode: <B>[ticker.mode.name]</B><BR>"
@@ -460,7 +461,7 @@
 				if(M)
 					dat += "<tr><td><a href='?src=\ref[src];adminplayeropts=\ref[M]'>[M.real_name]</a>[M.client ? "" : " <i>(logged out)</i>"][M.stat == 2 ? " <b><font color=red>(DEAD)</font></b>" : ""]</td>"
 					dat += "<td><A href='?src=\ref[usr];priv_msg=\ref[M]'>PM</A></td>"
-					var/turf/mob_loc = get_turf_loc(M)
+					var/turf/mob_loc = get_turf(M)
 					dat += "<td>[mob_loc.loc]</td></tr>"
 				else
 					dat += "<tr><td><i>Head not found!</i></td></tr>"
@@ -470,7 +471,7 @@
 					if(M)
 						dat += "<tr><td><a href='?src=\ref[src];adminplayeropts=\ref[M]'>[M.real_name]</a>[M.client ? "" : " <i>(logged out)</i>"][M.stat == 2 ? " <b><font color=red>(DEAD)</font></b>" : ""]</td>"
 						dat += "<td><A href='?src=\ref[usr];priv_msg=\ref[M]'>PM</A></td>"
-						var/turf/mob_loc = get_turf_loc(M)
+						var/turf/mob_loc = get_turf(M)
 						dat += "<td>[mob_loc.loc]</td></tr>"
 					else
 						dat += "<tr><td><i>Head not found!</i></td></tr>"
@@ -490,6 +491,20 @@
 						dat += "in \a [O.name] "
 					flag_loc = flag_loc.loc
 				dat += "in [flag_loc.loc] at ([flag_loc.x], [flag_loc.y], [flag_loc.z])</td></tr>"
+			dat += "</table>"
+
+		if(istype(ticker.mode, /datum/game_mode/blob))
+			var/datum/game_mode/blob/mode = ticker.mode
+			dat += "<br><table cellspacing=5><tr><td><B>Blob</B></td><td></td><td></td></tr>"
+			dat += "<tr><td><i>Progress: [blobs.len]/[mode.blobwincount]</i></td></tr>"
+
+			for(var/datum/mind/blob in mode.infected_crew)
+				var/mob/M = blob.current
+				if(M)
+					dat += "<tr><td><a href='?_src_=holder;adminplayeropts=\ref[M]'>[M.real_name]</a>[M.client ? "" : " <i>(ghost)</i>"][M.stat == 2 ? " <b><font color=red>(DEAD)</font></b>" : ""]</td>"
+					dat += "<td><A href='?priv_msg=[M.ckey]'>PM</A></td>"
+				else
+					dat += "<tr><td><i>Blob not found!</i></td></tr>"
 			dat += "</table>"
 
 		if(ticker.mode.changelings.len)
@@ -519,8 +534,8 @@
 		if(ticker.mode.vampires.len)
 			dat += check_role_table("Vampires", ticker.mode.vampires, src)
 
-		if(ticker.mode.enthralled.len)
-			dat += check_role_table("Vampire Thralls", ticker.mode.enthralled, src)
+		if(ticker.mode.vampire_enthralled.len)
+			dat += check_role_table("Vampire Thralls", ticker.mode.vampire_enthralled, src)
 
 		if(ticker.mode.xenos.len)
 			dat += check_role_table("Xenos", ticker.mode.xenos, src)

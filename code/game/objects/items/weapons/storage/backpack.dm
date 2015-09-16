@@ -12,6 +12,7 @@
 	slot_flags = SLOT_BACK	//ERROOOOO
 	max_w_class = 3
 	max_combined_w_class = 21
+	storage_slots = 21
 
 /obj/item/weapon/storage/backpack/attackby(obj/item/weapon/W as obj, mob/user as mob, params)
 	playsound(src.loc, "rustle", 50, 1, -5)
@@ -40,12 +41,12 @@
 		if(istype(W, /obj/item/weapon/storage/backpack/holding) && !W.crit_fail)
 			investigate_log("has become a singularity. Caused by [user.key]","singulo")
 			user << "\red The Bluespace interfaces of the two devices catastrophically malfunction!"
-			del(W)
-			var/obj/machinery/singularity/singulo = new /obj/machinery/singularity (get_turf(src))
+			qdel(W)
+			var/obj/singularity/singulo = new /obj/singularity (get_turf(src))
 			singulo.energy = 300 //should make it a bit bigger~
 			message_admins("[key_name_admin(user)] detonated a bag of holding")
 			log_game("[key_name(user)] detonated a bag of holding")
-			del(src)
+			qdel(src)
 			return
 
 		..()
@@ -57,9 +58,14 @@
 		else
 			user << "\red The Bluespace generator malfunctions!"
 			for (var/obj/O in src.contents) //it broke, delete what was in it
-				del(O)
+				qdel(O)
 			crit_fail = 1
 			icon_state = "brokenpack"
+
+	singularity_act(current_size)
+		var/dist = max((current_size - 2),1)
+		explosion(src.loc,(dist),(dist*2),(dist*4))
+		return
 
 
 /obj/item/weapon/storage/backpack/santabag
@@ -68,7 +74,6 @@
 	icon_state = "giftbag0"
 	item_state = "giftbag"
 	w_class = 4.0
-	storage_slots = 20
 	max_w_class = 3
 	max_combined_w_class = 400 // can store a ton of shit!
 
@@ -192,7 +197,6 @@
 	desc = "A very slim satchel that can easily fit into tight spaces."
 	icon_state = "satchel-flat"
 	w_class = 3 //Can fit in backpacks itself.
-	storage_slots = 5
 	max_combined_w_class = 15
 	level = 1
 	cant_hold = list(/obj/item/weapon/storage/backpack/satchel_flat) //muh recursive backpacks
@@ -219,26 +223,67 @@
 /obj/item/weapon/storage/backpack/duffel
 	name = "duffelbag"
 	desc = "A large grey duffelbag designed to hold more items than a regular bag."
-	icon_override = 'icons/mob/in-hand/duffelbag.dmi'
 	icon_state = "duffel"
 	item_state = "duffel"
-	storage_slots = 9 // Duffelbags can hold more items.
-	max_combined_w_class = 27
+	max_combined_w_class = 30
 	slowdown = 1
 
-/obj/item/weapon/storage/backpack/duffel/syndimed
+/obj/item/weapon/storage/backpack/duffel/syndie
+	name = "suspicious looking dufflebag"
+	desc = "A large dufflebag for holding extra tactical supplies."
+	icon_state = "duffel-syndi"
+	item_state = "duffel-syndimed"
+	origin_tech = "syndicate=1"
+	silent = 1
+	slowdown = 0
+
+/obj/item/weapon/storage/backpack/duffel/syndie/med
 	name = "suspicious duffelbag"
 	desc = "A black and red duffelbag with a red and white cross sewn onto it."
 	icon_state = "duffel-syndimed"
 	item_state = "duffel-syndimed"
-	slowdown = 0
 
-/obj/item/weapon/storage/backpack/duffel/syndiammo
+/obj/item/weapon/storage/backpack/duffel/syndie/ammo
 	name = "suspicious duffelbag"
 	desc = "A black and red duffelbag with a patch depicting shotgun shells sewn onto it."
 	icon_state = "duffel-syndiammo"
 	item_state = "duffel-syndiammo"
-	slowdown = 0
+
+/obj/item/weapon/storage/backpack/duffel/syndie/ammo/loaded
+	desc = "A large dufflebag, packed to the brim with Bulldog shotgun ammo."
+
+/obj/item/weapon/storage/backpack/duffel/syndie/ammo/loaded/New()
+	..()
+	new /obj/item/ammo_box/magazine/m12g(src)
+	new /obj/item/ammo_box/magazine/m12g(src)
+	new /obj/item/ammo_box/magazine/m12g(src)
+	new /obj/item/ammo_box/magazine/m12g(src)
+	new /obj/item/ammo_box/magazine/m12g(src)
+	new /obj/item/ammo_box/magazine/m12g(src)
+	new /obj/item/ammo_box/magazine/m12g/buckshot(src)
+	new /obj/item/ammo_box/magazine/m12g/stun(src)
+	new /obj/item/ammo_box/magazine/m12g/dragon(src)
+
+/obj/item/weapon/storage/backpack/duffel/syndie/surgery
+	name = "surgery dufflebag"
+	desc = "A suspicious looking dufflebag for holding surgery tools."
+	icon_state = "duffel-syndimed"
+	item_state = "duffle-syndimed"
+
+/obj/item/weapon/storage/backpack/duffel/syndie/surgery/New()
+	..()
+	new /obj/item/weapon/scalpel(src)
+	new /obj/item/weapon/hemostat(src)
+	new /obj/item/weapon/retractor(src)
+	new /obj/item/weapon/circular_saw(src)
+	new /obj/item/weapon/surgicaldrill(src)
+	new /obj/item/weapon/cautery(src)
+	new /obj/item/weapon/bonegel(src)
+	new /obj/item/weapon/bonesetter(src)
+	new /obj/item/weapon/FixOVein(src)
+	new /obj/item/clothing/suit/straight_jacket(src)
+	new /obj/item/clothing/mask/muzzle(src)
+//	new /obj/item/device/mmi/syndie(src)
 
 /obj/item/weapon/storage/backpack/duffel/captain
 	name = "captain's duffelbag"
@@ -300,7 +345,7 @@
 	desc = "A duffelbag designed to hold bananas and bike horns."
 	icon_state = "duffel-clown"
 	item_state = "duffel-clown"
-	
+
 //ERT backpacks.
 /obj/item/weapon/storage/backpack/ert
 	name = "emergency response team backpack"
@@ -330,7 +375,7 @@
 	name = "emergency response team medical backpack"
 	desc = "A spacious backpack with lots of pockets, worn by medical members of a Nanotrasen Emergency Response Team."
 	icon_state = "ert_medical"
-	
+
 //Janitorial
 /obj/item/weapon/storage/backpack/ert/janitor
 	name = "emergency response team janitor backpack"

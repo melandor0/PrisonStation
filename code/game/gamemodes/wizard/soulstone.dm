@@ -3,7 +3,7 @@
 	icon = 'icons/obj/wizard.dmi'
 	icon_state = "soulstone"
 	item_state = "electronic"
-	desc = "A fragment of the legendary treasure known simply as the 'Soul Stone'. The shard still flickers with a fraction of the full artefacts power."
+	desc = "A fragment of the legendary treasure known simply as the 'Soul Stone'. The shard still flickers with a fraction of the full artifact's power."
 	w_class = 1.0
 	slot_flags = SLOT_BELT
 	origin_tech = "bluespace=4;materials=4"
@@ -16,16 +16,20 @@
 		if(!istype(M, /mob/living/carbon/human))//If target is not a human.
 			return ..()
 		if(istype(M, /mob/living/carbon/human/dummy))
-			return..()
+			return ..()
 
 		if(M.has_brain_worms()) //Borer stuff - RR
 			user << "<span class='warning'>This being is corrupted by an alien intelligence and cannot be soul trapped.</span>"
-			return..()
+			return ..()
+			
+		if(jobban_isbanned(M, "cultist") || jobban_isbanned(M, "Syndicate"))
+			user << "<span class='warning'>A mysterious force prevents you from trapping this being's soul.</span>"
+			return ..()
 
-		M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has had their soul captured with [src.name] by [user.name] ([user.ckey])</font>")
-		user.attack_log += text("\[[time_stamp()]\] <font color='red'>Used the [src.name] to capture the soul of [M.name] ([M.ckey])</font>")
+		M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has had their soul captured with [src.name] by [key_name(user)]</font>")
+		user.attack_log += text("\[[time_stamp()]\] <font color='red'>Used the [src.name] to capture the soul of [key_name(M)]</font>")
 
-		log_attack("<font color='red'>[user.name] ([user.ckey]) used the [src.name] to capture the soul of [M.name] ([M.ckey])</font>")
+		log_attack("<font color='red'>[key_name(user)] used the [src.name] to capture the soul of [key_name(M)]</font>")
 
 
 		transfer_soul("VICTIM", M, user)
@@ -124,7 +128,7 @@
 							animation.icon = 'icons/mob/mob.dmi'
 							animation.master = T
 							flick("dust-h", animation)
-							del(animation)
+							qdel(animation)
 							var/mob/living/simple_animal/shade/S = new /mob/living/simple_animal/shade( T.loc )
 							S.loc = C //put shade in stone
 							S.status_flags |= GODMODE //So they won't die inside the stone somehow
@@ -141,7 +145,7 @@
 							U << "\blue <b>Capture successful!</b>: \black [T.real_name]'s soul has been ripped from their body and stored within the soul stone."
 							U << "The soulstone has been imprinted with [S.real_name]'s mind, it will no longer react to other souls."
 							C.imprinted = "[S.name]"
-							del T
+							qdel(T)
 		if("SHADE")
 			var/mob/living/simple_animal/shade/T = target
 			var/obj/item/device/soulstone/C = src
@@ -179,11 +183,11 @@
 							else
 								ticker.mode.cult+=Z.mind
 							ticker.mode.update_cult_icons_added(Z.mind)
-						del(T)
+						qdel(T)
 						Z << "<B>You are a Juggernaut. Though slow, your shell can withstand extreme punishment, create shield walls and even deflect energy weapons, and rip apart enemies and walls alike.</B>"
 						Z << "<B>You are still bound to serve your creator, follow their orders and help them complete their goals at all costs.</B>"
 						Z.cancel_camera()
-						del(C)
+						qdel(C)
 
 					if("Wraith")
 						var/mob/living/simple_animal/construct/wraith/Z = new /mob/living/simple_animal/construct/wraith (get_turf(T.loc))
@@ -195,11 +199,11 @@
 							else
 								ticker.mode.cult+=Z.mind
 							ticker.mode.update_cult_icons_added(Z.mind)
-						del(T)
+						qdel(T)
 						Z << "<B>You are a Wraith. Though relatively fragile, you are fast, deadly, and even able to phase through walls.</B>"
 						Z << "<B>You are still bound to serve your creator, follow their orders and help them complete their goals at all costs.</B>"
 						Z.cancel_camera()
-						del(C)
+						qdel(C)
 
 					if("Artificer")
 						var/mob/living/simple_animal/construct/builder/Z = new /mob/living/simple_animal/construct/builder (get_turf(T.loc))
@@ -211,11 +215,30 @@
 							else
 								ticker.mode.cult+=Z.mind
 							ticker.mode.update_cult_icons_added(Z.mind)
-						del(T)
+						qdel(T)
 						Z << "<B>You are an Artificer. You are incredibly weak and fragile, but you are able to construct fortifications, use magic missile, repair allied constructs (by clicking on them), </B><I>and most important of all create new constructs</I><B> (Use your Artificer spell to summon a new construct shell and Summon Soulstone to create a new soulstone).</B>"
 						Z << "<B>You are still bound to serve your creator, follow their orders and help them complete their goals at all costs.</B>"
 						Z.cancel_camera()
-						del(C)
+						qdel(C)
 			else
 				U << "\red <b>Creation failed!</b>: \black The soul stone is empty! Go kill someone!"
 	return
+
+/proc/makeNewConstruct(var/mob/living/simple_animal/construct/ctype, var/mob/target, var/mob/stoner = null, cultoverride = 0)
+	if(jobban_isbanned(target, "cultist") || jobban_isbanned(target, "Syndicate"))
+		return
+	var/mob/living/simple_animal/construct/newstruct = new ctype(get_turf(target))
+	newstruct.faction |= "\ref[stoner]"
+	newstruct.key = target.key
+	if(stoner && iscultist(stoner) || cultoverride)
+		if(ticker.mode.name == "cult")
+			ticker.mode:add_cultist(newstruct.mind)
+		else
+			ticker.mode.cult+=newstruct.mind
+		ticker.mode.update_cult_icons_added(newstruct.mind)
+	if(stoner && iswizard(stoner))
+		newstruct << "<B>You are still bound to serve your creator, follow their orders and help them complete their goals at all costs.</B>"
+	else if(stoner && iscultist(stoner))
+		newstruct << "<B>You are still bound to serve the cult, follow their orders and help them complete their goals at all costs.</B>"
+	else newstruct << "<B>You are still bound to serve your creator, follow their orders and help them complete their goals at all costs.</B>"
+	newstruct.cancel_camera()

@@ -11,6 +11,13 @@
 	icon_state = "blue_pyjamas"
 	_color = "blue_pyjamas"
 	item_state = "w_suit"
+	
+/obj/item/clothing/under/patriotsuit
+	name = "Patriotic Suit"
+	desc = "Motorcycle not included."
+	icon_state = "ek"
+	item_state = "ek"
+	_color = "ek"
 
 /obj/item/clothing/under/captain_fly
 	name = "rogue captains uniform"
@@ -109,6 +116,14 @@
 	displays_id = 0
 	flags = ONESIZEFITSALL
 
+/obj/item/clothing/under/rank/centcom/diplomatic
+	desc = "A very gaudy and official looking uniform of the Nanotrasen Diplomatic Corps."
+	name = "\improper Nanotrasen Diplomatic Uniform"
+	icon_state = "presidente"
+	item_state = "g_suit"
+	_color = "presidente"
+	displays_id = 0
+
 /obj/item/clothing/under/rank/blueshield
 	name = "blueshield uniform"
 	desc = "A short-sleeved black uniform, paired with grey digital-camo cargo pants. Standard issue to Blueshield officers."
@@ -201,7 +216,7 @@
 	desc = "A formal black suit and red tie, intended for the station's finest."
 	icon_state = "really_black_suit"
 	item_state = "bl_suit"
-	_color = "black_suit"
+	_color = "really_black_suit"
 
 /obj/item/clothing/under/suit_jacket/female
 	name = "executive suit"
@@ -216,7 +231,6 @@
 	icon_state = "red_suit"
 	item_state = "r_suit"
 	_color = "red_suit"
-	species_fit = list("Vox")
 	flags = ONESIZEFITSALL
 
 /obj/item/clothing/under/suit_jacket/navy
@@ -555,17 +569,17 @@
 	_color = "vengine"
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 10)
 
-/obj/item/clothing/under/vox_toxins
+/obj/item/clothing/under/vox_sec
 	name = "Vox Security Jumpsuit"
-	desc = "A Security Uniform ripped to better fit a vox."
+	desc = "A Security officer's jumpsuit ripped to better fit a vox."
 	icon_state = "vred"
 	item_state = "vred"
 	_color = "vred"
 	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 
-/obj/item/clothing/under/vox_toxins
+/obj/item/clothing/under/vox_chem
 	name = "Vox Chemist Jumpsuit"
-	desc = "A Security Uniform ripped to better fit a vox."
+	desc = "A Chemist's jumpsuit ripped to better fit a vox."
 	icon_state = "vchem"
 	item_state = "vchem"
 	_color = "vchem"

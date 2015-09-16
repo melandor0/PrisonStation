@@ -23,10 +23,6 @@
 			death()
 			return
 
-		if (src.machine)
-			if (!( src.machine.check_eye(src) ))
-				src.reset_view(null)
-
 		// Handle power damage (oxy)
 		if(src:aiRestorePowerRoutine != 0)
 			// Lost power
@@ -48,7 +44,7 @@
 			loc = T.loc
 			if (istype(loc, /area))
 				//stage = 4
-				if (!loc.power_equip && !istype(src.loc,/obj/item))
+				if (!loc.power_equip && !is_type_in_list(src.loc,list(/obj/item, /obj/mecha)))
 					//stage = 5
 					blind = 1
 
@@ -60,7 +56,8 @@
 			src.sight |= SEE_OBJS
 			src.see_in_dark = 8
 			src.see_invisible = SEE_INVISIBLE_LEVEL_TWO
-
+			if(see_override)
+				see_invisible = see_override
 
 			//Congratulations!  You've found a way for AI's to run without using power!
 			//Todo:  Without snowflaking up master_controller procs find a way to make AI use_power but only when APC's clear the area usage the tick prior
@@ -101,7 +98,7 @@
 			src.see_in_dark = 0
 			src.see_invisible = SEE_INVISIBLE_LIVING
 
-			if (((!loc.power_equip) || istype(T, /turf/space)) && !istype(src.loc,/obj/item))
+			if (((!loc.power_equip) || istype(T, /turf/space)) && !is_type_in_list(src.loc,list(/obj/item, /obj/mecha)))
 				if (src:aiRestorePowerRoutine==0)
 					src:aiRestorePowerRoutine = 1
 
@@ -177,6 +174,7 @@
 							sleep(50)
 							theAPC = null
 
+	process_queued_alarms()						
 	regular_hud_updates()
 	switch(src.sensor_mode)
 		if (SEC_HUD)
@@ -193,3 +191,12 @@
 			health = 100 - getOxyLoss() - getToxLoss() - getBruteLoss()
 		else
 			health = 100 - getOxyLoss() - getToxLoss() - getFireLoss() - getBruteLoss()
+			
+/mob/living/silicon/ai/proc/lacks_power()
+	var/turf/T = get_turf(src)
+	var/area/A = get_area(src)
+	return ((!A.power_equip) && A.requires_power == 1 || istype(T, /turf/space)) && !istype(src.loc,/obj/item)
+	
+/mob/living/silicon/ai/rejuvenate()
+	..()
+	add_ai_verbs(src)

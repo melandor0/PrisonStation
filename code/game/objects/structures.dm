@@ -1,11 +1,12 @@
 /obj/structure
 	icon = 'icons/obj/structures.dmi'
+	pressure_resistance = 8
 	var/climbable
 	var/mob/climber
 
 /obj/structure/blob_act()
 	if(prob(50))
-		del(src)
+		qdel(src)
 
 /obj/structure/ex_act(severity)
 	switch(severity)
@@ -19,14 +20,10 @@
 		if(3.0)
 			return
 
-/obj/structure/meteorhit(obj/O as obj)
-	del(src)
-
-
 /obj/structure/Destroy()
 	if(hascall(src, "unbuckle"))
 		src:unbuckle()
-	..()
+	return ..()
 
 /obj/structure/mech_melee_attack(obj/mecha/M)
 	if(M.damtype == "brute")
@@ -75,7 +72,7 @@
 
 	usr.visible_message("<span class='warning'>[user] starts climbing onto \the [src]!</span>")
 	climber = user
-	if(!do_after(user,50))
+	if(!do_after(user,50, target = src))
 		climber = null
 		return
 

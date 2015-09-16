@@ -30,10 +30,9 @@
 
 	processing_objects.Add(src)
 
-
 /obj/item/weapon/reagent_containers/borghypo/Destroy()
 	processing_objects.Remove(src)
-	..()
+	return ..()
 
 /obj/item/weapon/reagent_containers/borghypo/process() //Every [recharge_time] seconds, recharge some reagents for the cyborg
 	charge_tick++
@@ -50,13 +49,6 @@
 	//update_icon()
 	return 1
 
-// Purely for testing purposes I swear~
-/*
-/obj/item/weapon/reagent_containers/borghypo/verb/add_cyanide()
-	set src in world
-	add_reagent("cyanide")
-*/
-
 // Use this to add more chemicals for the borghypo to produce.
 /obj/item/weapon/reagent_containers/borghypo/proc/add_reagent(var/reagent)
 	reagent_ids |= reagent
@@ -70,18 +62,26 @@
 /obj/item/weapon/reagent_containers/borghypo/attack(mob/living/M as mob, mob/user as mob)
 	var/datum/reagents/R = reagent_list[mode]
 	if(!R.total_volume)
-		user << "\red The injector is empty."
+		user << "<span class='warning'>The injector is empty.</span>"
 		return
-	if (!(istype(M)))
+	if (!istype(M))
 		return
 	if (R.total_volume && M.can_inject(user,1))
-		user << "\blue You inject [M] with the injector."
-		M << "\red You feel a tiny prick!"
+		user << "<span class='notice'>You inject [M] with the injector.</span>"
+		M << "<span class='notice'>You feel a tiny prick!</span>"
 
 		R.add_reagent(M)
 		if(M.reagents)
+			var/datum/reagent/injected = chemical_reagents_list[reagent_ids[mode]]
+			var/contained = injected.name
+			M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been injected with [src.name] by [key_name(user)]. Reagents: [contained]</font>")
+			user.attack_log += text("\[[time_stamp()]\] <font color='red'>Used the [src.name] to inject [key_name(M)]. Reagents: [contained]</font>")
+			if(M.ckey)
+				msg_admin_attack("[key_name_admin(user)] injected [key_name_admin(M)] with [src.name]. Reagents: [contained] (INTENT: [uppertext(user.a_intent)])")
+			M.LAssailant = user
+
 			var/trans = R.trans_to(M, amount_per_transfer_from_this)
-			user << "\blue [trans] units injected.  [R.total_volume] units remaining."
+			user << "<span class='notice'>[trans] units injected. [R.total_volume] units remaining.</span>"
 	return
 
 /obj/item/weapon/reagent_containers/borghypo/attack_self(mob/user as mob)
@@ -95,18 +95,17 @@
 	user << "\blue Synthesizer is now producing '[R.name]'."
 	return
 
-/obj/item/weapon/reagent_containers/borghypo/examine()
-	set src in view()
-	..()
-	if (!(usr in view(2)) && usr!=src.loc) return
+/obj/item/weapon/reagent_containers/borghypo/examine(mob/user)
+	if(!..(user, 2))
+		return
 
 	var/empty = 1
 
 	for(var/datum/reagents/RS in reagent_list)
 		var/datum/reagent/R = locate() in RS.reagent_list
 		if(R)
-			usr << "\blue It currently has [R.volume] units of [R.name] stored."
+			user << "\blue It currently has [R.volume] units of [R.name] stored."
 			empty = 0
 
 	if(empty)
-		usr << "\blue It is currently empty. Allow some time for the internal syntheszier to produce more."
+		user << "\blue It is currently empty. Allow some time for the internal syntheszier to produce more."

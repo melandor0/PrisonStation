@@ -56,7 +56,7 @@
 			if(screen == 2)
 				screen = 1
 		user << "<span class='notice'>You add \the [W.name] to [(src.name == "paper bundle") ? "the paper bundle" : src.name].</span>"
-		del(W)
+		qdel(W)
 	else
 		if(istype(W, /obj/item/stack/tape_roll))
 			return 0
@@ -91,17 +91,16 @@
 					user.unEquip(src)
 
 				new /obj/effect/decal/cleanable/ash(get_turf(src))
-				del(src)
+				qdel(src)
 
 			else
 				user << "\red You must hold \the [P] steady to burn \the [src]."
 
 /obj/item/weapon/paper_bundle/examine(mob/user)
-	if(in_range(usr, src) || istype(usr, /mob/dead/observer))
-		src.show_content(usr)
+	if(..(user, 1))
+		src.show_content(user)
 	else
-		usr << "<span class='notice'>It is too far away.</span>"
-	return
+		user << "<span class='notice'>It is too far away.</span>"
 
 /obj/item/weapon/paper_bundle/proc/show_content(mob/user as mob)
 	var/dat
@@ -121,10 +120,7 @@
 			dat+= "<DIV STYLE='float;left; text-align:right; with:33.33333%'></DIV>"
 	if(istype(src[page], /obj/item/weapon/paper))
 		var/obj/item/weapon/paper/P = W
-		if(!(istype(usr, /mob/living/carbon/human) || istype(usr, /mob/dead/observer) || istype(usr, /mob/living/silicon)))
-			dat+= "<HTML><HEAD><TITLE>[P.name]</TITLE></HEAD><BODY>[stars(P.info)][P.stamps]</BODY></HTML>"
-		else
-			dat+= "<HTML><HEAD><TITLE>[P.name]</TITLE></HEAD><BODY>[P.info][P.stamps]</BODY></HTML>"
+		dat += P.show_content(usr, view = 0)
 		usr << browse(dat, "window=[name]")
 	else if(istype(src[page], /obj/item/weapon/photo))
 		var/obj/item/weapon/photo/P = W
@@ -171,7 +167,7 @@
 				var/obj/item/weapon/paper/P = src[1]
 				usr.unEquip(src)
 				usr.put_in_hands(P)
-				del(src)
+				qdel(src)
 			else if(page == amount)
 				screen = 2
 			else if(page == amount+1)
@@ -210,7 +206,7 @@
 		O.layer = initial(O.layer)
 		O.add_fingerprint(usr)
 	usr.unEquip(src)
-	del(src)
+	qdel(src)
 	return
 
 

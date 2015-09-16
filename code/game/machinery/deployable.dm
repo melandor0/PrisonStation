@@ -69,7 +69,7 @@ for reference:
 		if (istype(W, /obj/item/stack/sheet/wood))
 			if (src.health < src.maxhealth)
 				visible_message("\red [user] begins to repair the [src]!")
-				if(do_after(user,20))
+				if(do_after(user,20, target = src))
 					src.health = src.maxhealth
 					W:use(1)
 					visible_message("\red [user] repairs the [src]!")
@@ -89,7 +89,7 @@ for reference:
 				new /obj/item/stack/sheet/wood(get_turf(src))
 				new /obj/item/stack/sheet/wood(get_turf(src))
 				new /obj/item/stack/sheet/wood(get_turf(src))
-				del(src)
+				qdel(src)
 			..()
 
 	ex_act(severity)
@@ -108,19 +108,11 @@ for reference:
 					qdel(src)
 				return
 
-	meteorhit()
-		visible_message("\red <B>The barricade is smashed apart!</B>")
-		new /obj/item/stack/sheet/wood(get_turf(src))
-		new /obj/item/stack/sheet/wood(get_turf(src))
-		new /obj/item/stack/sheet/wood(get_turf(src))
-		del(src)
-		return
-
 	blob_act()
 		src.health -= 25
 		if (src.health <= 0)
 			visible_message("\red <B>The blob eats through the barricade!</B>")
-			del(src)
+			qdel(src)
 		return
 
 	CanPass(atom/movable/mover, turf/target, height=0, air_group=0)//So bullets will fly over and stuff.
@@ -200,7 +192,7 @@ for reference:
 			if (src.health <= 0)
 				src.explode()
 			..()
-		
+
 	emag_act(user as mob)
 		if (!emagged)
 			emagged = 1
@@ -235,10 +227,6 @@ for reference:
 			locked = !locked
 			anchored = !anchored
 			icon_state = "barrier[src.locked]"
-
-	meteorhit()
-		src.explode()
-		return
 
 	blob_act()
 		src.health -= 25

@@ -214,82 +214,54 @@
 
 	if(!istype(user,/mob/living)) return
 
-	if(user.a_intent == "help")
 
-		if(istype(src.loc,/mob/living))
-			user << "How do you propose to modify a hardsuit while it is being worn?"
+	if(istype(src.loc,/mob/living))
+		user << "How do you propose to modify a hardsuit while it is being worn?"
+		return
+
+	if(istype(W,/obj/item/weapon/screwdriver))
+		if(!helmet)
+			user << "\The [src] does not have a helmet installed."
+		else
+			user << "You detach \the [helmet] from \the [src]'s helmet mount."
+			helmet.loc = get_turf(src)
+			src.helmet = null
+			return
+		if(!boots)
+			user << "\The [src] does not have any boots installed."
+		else
+			user << "You detatch \the [boots] from \the [src]'s boot mounts."
+			boots.loc = get_turf(src)
+			boots = null
+		return
+
+	else if(istype(W,/obj/item/clothing/head/helmet/space))
+		if(!attached_helmet)
+			user << "\The [src] does not have a helmet mount."
+			return
+		if(helmet)
+			user << "\The [src] already has a helmet installed."
+		else
+			user << "You attach \the [W] to \the [src]'s helmet mount."
+			user.drop_item()
+			W.loc = src
+			src.helmet = W
+		return
+
+	else if(istype(W,/obj/item/clothing/shoes/magboots))
+		if(!attached_boots)
+			user << "\The [src] does not have boot mounts."
 			return
 
-		var/target_zone = user.zone_sel.selecting
-
-		if(target_zone == "head")
-
-			//Installing a component into or modifying the contents of the helmet.
-			if(!attached_helmet)
-				user << "\The [src] does not have a helmet mount."
-				return
-
-			if(istype(W,/obj/item/weapon/screwdriver))
-				if(!helmet)
-					user << "\The [src] does not have a helmet installed."
-				else
-					user << "You detach \the [helmet] from \the [src]'s helmet mount."
-					helmet.loc = get_turf(src)
-					src.helmet = null
-				return
-			else if(istype(W,/obj/item/clothing/head/helmet/space))
-				if(helmet)
-					user << "\The [src] already has a helmet installed."
-				else
-					user << "You attach \the [W] to \the [src]'s helmet mount."
-					user.drop_item()
-					W.loc = src
-					src.helmet = W
-				return
-			else
-				return ..()
-
-		else if(target_zone == "l_leg" || target_zone == "r_leg" || target_zone == "l_foot" || target_zone == "r_foot")
-
-			//Installing a component into or modifying the contents of the feet.
-			if(!attached_boots)
-				user << "\The [src] does not have boot mounts."
-				return
-
-			if(istype(W,/obj/item/weapon/screwdriver))
-				if(!boots)
-					user << "\The [src] does not have any boots installed."
-				else
-					user << "You detatch \the [boots] from \the [src]'s boot mounts."
-					boots.loc = get_turf(src)
-					boots = null
-				return
-			else if(istype(W,/obj/item/clothing/shoes/magboots))
-				if(boots)
-					user << "\The [src] already has magboots installed."
-				else
-					user << "You attach \the [W] to \the [src]'s boot mounts."
-					user.drop_item()
-					W.loc = src
-					boots = W
-			else
-				return ..()
-
-		/*
-		else if(target_zone == "l_arm" || target_zone == "r_arm" || target_zone == "l_hand" || target_zone == "r_hand")
-
-			//Installing a component into or modifying the contents of the hands.
-
-		else if(target_zone == "torso" || target_zone == "groin")
-
-			//Modifying the cell or mounted devices
-
-			if(!mounted_devices)
-				return
-		*/
-
-		else //wat
-			return ..()
+		if(boots)
+			user << "\The [src] already has magboots installed."
+		else
+			user << "You attach \the [W] to \the [src]'s boot mounts."
+			user.drop_item()
+			W.loc = src
+			boots = W
+	else
+		return ..()
 
 	..()
 
@@ -317,7 +289,6 @@
 	icon_state = "rig0-white"
 	item_state = "ce_helm"
 	_color = "white"
-	sprite_sheets = null
 	armor = list(melee = 40, bullet = 5, laser = 10, energy = 5, bomb = 50, bio = 100, rad = 90)
 	heat_protection = HEAD												//Uncomment to enable firesuit protection
 	max_heat_protection_temperature = FIRE_IMMUNITY_HELM_MAX_TEMP_PROTECT
@@ -327,7 +298,6 @@
 	name = "advanced hardsuit"
 	desc = "An advanced suit that protects against hazardous, low pressure environments. Shines with a high polish."
 	item_state = "ce_hardsuit"
-	sprite_sheets = null
 	armor = list(melee = 40, bullet = 5, laser = 10, energy = 5, bomb = 50, bio = 100, rad = 90)
 	heat_protection = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS					//Uncomment to enable firesuit protection
 	max_heat_protection_temperature = FIRE_IMMUNITY_SUIT_MAX_TEMP_PROTECT
@@ -362,8 +332,6 @@
 	on = 1
 	flags = HEADCOVERSEYES | BLOCKHAIR | HEADCOVERSMOUTH | STOPSPRESSUREDMAGE | THICKMATERIAL
 	action_button_name = "Toggle Helmet Mode"
-	species_restricted = null
-	sprite_sheets = null
 
 /obj/item/clothing/head/helmet/space/rig/syndi/update_icon()
 	icon_state = "hardsuit[on]-[_color]"
@@ -374,7 +342,7 @@
 		return
 	on = !on
 	if(on)
-		user << "<span class='notice'>You switch your helmet to travel mode.</span>"
+		user << "<span class='notice'>You switch your helmet to travel mode. It will allow you to stand in zero pressure environments, at the cost of speed and armor.</span>"
 		name = "blood-red hardsuit helmet"
 		desc = "A dual-mode advanced helmet designed for work in special operations. It is in travel mode. Property of Gorlex Marauders."
 		flags = HEADCOVERSEYES | BLOCKHAIR | HEADCOVERSMOUTH | STOPSPRESSUREDMAGE | THICKMATERIAL
@@ -382,10 +350,10 @@
 		cold_protection = HEAD
 		set_light(brightness_on)
 	else
-		user << "<span class='notice'>You switch your helmet to combat mode.</span>"
+		user << "<span class='notice'>You switch your helmet to combat mode. You will take damage in zero pressure environments, but you are more suited for a fight.</span>"
 		name = "blood-red hardsuit helmet (combat)"
 		desc = "A dual-mode advanced helmet designed for work in special operations. It is in combat mode. Property of Gorlex Marauders."
-		flags = BLOCKHAIR
+		flags = BLOCKHAIR | THICKMATERIAL
 		flags_inv = HIDEEARS
 		cold_protection = null
 		set_light(0)
@@ -406,8 +374,6 @@
 	action_button_name = "Toggle Hardsuit Mode"
 	armor = list(melee = 60, bullet = 50, laser = 30, energy = 15, bomb = 35, bio = 100, rad = 50)
 	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/melee/energy/sword,/obj/item/weapon/restraints/handcuffs,/obj/item/weapon/tank)
-	species_restricted = null
-	sprite_sheets = null
 
 /obj/item/clothing/suit/space/rig/syndi/update_icon()
 	icon_state = "hardsuit[on]-[_color]"
@@ -415,7 +381,7 @@
 /obj/item/clothing/suit/space/rig/syndi/attack_self(mob/user)
 	on = !on
 	if(on)
-		user << "<span class='notice'>You switch your hardsuit to travel mode.</span>"
+		user << "<span class='notice'>You switch your hardsuit to travel mode. It will allow you to stand in zero pressure environments, at the cost of speed and armor.</span>"
 		name = "blood-red hardsuit helmet"
 		desc = "A dual-mode advanced hardsuit designed for work in special operations. It is in travel mode. Property of Gorlex Marauders."
 		slowdown = 1
@@ -423,11 +389,11 @@
 		flags_inv = HIDEGLOVES|HIDESHOES|HIDEJUMPSUIT
 		cold_protection = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS | HANDS
 	else
-		user << "<span class='notice'>You switch your hardsuit to combat mode.</span>"
+		user << "<span class='notice'>You switch your hardsuit to combat mode. You will take damage in zero pressure environments, but you are more suited for a fight.</span>"
 		name = "blood-red hardsuit helmet (combat)"
 		desc = "A dual-mode advanced hardsuit designed for work in special operations. It is in combat mode. Property of Gorlex Marauders."
 		slowdown = 0
-		flags = BLOCKHAIR
+		flags = THICKMATERIAL
 		flags_inv = null
 		cold_protection = null
 
@@ -484,7 +450,7 @@
 	desc = "A special helmet designed for work in a hazardous, low pressure environment. Built with lightweight materials for extra comfort."
 	item_state = "medical_hardsuit"
 	slowdown = 1
-	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/weapon/storage/firstaid,/obj/item/device/healthanalyzer,/obj/item/stack/medical)
+	allowed = list(/obj/item/device/flashlight,/obj/item/weapon/tank,/obj/item/weapon/storage/firstaid,/obj/item/device/healthanalyzer,/obj/item/stack/medical,/obj/item/device/rad_laser)
 	armor = list(melee = 10, bullet = 5, laser = 10, energy = 5, bomb = 10, bio = 100, rad = 50)
 
 	//Security

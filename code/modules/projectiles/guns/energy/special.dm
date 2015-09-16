@@ -3,7 +3,6 @@
 	desc = "A man portable anti-armor weapon designed to disable mechanical threats"
 	icon_state = "ionrifle"
 	item_state = null	//so the human update icon uses the icon_state instead.
-	icon_override = 'icons/mob/in-hand/guns.dmi'
 	fire_sound = 'sound/weapons/IonRifle.ogg'
 	origin_tech = "combat=2;magnets=4"
 	w_class = 5.0
@@ -36,7 +35,7 @@
 	name = "floral somatoray"
 	desc = "A tool that discharges controlled radiation which induces mutation in plant cells."
 	icon_state = "floramut100"
-	item_state = "obj/item/gun.dmi"
+	item_state = "gun"
 	fire_sound = 'sound/effects/stealthoff.ogg'
 	projectile_type = "/obj/item/projectile/energy/floramut"
 	origin_tech = "materials=2;biotech=3;powerstorage=3"
@@ -48,9 +47,9 @@
 	..()
 	processing_objects.Add(src)
 
-/obj/item/weapon/gun/energy/floragun/Del()
+/obj/item/weapon/gun/energy/floragun/Destroy()
 	processing_objects.Remove(src)
-	..()
+	return ..()
 
 /obj/item/weapon/gun/energy/floragun/process()
 	charge_tick++
@@ -109,7 +108,7 @@
 
 	Destroy()
 		processing_objects.Remove(src)
-		..()
+		return ..()
 
 	process()
 		charge_tick++
@@ -128,11 +127,13 @@
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "pen"
 	item_state = "pen"
+	lefthand_file = 'icons/mob/inhands/items_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/items_righthand.dmi'
 	w_class = 1
 
 
 /obj/item/weapon/gun/energy/mindflayer
-	name = "mind flayer"
+	name = "\improper Mind Flayer"
 	desc = "A prototype weapon recovered from the ruins of Research-Station Epsilon."
 	icon_state = "xray"
 	projectile_type = "/obj/item/projectile/beam/mindflayer"
@@ -163,6 +164,7 @@ obj/item/weapon/gun/energy/staff/focus
 	icon_state = "energy"
 	projectile_type = "/obj/item/projectile/clown"
 	fire_sound = 'sound/weapons/Gunshot_smg.ogg'
+	clumsy_check = 0
 
 
 
@@ -230,17 +232,21 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 	desc = "According to Nanotrasen accounting, this is mining equipment. It's been modified for extreme power output to crush rocks, but often serves as a miner's first defense against hostile alien life; it's not very powerful unless used in a low pressure environment."
 	icon_state = "kineticgun"
 	item_state = "kineticgun"
-	icon_override = 'icons/mob/in-hand/guns.dmi'
 	projectile_type = "/obj/item/projectile/kinetic"
 	fire_sound = 'sound/weapons/Kenetic_accel.ogg'
 	charge_cost = 5000
 	cell_type = "/obj/item/weapon/stock_parts/cell/emproof"
+	fire_delay = 16 //Because guncode is bad and you can bug the reload for rapid fire otherwise.
 	var/overheat = 0
+	var/overheat_time = 16
 	var/recent_reload = 1
+
+/obj/item/weapon/gun/energy/kinetic_accelerator/cyborg
+	flags = NODROP
 
 /obj/item/weapon/gun/energy/kinetic_accelerator/Fire()
 	overheat = 1
-	spawn(20)
+	spawn(overheat_time)
 		overheat = 0
 		recent_reload = 0
 	..()
@@ -266,18 +272,20 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 	icon_state = "crossbow"
 	item_state = "crossbow"
 	w_class = 2
-	m_amt = 2000
+	materials = list(MAT_METAL=2000)
 	origin_tech = "combat=2;magnets=2;syndicate=5"
 	silenced = 1
 	projectile_type = "/obj/item/projectile/energy/bolt"
 	fire_sound = 'sound/weapons/Genhit.ogg'
+	overheat_time = 20
+	fire_delay = 20
 
 /obj/item/weapon/gun/energy/kinetic_accelerator/crossbow/large
 	name = "energy crossbow"
 	desc = "A reverse engineered weapon using syndicate technology."
 	icon_state = "crossbowlarge"
 	w_class = 3
-	m_amt = 4000
+	materials = list(MAT_METAL=4000)
 	origin_tech = "combat=2;magnets=2;syndicate=3" //can be further researched for more syndie tech
 	silenced = 0
 	projectile_type = "/obj/item/projectile/energy/bolt/large"
@@ -286,7 +294,49 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 	desc = "One and done!"
 	icon_state = "crossbowlarge"
 	origin_tech = null
-	m_amt = 0
+	materials = list()
+
+/obj/item/weapon/gun/energy/plasmacutter
+	name = "plasma cutter"
+	desc = "A mining tool capable of expelling concentrated plasma bursts. You could use it to cut limbs off of xenos! Or, you know, mine stuff."
+	icon_state = "plasmacutter"
+	item_state = "plasmacutter"
+	modifystate = "plasmacutter"
+	origin_tech = "combat=1;materials=3;magnets=2;plasmatech=2;engineering=1"
+	projectile_type = /obj/item/projectile/plasma
+	fire_sound = 'sound/weapons/laser.ogg'
+	flags = CONDUCT | OPENCONTAINER
+	attack_verb = list("attacked", "slashed", "cut", "sliced")
+	charge_cost = 250
+	fire_delay = 15
+	can_charge = 0
+
+/obj/item/weapon/gun/energy/plasmacutter/examine(mob/user)
+	..(user)
+	if(power_supply)
+		user <<"<span class='notice'>[src] is [round(power_supply.percent())]% charged.</span>"
+
+/obj/item/weapon/gun/energy/plasmacutter/attackby(var/obj/item/A, var/mob/user)
+	if(istype(A, /obj/item/stack/sheet/mineral/plasma))
+		var/obj/item/stack/sheet/S = A
+		S.use(1)
+		power_supply.give(10000)
+		user << "<span class='notice'>You insert [A] in [src], recharging it.</span>"
+	else if(istype(A, /obj/item/weapon/ore/plasma))
+		qdel(A)
+		power_supply.give(5000)
+		user << "<span class='notice'>You insert [A] in [src], recharging it.</span>"
+	else
+		..()
+
+/obj/item/weapon/gun/energy/plasmacutter/adv
+	name = "advanced plasma cutter"
+	icon_state = "adv_plasmacutter"
+	modifystate = "adv_plasmacutter"
+	origin_tech = "combat=3;materials=4;magnets=3;plasmatech=3;engineering=2"
+	projectile_type = /obj/item/projectile/plasma/adv
+	fire_delay = 10
+	charge_cost = 100
 
 /obj/item/weapon/gun/energy/disabler
 	name = "disabler"
@@ -311,7 +361,7 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 
 /obj/item/weapon/gun/energy/disabler/cyborg/Destroy()
 	processing_objects.Remove(src)
-	..()
+	return ..()
 
 /obj/item/weapon/gun/energy/disabler/cyborg/process() //Every [recharge_time] ticks, recharge a shot for the cyborg
 	if(power_supply.charge == power_supply.maxcharge)
@@ -338,7 +388,6 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 	desc = "An extremely high-tech bluespace energy gun capable of teleporting targets to far off locations."
 	icon_state = "telegun"
 	item_state = "ionrifle"
-	icon_override = 'icons/mob/in-hand/guns.dmi'
 	fire_sound = 'sound/weapons/wave.ogg'
 	origin_tech = "combat=6;materials=7;powerstorage=5;bluespace=5;syndicate=4"
 	cell_type = "/obj/item/weapon/stock_parts/cell/crap"
@@ -368,7 +417,7 @@ modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
 
 /obj/item/weapon/gun/energy/printer/Destroy()
 	processing_objects.Remove(src)
-	..()
+	return ..()
 
 /obj/item/weapon/gun/energy/printer/process()
 	if(power_supply.charge == power_supply.maxcharge)

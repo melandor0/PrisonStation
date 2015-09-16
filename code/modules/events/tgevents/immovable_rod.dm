@@ -67,7 +67,7 @@ In my current plan for it, 'solid' will be defined as anything with density == 1
 
 	Move()
 		if(z != z_original || loc == destination)
-			spawn(0) del(src)
+			spawn(0) qdel(src)
 		return ..()
 
 	Bump(atom/clong)
@@ -85,9 +85,9 @@ In my current plan for it, 'solid' will be defined as anything with density == 1
 
 		else if (istype(clong, /mob))
 			if(clong.density || prob(10))
-				clong.meteorhit(src)
+				clong.ex_act(2)
 		else
-			del(src)
+			qdel(src)
 
 		if(clong && prob(25))
 			src.loc = clong.loc

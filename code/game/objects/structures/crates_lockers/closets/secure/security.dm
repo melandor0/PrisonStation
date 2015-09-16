@@ -53,6 +53,7 @@
 		new /obj/item/clothing/suit/armor/vest(src)
 		new /obj/item/weapon/gun/energy/gun(src)
 		new /obj/item/device/flash(src)
+		new /obj/item/weapon/mining_voucher(src)
 		new /obj/item/clothing/accessory/petcollar(src)
 		return
 
@@ -106,6 +107,7 @@
 		new /obj/item/device/radio/headset/heads/hos/alt(src)
 		new /obj/item/clothing/under/rank/head_of_security(src)
 		new /obj/item/clothing/under/rank/head_of_security/formal(src)
+		new /obj/item/clothing/under/rank/head_of_security/corp(src)
 		new /obj/item/clothing/suit/armor/hos(src)
 		new /obj/item/clothing/suit/armor/hos/alt(src)
 		new /obj/item/clothing/head/HoS(src)
@@ -148,6 +150,7 @@
 		new /obj/item/clothing/head/beret/sec/warden(src)
 		new /obj/item/clothing/under/rank/warden(src)
 		new /obj/item/clothing/under/rank/warden/formal(src)
+		new /obj/item/clothing/under/rank/warden/corp(src)
 		new /obj/item/clothing/glasses/sunglasses/sechud(src)
 		new /obj/item/clothing/mask/gas/sechailer(src)
 		new /obj/item/taperoll/police(src)
@@ -237,7 +240,7 @@
 		new /obj/item/weapon/storage/firstaid/o2(src)
 		new /obj/item/weapon/storage/firstaid/toxin(src)
 		new /obj/item/clothing/suit/storage/brigdoc(src)
-		new /obj/item/clothing/under/rank/medical(src)
+		new /obj/item/clothing/under/rank/security/brigphys(src)
 		new /obj/item/clothing/shoes/white(src)
 		new /obj/item/device/radio/headset/headset_sec/alt(src)
 		return
@@ -267,6 +270,7 @@
 		new /obj/item/clothing/glasses/hud/health_advanced
 		new /obj/item/clothing/head/beret/centcom/officer(src)
 		new /obj/item/clothing/suit/armor/vest/fluff/deus_blueshield(src)
+		new /obj/item/clothing/suit/storage/blueshield(src)
 		new /obj/item/clothing/shoes/centcom(src)
 		new /obj/item/clothing/accessory/holster(src)
 		new /obj/item/clothing/accessory/blue(src)

@@ -1,27 +1,15 @@
 
 
 /mob/proc/rightandwrong(var/summon_type) //0 = Summon Guns, 1 = Summon Magic
-	var/list/gunslist = list("taser","egun","laser","revolver","detective","c20r","nuclear","deagle","gyrojet","pulse","silenced","cannon","doublebarrel","shotgun","combatshotgun","bulldog","mateba","sabr","crossbow","saw","car","boltaction")
+	var/list/gunslist = list("taser","egun","laser","revolver","detective","c20r","nuclear","deagle","gyrojet","pulse","silenced","cannon","doublebarrel","shotgun","combatshotgun","bulldog","mateba","sabr","crossbow","saw","car","boltaction","arg")
 	var/list/magiclist = list("fireball","smoke","blind","mindswap","forcewall","knock","horsemask","charge", "summonitem", "wandnothing", "wanddeath", "wandresurrection", "wandpolymorph", "wandteleport", "wanddoor", "wandfireball", "staffhealing", "armor", "scrying", "staffdoor", "special")
 	var/list/magicspeciallist = list("staffchange","staffanimation", "wandbelt", "contract", "staffchaos")
 	usr << "<B>You summoned [summon_type ? "magic" : "guns"]!</B>"
-	message_admins("[key_name_admin(usr, 1)] summoned [summon_type ? "magic" : "guns"]!")
+	message_admins("[key_name_admin(usr)] summoned [summon_type ? "magic" : "guns"]!")
 	for(var/mob/living/carbon/human/H in player_list)
 		if(H.stat == 2 || !(H.client)) continue
 		if(H.mind)
 			if(H.mind.special_role == "Wizard" || H.mind.special_role == "apprentice") continue
-		if(prob(25) && !(H.mind in ticker.mode.traitors))
-			ticker.mode.traitors += H.mind
-			H.mind.special_role = "traitor"
-			var/datum/objective/survive/survive = new
-			survive.owner = H.mind
-			H.mind.objectives += survive
-			H.attack_log += "\[[time_stamp()]\] <font color='red'>Was made into a survivor, and trusts no one!</font>"
-			H << "<B>You are the survivor! Your own safety matters above all else, trust no one and kill anyone who gets in your way. However, armed as you are, now would be the perfect time to settle that score or grab that pair of yellow gloves you've been eyeing...</B>"
-			var/obj_count = 1
-			for(var/datum/objective/OBJ in H.mind.objectives)
-				H << "<B>Objective #[obj_count]</B>: [OBJ.explanation_text]"
-				obj_count++
 		var/randomizeguns = pick(gunslist)
 		var/randomizemagic = pick(magiclist)
 		var/randomizemagicspecial = pick(magicspeciallist)
@@ -42,7 +30,7 @@
 				if("nuclear")
 					new /obj/item/weapon/gun/energy/gun/nuclear(get_turf(H))
 				if("deagle")
-					new /obj/item/weapon/gun/projectile/automatic/deagle/camo(get_turf(H))
+					new /obj/item/weapon/gun/projectile/automatic/pistol/deagle/camo(get_turf(H))
 				if("gyrojet")
 					new /obj/item/weapon/gun/projectile/automatic/gyropistol(get_turf(H))
 				if("pulse")
@@ -59,17 +47,19 @@
 				if("combatshotgun")
 					new /obj/item/weapon/gun/projectile/shotgun/combat(get_turf(H))
 				if("bulldog")
-					new /obj/item/weapon/gun/projectile/automatic/bulldog(get_turf(H))
+					new /obj/item/weapon/gun/projectile/automatic/shotgun/bulldog(get_turf(H))
+				if("arg")
+					new /obj/item/weapon/gun/projectile/automatic/ar(get_turf(H))
 				if("mateba")
 					new /obj/item/weapon/gun/projectile/revolver/mateba(get_turf(H))
 				if("sabr")
-					new /obj/item/weapon/gun/projectile/automatic(get_turf(H))
+					new /obj/item/weapon/gun/projectile/automatic/proto(get_turf(H))
 				if("crossbow")
 					new /obj/item/weapon/gun/energy/kinetic_accelerator/crossbow(get_turf(H))
 				if("saw")
 					new /obj/item/weapon/gun/projectile/automatic/l6_saw(get_turf(H))
 				if("car")
-					new /obj/item/weapon/gun/projectile/automatic/c90gl(get_turf(H))
+					new /obj/item/weapon/gun/projectile/automatic/m90(get_turf(H))
 				if("boltaction")
 					new /obj/item/weapon/gun/projectile/shotgun/boltaction(get_turf(H))
 		else

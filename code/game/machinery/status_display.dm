@@ -1,4 +1,4 @@
-#define FONT_SIZE "4pt"
+#define FONT_SIZE "5pt"
 #define FONT_COLOR "#09f"
 #define FONT_STYLE "Arial Black"
 #define SCROLL_SPEED 2
@@ -35,7 +35,7 @@
 	var/ignore_friendc = 0
 
 	var/spookymode = 0
-	
+
 	maptext_height = 26
 	maptext_width = 32
 
@@ -134,11 +134,10 @@
 			return 1
 	return 0
 
-/obj/machinery/status_display/examine()
-	set src in view()
-	. = ..()
+/obj/machinery/status_display/examine(mob/user)
+	. = ..(user)
 	if(mode != STATUS_DISPLAY_BLANK && mode != STATUS_DISPLAY_ALERT)
-		usr << "The display says:<br>\t[sanitize(message1)]<br>\t[sanitize(message2)]"
+		user << "The display says:<br>\t[sanitize(message1)]<br>\t[sanitize(message2)]"
 
 /obj/machinery/status_display/proc/set_message(m1, m2)
 	if(m1)
@@ -222,7 +221,7 @@
 	density = 0
 
 	var/spookymode = 0
-	
+
 	var/mode = 0	// 0 = Blank
 					// 1 = AI emoticon
 					// 2 = Blue screen of death

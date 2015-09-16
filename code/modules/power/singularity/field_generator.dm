@@ -130,7 +130,7 @@ field_generator power level display
 					user.visible_message("[user.name] starts to weld the [src.name] to the floor.", \
 						"You start to weld the [src] to the floor.", \
 						"You hear welding")
-					if (do_after(user,20))
+					if (do_after(user,20, target = src))
 						if(!src || !WT.isOn()) return
 						state = 2
 						user << "You weld the field generator to the floor."
@@ -142,7 +142,7 @@ field_generator power level display
 					user.visible_message("[user.name] starts to cut the [src.name] free from the floor.", \
 						"You start to cut the [src] free from the floor.", \
 						"You hear welding")
-					if (do_after(user,20))
+					if (do_after(user,20, target = src))
 						if(!src || !WT.isOn()) return
 						state = 1
 						user << "You cut the [src] free from the floor."
@@ -163,8 +163,6 @@ field_generator power level display
 	else
 		..()
 
-/obj/machinery/containment_field/meteorhit()
-	return 0
 
 /obj/machinery/field_generator/bullet_act(var/obj/item/projectile/Proj)
 	if(Proj.flag != "bullet")
@@ -175,7 +173,7 @@ field_generator power level display
 
 /obj/machinery/field_generator/Destroy()
 	src.cleanup()
-	..()
+	return ..()
 
 
 
@@ -328,7 +326,7 @@ field_generator power level display
 	for (var/obj/machinery/containment_field/F in fields)
 		if (isnull(F))
 			continue
-		del(F)
+		qdel(F)
 	fields = list()
 	for(var/obj/machinery/field_generator/FG in connected_gens)
 		if (isnull(FG))
@@ -346,7 +344,7 @@ field_generator power level display
 	//I want to avoid using global variables.
 	spawn(1)
 		var/temp = 1 //stops spam
-		for(var/obj/machinery/singularity/O in machines)
+		for(var/obj/singularity/O in singularities)
 			if(O.last_warning && temp)
 				if((world.time - O.last_warning) > 50) //to stop message-spam
 					temp = 0

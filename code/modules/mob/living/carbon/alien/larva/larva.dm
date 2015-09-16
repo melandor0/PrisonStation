@@ -101,43 +101,8 @@
 
 	updatehealth()
 
-
-
-/mob/living/carbon/alien/larva/blob_act()
-	if (stat == 2)
-		return
-	var/shielded = 0
-
-	var/damage = null
-	if (stat != 2)
-		damage = rand(10,30)
-
-	if(shielded)
-		damage /= 4
-
-		//paralysis += 1
-
-	show_message("<span class='userdanger'>The blob attacks you!</span>")
-
-	adjustFireLoss(damage)
-
-	updatehealth()
-	return
-
-
 //can't equip anything
 /mob/living/carbon/alien/larva/attack_ui(slot_id)
-	return
-
-/mob/living/carbon/alien/larva/meteorhit(O as obj)
-	for(var/mob/M in viewers(src, null))
-		if ((M.client && !( M.blinded )))
-			M.show_message(text("\red [] has been hit by []", src, O), 1)
-	if (health > 0)
-		adjustBruteLoss((istype(O, /obj/effect/meteor/small) ? 10 : 25))
-		adjustFireLoss(30)
-
-		updatehealth()
 	return
 
 /mob/living/carbon/alien/larva/attack_animal(mob/living/simple_animal/M as mob)
@@ -194,22 +159,11 @@
 
 	switch(M.a_intent)
 
-		if ("help")
+		if (I_HELP)
 			help_shake_act(M)
 
-		if ("grab")
-			if (M == src || anchored)
-				return
-			var/obj/item/weapon/grab/G = new /obj/item/weapon/grab(M, src )
-
-			M.put_in_active_hand(G)
-
-			G.synch()
-
-			LAssailant = M
-
-			playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-			visible_message("<span class='warning'>[M] has grabbed [src] passively!</span>")
+		if (I_GRAB)
+			grabbedby(M)
 
 		else
 			M.do_attack_animation(src)
@@ -251,7 +205,7 @@
 
 	switch(M.a_intent)
 
-		if ("help")
+		if (I_HELP)
 			sleeping = max(0,sleeping-5)
 			resting = 0
 			AdjustParalysis(-3)

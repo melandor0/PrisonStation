@@ -43,7 +43,7 @@
 	tracks.AddTracks(bloodDNA,comingdir,goingdir,bloodcolor)
 
 /turf/simulated/Entered(atom/A, atom/OL)
-
+	..()
 	if(ishuman(A))
 		var/mob/living/carbon/human/M = A
 		if(M.lying)	return
@@ -116,8 +116,8 @@
 					step(M, M.dir)
 					M << "\blue You slipped on the wet floor!"
 					playsound(src, 'sound/misc/slip.ogg', 50, 1, -3)
-					M.Stun(5)
-					M.Weaken(3)
+					M.Stun(4)
+					M.Weaken(2)
 				else
 					M.inertia_dir = 0
 					return
@@ -134,7 +134,7 @@
 					M.take_organ_damage(2) // Was 5 -- TLE
 					M << "\blue You slipped on the floor!"
 					playsound(src, 'sound/misc/slip.ogg', 50, 1, -3)
-					M.Weaken(10)
+					M.Weaken(7)
 
 			if(3) // Ice
 				if ((M.m_intent == "run") && !(istype(M:shoes, /obj/item/clothing/shoes) && M:shoes.flags&NOSLIP) && prob(30))
@@ -143,12 +143,10 @@
 					M << "\blue You slipped on the icy floor!"
 					playsound(src, 'sound/misc/slip.ogg', 50, 1, -3)
 					M.Stun(4)
-					M.Weaken(5)
+					M.Weaken(2)
 				else
 					M.inertia_dir = 0
 					return
-
-	..()
 
 //returns 1 if made bloody, returns 0 otherwise
 /turf/simulated/add_blood(mob/living/carbon/human/M as mob)

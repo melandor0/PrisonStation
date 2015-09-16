@@ -48,14 +48,14 @@
 	user.changeNext_move(CLICK_CD_RANGE*2)
 
 	if(reagents.has_reagent("sacid"))
-		message_admins("[key_name_admin(user)] fired sulphuric acid from \a [src].")
+		msg_admin_attack("[key_name_admin(user)] fired sulphuric acid from \a [src].")
 		log_game("[key_name(user)] fired sulphuric acid from \a [src].")
 	if(reagents.has_reagent("facid"))
-		message_admins("[key_name_admin(user)] fired Fluorosulfuric Acid from \a [src].")
-		log_game("[key_name(user)] fired Fluorosulfuric Acid from \a [src].")
+		msg_admin_attack("[key_name_admin(user)] fired fluorosulfuric acid from \a [src].")
+		log_game("[key_name(user)] fired fluorosulfuric Acid from \a [src].")
 	if(reagents.has_reagent("lube"))
-		message_admins("[key_name_admin(user)] fired Space lube from \a [src].")
-		log_game("[key_name(user)] fired Space lube from \a [src].")
+		msg_admin_attack("[key_name_admin(user)] fired space lube from \a [src].")
+		log_game("[key_name(user)] fired space lube from \a [src].")
 	return
 
 
@@ -71,7 +71,7 @@
 			for(var/atom/T in get_turf(D))
 				D.reagents.reaction(T)
 			sleep(3)
-		del(D)
+		qdel(D)
 
 
 /obj/item/weapon/reagent_containers/spray/attack_self(var/mob/user)
@@ -83,7 +83,6 @@
 /obj/item/weapon/reagent_containers/spray/examine(mob/user)
 	if(..(user, 0) && user==src.loc)
 		user << "[round(src.reagents.total_volume)] units left."
-	return
 
 /obj/item/weapon/reagent_containers/spray/verb/empty()
 
@@ -200,7 +199,7 @@
 				for(var/atom/t in get_turf(D))
 					D.reagents.reaction(t)
 				sleep(2)
-			del(D)
+			qdel(D)
 
 
 

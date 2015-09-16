@@ -14,7 +14,7 @@
  */
 
 /obj/item/weapon/storage/fancy/
-	icon = 'icons/obj/food.dmi'
+	icon = 'icons/obj/food/food.dmi'
 	icon_state = "donutbox6"
 	name = "donut box"
 	var/icon_type = "donut"
@@ -24,17 +24,16 @@
 	src.icon_state = "[src.icon_type]box[total_contents]"
 	return
 
-/obj/item/weapon/storage/fancy/examine()
-	set src in oview(1)
+/obj/item/weapon/storage/fancy/examine(mob/user)
+	if(!..(user, 1))
+		return
 
 	if(contents.len <= 0)
-		usr << "There are no [src.icon_type]s left in the box."
+		user << "There are no [src.icon_type]s left in the box."
 	else if(contents.len == 1)
-		usr << "There is one [src.icon_type] left in the box."
+		user << "There is one [src.icon_type] left in the box."
 	else
-		usr << "There are [src.contents.len] [src.icon_type]s in the box."
-
-	return
+		user << "There are [src.contents.len] [src.icon_type]s in the box."
 
 
 
@@ -43,7 +42,7 @@
  */
 
 /obj/item/weapon/storage/fancy/donut_box
-	icon = 'icons/obj/food.dmi'
+	icon = 'icons/obj/food/food.dmi'
 	icon_state = "donutbox6"
 	icon_type = "donut"
 	name = "donut box"
@@ -62,7 +61,7 @@
  */
 
 /obj/item/weapon/storage/fancy/egg_box
-	icon = 'icons/obj/food.dmi'
+	icon = 'icons/obj/food/food.dmi'
 	icon_state = "eggbox"
 	icon_type = "egg"
 	name = "egg box"
@@ -182,8 +181,8 @@
 
 
 /obj/item/weapon/storage/fancy/cigarettes/Destroy()
-	del(reagents)
-	..()
+	qdel(reagents)
+	return ..()
 
 
 /obj/item/weapon/storage/fancy/cigarettes/update_icon()

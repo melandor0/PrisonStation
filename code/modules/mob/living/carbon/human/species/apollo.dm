@@ -1,5 +1,6 @@
 /datum/species/wryn
 	name = "Wryn"
+	name_plural = "Wryn"
 	icobase = 'icons/mob/human_races/r_wryn.dmi'
 	deform = 'icons/mob/human_races/r_wryn.dmi'
 	language = "Wryn Hivemind"
@@ -34,9 +35,11 @@
 		"antennae" =    /obj/item/organ/wryn/hivenode
 		)
 
-	flags = IS_WHITELISTED | HAS_LIPS | HAS_UNDERWEAR | NO_BREATHE | HAS_SKIN_COLOR | NO_SCAN | NO_SCAN | HIVEMIND
+	flags = IS_WHITELISTED | HAS_LIPS | NO_BREATHE | HAS_SKIN_COLOR | NO_SCAN | NO_SCAN | HIVEMIND
+	clothing_flags = HAS_UNDERWEAR | HAS_UNDERSHIRT | HAS_SOCKS
 	dietflags = DIET_HERB		//bees feed off nectar, so bee people feed off plants too
 
+	reagent_tag = PROCESS_ORG
 	base_color = "#704300"
 	flesh_color = "#704300"
 	blood_color = "#FFFF99"
@@ -49,7 +52,7 @@
 			C << "<span class='danger'>It feels like part of you has died.</span>"
 
 /datum/species/wryn/handle_attack_hand(var/mob/living/carbon/human/H, var/mob/living/carbon/human/M)
-	if(M.a_intent == "harm")
+	if(M.a_intent == I_HARM)
 		if(H.handcuffed)
 			if(!(locate(H.internal_organs_by_name["antennae"]) in H.internal_organs))	return
 			var/turf/p_loc = M.loc
@@ -57,9 +60,9 @@
 
 			M.visible_message("<span class='notice'>[M] begins to violently pull off [H]'s antennae.</span>")
 			H << "<span class='danger'><B>[M] grips your antennae and starts violently pulling!<B></span>"
-			do_after(H, 250)
+			do_after(H, 250, target = src)
 			if(p_loc == M.loc && p_loc_m == H.loc)
-				del(H.internal_organs_by_name["antennae"])
+				qdel(H.internal_organs_by_name["antennae"])
 				H.remove_language("Wryn Hivemind")
 				new /obj/item/organ/wryn/hivenode(M.loc)
 				M << "<span class='notice'>You hear a loud crunch as you mercilessly pull off [H]'s antennae.</span>"
@@ -75,6 +78,7 @@
 
 /datum/species/nucleation
 	name = "Nucleation"
+	name_plural = "Nucleations"
 	icobase = 'icons/mob/human_races/r_nucleation.dmi'
 	unarmed_type = /datum/unarmed_attack/punch
 	blurb = "A sub-race of unforunates who have been exposed to too much supermatter radiation. As a result, \
@@ -90,6 +94,7 @@
 	flags = IS_WHITELISTED | NO_BREATHE | NO_BLOOD | NO_PAIN | HAS_LIPS | NO_SCAN
 	dietflags = DIET_OMNI		//still human at their core, so they maintain their eating habits and diet
 
+	reagent_tag = PROCESS_ORG
 	has_organ = list(
 		"heart" =    /obj/item/organ/heart,
 		"crystalized brain" =    /obj/item/organ/brain/crystal,
@@ -106,6 +111,6 @@
 /datum/species/nucleation/handle_death(var/mob/living/carbon/human/H)
 	var/turf/T = get_turf(H)
 	H.visible_message("\red[H]'s body explodes, leaving behind a pile of microscopic crystals!")
-	supermatter_delamination(T, 2, 0, 0) // Create a small supermatter burst upon death
-	new /obj/item/weapon/shard/supermatter( T )
-	del(H)
+	explosion(T, 0, 0, 2, 2) // Create a small explosion burst upon death
+//	new /obj/item/weapon/shard/supermatter( T )
+	qdel(H)

@@ -349,7 +349,7 @@
 /obj/item/weapon/grenade/clusterbuster/apocalypse
 	name = "Apocalypse Bomb"
 	desc = "No matter what, do not EVER use this."
-	payload = /obj/machinery/singularity
+	payload = /obj/singularity
 
 /obj/item/weapon/grenade/clusterbuster/ultima
 	name = "Earth Shattering Kaboom"
@@ -409,7 +409,7 @@
 			new /obj/item/weapon/grenade/clusterbuster/segment(src.loc,payload,name)//Creates a 'segment' that launches more payloads
 			playsound(src.loc, 'sound/weapons/armbomb.ogg', 75, 1, -3)
 	spawn(0)
-		del(src)
+		qdel(src)
 		return
 
 /obj/item/weapon/grenade/clusterbuster/segment
@@ -440,7 +440,7 @@
 		new /obj/item/weapon/grenade/clusterbuster/node(src.loc,payload)
 		spawn(0)
 			playsound(src.loc, 'sound/weapons/armbomb.ogg', 75, 1, -3)
-	del(src)
+	qdel(src)
 	return
 
 /obj/item/weapon/grenade/clusterbuster/node/New(var/turf/newloc,var/T,var/N)
@@ -456,6 +456,6 @@
 		var/atom/A = new payload(loc)
 		if(istype(A,/obj/item/weapon/grenade))
 			A:prime()
-		if(istype(A,/obj/machinery/singularity)) // I can't emphasize enough how much you should never use this grenade
+		if(istype(A,/obj/singularity)) // I can't emphasize enough how much you should never use this grenade
 			A:energy = 200
-		del src
+		qdel(src)

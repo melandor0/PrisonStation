@@ -99,6 +99,8 @@
 	icon_closed = "blue"
 
 /obj/structure/closet/lawcloset/New()
+	..()
+	sleep(2)
 	new /obj/item/clothing/under/lawyer/female(src)
 	new /obj/item/clothing/under/lawyer/black(src)
 	new /obj/item/clothing/under/lawyer/red(src)
@@ -108,6 +110,8 @@
 	new /obj/item/clothing/suit/storage/lawyer/purpjacket(src)
 	new /obj/item/clothing/shoes/brown(src)
 	new /obj/item/clothing/shoes/black(src)
+	new /obj/item/clothing/glasses/sunglasses/big(src)
+	new /obj/item/clothing/glasses/sunglasses/big(src)
 
 //Paramedic
 

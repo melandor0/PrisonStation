@@ -66,8 +66,7 @@
 		remove_noz()
 		qdel(noz)
 		noz = null
-	..()
-	return
+	return ..()
 
 /obj/item/weapon/watertank/attack_hand(mob/user as mob)
 	if(src.loc == user)
@@ -109,7 +108,6 @@
 	icon = 'icons/obj/watertank.dmi'
 	icon_state = "mister"
 	item_state = "mister"
-	icon_override = 'icons/mob/in-hand/tools.dmi'
 	w_class = 4.0
 	amount_per_transfer_from_this = 50
 	possible_transfer_amounts = list(25,50,100)
@@ -211,7 +209,6 @@
 	icon = 'icons/obj/watertank.dmi'
 	icon_state = "atmos_nozzle"
 	item_state = "nozzleatmos"
-	icon_override = 'icons/mob/in-hand/tools.dmi'
 	safety = 0
 	max_water = 200
 	power = 8
@@ -358,7 +355,7 @@
 				G.temperature = 2
 			T.air_update_turf()
 			for(var/obj/effect/hotspot/H in T)
-				H.Kill()
+				qdel(H)
 				if(G.toxins)
 					G.nitrogen += (G.toxins)
 					G.toxins = 0

@@ -1,8 +1,7 @@
 //This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:31
 var/global/list/all_objectives = list()
 
-var/list/potential_theft_objectives=typesof(/datum/theft_objective) \
-	- /datum/theft_objective \
+var/list/potential_theft_objectives=subtypesof(/datum/theft_objective) \
 	- /datum/theft_objective/special \
 	- /datum/theft_objective/number \
 	- /datum/theft_objective/number/special \
@@ -20,9 +19,9 @@ datum/objective
 		if(text)
 			explanation_text = text
 
-	Del()
+	Destroy()
 		all_objectives -= src
-		..()
+		return ..()
 
 	proc/check_completion()
 		return completed
@@ -94,7 +93,7 @@ datum/objective/mutiny
 	find_target_by_role(role, role_type=0)
 		..(role, role_type)
 		if(target && target.current)
-			explanation_text = "Assassinate [target.current.real_name], the [!role_type ? target.assigned_role : target.special_role]."
+			explanation_text = "Assassinate  or exile [target.current.real_name], the [!role_type ? target.assigned_role : target.special_role]."
 		else
 			explanation_text = "Free Objective"
 		return target
@@ -328,7 +327,7 @@ datum/objective/protect//The opposite of killing a dude.
 
 
 datum/objective/hijack
-	explanation_text = "Hijack the emergency shuttle by escaping alone."
+	explanation_text = "Hijack the shuttle to ensure no loyalist Nanotrasen crew escape alive."
 
 	check_completion()
 		if(!owner.current || owner.current.stat)
@@ -338,9 +337,9 @@ datum/objective/hijack
 		if(issilicon(owner.current))
 			return 0
 		var/area/shuttle = locate(/area/shuttle/escape/centcom)
-		var/list/protected_mobs = list(/mob/living/silicon/ai, /mob/living/silicon/pai)
 		for(var/mob/living/player in player_list)
-			if(player.type in protected_mobs)	continue
+			if(istype(player, /mob/living/silicon) || istype(player, /mob/living/simple_animal) || player.mind.special_role && !player.mind.special_role == "Response Team")
+				continue
 			if (player.mind && (player.mind != owner))
 				if(player.stat != DEAD)			//they're not dead!
 					if(get_turf(player) in shuttle)
@@ -388,7 +387,17 @@ datum/objective/silence
 
 
 datum/objective/escape
-	explanation_text = "Escape on the shuttle alive and free."
+	explanation_text = "Escape on the shuttle or an escape pod alive and free."
+	var/escape_areas = list(/area/shuttle/escape/centcom,
+		/area/shuttle/escape_pod1/centcom,
+		/area/shuttle/escape_pod1/transit,
+		/area/shuttle/escape_pod2/centcom,
+		/area/shuttle/escape_pod2/transit,
+		/area/shuttle/escape_pod3/centcom,
+		/area/shuttle/escape_pod3/transit,
+		/area/shuttle/escape_pod5/centcom,
+		/area/shuttle/escape_pod5/transit,
+		/area/centcom/evac)
 
 	check_completion()
 		if(issilicon(owner.current))
@@ -399,27 +408,14 @@ datum/objective/escape
 			return 0
 		if(!owner.current || owner.current.stat == DEAD)
 			return 0
+		if(owner.current.restrained())
+			return 0
 		var/turf/location = get_turf(owner.current.loc)
 		if(!location)
 			return 0
 
-		if(istype(location, /turf/simulated/shuttle/floor4)) // Fails tratiors if they are in the shuttle brig -- Polymorph
-			if(istype(owner.current, /mob/living/carbon))
-				var/mob/living/carbon/C = owner.current
-				if (!C.handcuffed)
-					return 1
-			return 0
-
-		var/area/check_area = location.loc
-		if(istype(check_area, /area/shuttle/escape/centcom))
-			return 1
-		if(istype(check_area, /area/shuttle/escape_pod1/centcom))
-			return 1
-		if(istype(check_area, /area/shuttle/escape_pod2/centcom))
-			return 1
-		if(istype(check_area, /area/shuttle/escape_pod3/centcom))
-			return 1
-		if(istype(check_area, /area/shuttle/escape_pod5/centcom))
+		var/area/check_area = get_area(location)
+		if(check_area && check_area.type in escape_areas)
 			return 1
 		else
 			return 0
@@ -440,7 +436,7 @@ datum/objective/escape/escape_with_identity
 			target_real_name = target.current.real_name
 			explanation_text = "Escape on the shuttle or an escape pod with the identity of [target_real_name], the [target.assigned_role] while wearing their identification card."
 		else
-			explanation_text = "Free Objective."
+			explanation_text = "Free Objective"
 
 	check_completion()
 		if(!target_real_name)
@@ -601,7 +597,7 @@ datum/objective/steal
 			if (!O.typepath) return
 			var/tmp_obj = new O.typepath
 			var/custom_name = tmp_obj:name
-			del(tmp_obj)
+			qdel(tmp_obj)
 			O.name = sanitize(copytext(input("Enter target name:", "Objective target", custom_name) as text|null,1,MAX_NAME_LEN))
 			if (!O.name) return
 			steal_target = O
@@ -718,14 +714,15 @@ datum/objective/destroy
 			explanation_text = "Summon Nar-Sie via the use of an appropriate rune. It will only work if nine cultists stand on and around it."
 
 			check_completion()
-				if(eldergod) //global var, defined in rune4.dm
+				if(!eldergod) //global var, defined in rune4.dm
 					return 1
 				return 0
 
 		survivecult
 			var/num_cult
+			var/cult_needed = 4 + round((num_players_started() / 10))
 
-			explanation_text = "Our knowledge must live on. Make sure at least 5 acolytes escape on the shuttle to spread their work on an another station."
+			explanation_text = "Our knowledge must live on. Make sure at least [cult_needed] acolytes escape on the shuttle to spread their work on an another station."
 
 			check_completion()
 				if(!emergency_shuttle.returned())
@@ -739,7 +736,7 @@ datum/objective/destroy
 						if(iscultist(H))
 							cultists_escaped++
 
-				if(cultists_escaped>=5)
+				if(cultists_escaped >= cult_needed)
 					return 1
 
 				return 0
@@ -747,20 +744,26 @@ datum/objective/destroy
 		sacrifice //stolen from traitor target objective
 
 			proc/find_target() //I don't know how to make it work with the rune otherwise, so I'll do it via a global var, sacrifice_target, defined in rune15.dm
-				var/list/possible_targets = call(/datum/game_mode/cult/proc/get_unconvertables)()
+				var/datum/game_mode/cult/C = ticker.mode
+				var/list/possible_targets = C.get_unconvertables()
+
+				if(!possible_targets.len)
+					for(var/mob/living/carbon/human/player in player_list)
+						if(player.mind && !(player.mind in cult))
+							possible_targets += player.mind
 
 				if(possible_targets.len > 0)
 					sacrifice_target = pick(possible_targets)
 
 				if(sacrifice_target && sacrifice_target.current)
-					explanation_text = "Sacrifice [sacrifice_target.current.real_name], the [sacrifice_target.assigned_role]. You will need the sacrifice rune (Hell join blood) and three acolytes to do so."
+					explanation_text = "Sacrifice [sacrifice_target.current.real_name], the [sacrifice_target.assigned_role]. You will need the sacrifice rune (hell join blood) and three acolytes to do so."
 				else
 					explanation_text = "Free Objective"
 
 				return sacrifice_target
 
 			check_completion() //again, calling on a global list defined in rune15.dm
-				if(sacrifice_target.current in sacrificed)
+				if(sacrifice_target in sacrificed)
 					return 1
 				else
 					return 0

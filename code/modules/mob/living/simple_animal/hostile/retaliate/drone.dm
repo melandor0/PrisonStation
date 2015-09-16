@@ -15,7 +15,7 @@
 	response_harm = "hits the"
 	speak = list("ALERT.","Hostile-ile-ile entities dee-twhoooo-wected.","Threat parameterszzzz- szzet.","Bring sub-sub-sub-systems uuuup to combat alert alpha-a-a.")
 	emote_see = list("beeps menacingly","whirrs threateningly","scans its immediate vicinity")
-	a_intent = "harm"
+	a_intent = I_HARM
 	stop_automated_movement_when_pulled = 0
 	health = 300
 	maxHealth = 300
@@ -159,7 +159,7 @@
 /mob/living/simple_animal/hostile/retaliate/malf_drone/Die()
 	src.visible_message("\blue \icon[src] [src] suddenly breaks apart.")
 	..()
-	del(src)
+	qdel(src)
 
 /mob/living/simple_animal/hostile/retaliate/malf_drone/Destroy()
 	//some random debris left behind
@@ -170,16 +170,16 @@
 		var/obj/O
 
 		//shards
-		O = getFromPool(/obj/item/weapon/shard, loc)
+		O = PoolOrNew(/obj/item/weapon/shard, loc)
 		step_to(O, get_turf(pick(view(7, src))))
 		if(prob(75))
-			O = getFromPool(/obj/item/weapon/shard, loc)
+			O = PoolOrNew(/obj/item/weapon/shard, loc)
 			step_to(O, get_turf(pick(view(7, src))))
 		if(prob(50))
-			O = getFromPool(/obj/item/weapon/shard, loc)
+			O = PoolOrNew(/obj/item/weapon/shard, loc)
 			step_to(O, get_turf(pick(view(7, src))))
 		if(prob(25))
-			O = getFromPool(/obj/item/weapon/shard, loc)
+			O = PoolOrNew(/obj/item/weapon/shard, loc)
 			step_to(O, get_turf(pick(view(7, src))))
 
 		//rods
@@ -270,7 +270,7 @@
 			C.name = "Corrupted drone morality core"
 			C.origin_tech = "illegal=[rand(3,6)]"
 
-	..()
+	return ..()
 
 /obj/item/projectile/beam/drone
 	damage = 15

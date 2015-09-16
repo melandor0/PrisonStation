@@ -26,6 +26,7 @@
 	reagent_state = LIQUID
 	color = "#FF0000"
 	metabolization_rate = 4
+	process_flags = ORGANIC | SYNTHETIC
 
 /datum/chemical_reaction/clf3
 	name = "Chlorine Trifluoride"
@@ -33,7 +34,7 @@
 	result = "clf3"
 	required_reagents = list("chlorine" = 1, "fluorine" = 3)
 	result_amount = 2
-	required_temp = 424
+	min_temp = 424
 
 /datum/reagent/clf3/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
@@ -45,7 +46,7 @@
 /datum/chemical_reaction/clf3/on_reaction(var/datum/reagents/holder, var/created_volume)
 	var/turf/T = get_turf(holder.my_atom)
 	for(var/turf/turf in range(1,T))
-		new /obj/effect/hotspot(turf)
+		PoolOrNew(/obj/effect/hotspot, turf)
 	return
 
 /datum/reagent/clf3/reaction_turf(var/turf/simulated/T, var/volume)
@@ -58,13 +59,13 @@
 		if(prob(volume/10))
 			F.make_plating()
 		if(istype(F, /turf/simulated/floor/))
-			new /obj/effect/hotspot(F)
+			PoolOrNew(/obj/effect/hotspot, F)
 	if(istype(T, /turf/simulated/wall/))
 		var/turf/simulated/wall/W = T
 		if(prob(volume/10))
 			W.ChangeTurf(/turf/simulated/floor)
 	if(istype(T, /turf/simulated/shuttle/))
-		new /obj/effect/hotspot(T)
+		PoolOrNew(/obj/effect/hotspot, T)
 	return
 
 /datum/reagent/clf3/reaction_mob(var/mob/living/M, var/method=TOUCH, var/volume)
@@ -93,7 +94,7 @@
 	id = "sorium_vortex"
 	result = null
 	required_reagents = list("sorium" = 1)
-	required_temp = 474
+	min_temp = 474
 
 /datum/chemical_reaction/sorium_vortex/on_reaction(var/datum/reagents/holder, var/created_volume)
 	var/turf/simulated/T = get_turf(holder.my_atom)
@@ -125,7 +126,7 @@
 	id = "ldm_vortex"
 	result = null
 	required_reagents = list("liquid_dark_matter" = 1)
-	required_temp = 474
+	min_temp = 474
 
 /datum/chemical_reaction/ldm_vortex/on_reaction(var/datum/reagents/holder, var/created_volume)
 	var/turf/simulated/T = get_turf(holder.my_atom)
@@ -176,7 +177,7 @@
 	result = null
 	required_reagents = list("blackpowder" = 1)
 	result_amount = 1
-	required_temp = 474
+	min_temp = 474
 	no_message = 1
 	mix_sound = null
 
@@ -196,6 +197,7 @@ datum/reagent/blackpowder/reaction_turf(var/turf/T, var/volume) //oh shit
 	blackpowder_detonate(holder, created_volume)
 	return
 
+/*
 /datum/reagent/blackpowder/on_ex_act()
 	var/location = get_turf(holder.my_atom)
 	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
@@ -204,7 +206,7 @@ datum/reagent/blackpowder/reaction_turf(var/turf/T, var/volume) //oh shit
 	sleep(rand(10,15))
 	blackpowder_detonate(holder, volume)
 	holder.remove_reagent("blackpowder", volume)
-	return
+	return */
 
 /proc/blackpowder_detonate(var/datum/reagents/holder, var/created_volume)
 	var/turf/simulated/T = get_turf(holder.my_atom)
@@ -238,7 +240,7 @@ datum/reagent/blackpowder/reaction_turf(var/turf/T, var/volume) //oh shit
 	id = "flash_powder_flash"
 	result = null
 	required_reagents = list("flash_powder" = 1)
-	required_temp = 374
+	min_temp = 374
 
 /datum/chemical_reaction/flash_powder_flash/on_reaction(var/datum/reagents/holder, var/created_volume)
 	var/location = get_turf(holder.my_atom)
@@ -322,7 +324,7 @@ datum/reagent/blackpowder/reaction_turf(var/turf/T, var/volume) //oh shit
 	name = "smoke_powder_smoke"
 	id = "smoke_powder_smoke"
 	required_reagents = list("smoke_powder" = 1)
-	required_temp = 374
+	min_temp = 374
 	secondary = 1
 	result_amount = 1
 	forbidden_reagents = list()
@@ -348,7 +350,7 @@ datum/reagent/blackpowder/reaction_turf(var/turf/T, var/volume) //oh shit
 	id = "sonic_powder_deafen"
 	result = null
 	required_reagents = list("sonic_powder" = 1)
-	required_temp = 374
+	min_temp = 374
 
 /datum/chemical_reaction/sonic_powder_deafen/on_reaction(var/datum/reagents/holder, var/created_volume)
 	var/location = get_turf(holder.my_atom)
@@ -413,6 +415,7 @@ datum/reagent/blackpowder/reaction_turf(var/turf/T, var/volume) //oh shit
 	description = "Catches you on fire and makes you ignite."
 	reagent_state = LIQUID
 	color = "#FF9999"
+	process_flags = ORGANIC | SYNTHETIC
 
 /datum/chemical_reaction/phlogiston
 	name = "phlogiston"
@@ -426,7 +429,7 @@ datum/reagent/blackpowder/reaction_turf(var/turf/T, var/volume) //oh shit
 		return
 	var/turf/simulated/T = get_turf(holder.my_atom)
 	for(var/turf/simulated/turf in range(created_volume/10,T))
-		new /obj/effect/hotspot(turf)
+		PoolOrNew(/obj/effect/hotspot, turf)
 	return
 
 /datum/reagent/phlogiston/on_mob_life(var/mob/living/M as mob)
@@ -443,6 +446,7 @@ datum/reagent/blackpowder/reaction_turf(var/turf/T, var/volume) //oh shit
 	description = "Very flammable."
 	reagent_state = LIQUID
 	color = "#FF9999"
+	process_flags = ORGANIC | SYNTHETIC
 
 /datum/reagent/napalm/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
@@ -467,6 +471,7 @@ datum/reagent/cryostylane
 	id = "cryostylane"
 	description = "Comes into existence at 20K. As long as there is sufficient oxygen for it to react with, Cryostylane slowly cools all other reagents in the mob down to 0K."
 	color = "#B2B2FF" // rgb: 139, 166, 233
+	process_flags = ORGANIC | SYNTHETIC
 
 /datum/chemical_reaction/cryostylane
 	name = "cryostylane"
@@ -500,6 +505,7 @@ datum/reagent/pyrosium
 	id = "pyrosium"
 	description = "Comes into existence at 20K. As long as there is sufficient oxygen for it to react with, Pyrosium slowly cools all other reagents in the mob down to 0K."
 	color = "#B20000" // rgb: 139, 166, 233
+	process_flags = ORGANIC | SYNTHETIC
 
 /datum/chemical_reaction/pyrosium
 	name = "pyrosium"
@@ -587,7 +593,7 @@ datum/reagent/firefighting_foam/reaction_obj(var/obj/O, var/volume)
 		lowertemp.temperature = max( min(lowertemp.temperature-2000,lowertemp.temperature / 2) ,0)
 		lowertemp.react()
 		T.assume_air(lowertemp)
-		del(hotspot)
+		qdel(hotspot)
 	return
 
 /datum/chemical_reaction/clf3_firefighting

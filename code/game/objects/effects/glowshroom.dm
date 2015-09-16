@@ -51,7 +51,7 @@
 
 /obj/effect/glowshroom/Destroy()
 	processing_objects -= src
-	..()
+	return ..()
 
 /obj/effect/glowshroom/process()
 	if(!spreaded)
@@ -163,4 +163,4 @@
 
 /obj/effect/glowshroom/proc/CheckEndurance()
 	if(endurance <= 0)
-		del(src)
+		qdel(src)

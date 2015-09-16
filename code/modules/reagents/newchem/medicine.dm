@@ -10,7 +10,7 @@ datum/reagent/silver_sulfadiazine
 	description = "This antibacterial compound is used to treat burn victims."
 	reagent_state = LIQUID
 	color = "#F0C814"
-	metabolization_rate = 2
+	metabolization_rate = 3
 
 datum/reagent/silver_sulfadiazine/reaction_mob(var/mob/living/M as mob, var/method=TOUCH, var/volume, var/show_message = 1)
 	if(iscarbon(M))
@@ -37,7 +37,7 @@ datum/reagent/styptic_powder
 	description = "Styptic (aluminium sulfate) powder helps control bleeding and heal physical wounds."
 	reagent_state = LIQUID
 	color = "#C8A5DC"
-	metabolization_rate = 2
+	metabolization_rate = 3
 
 datum/reagent/styptic_powder/reaction_mob(var/mob/living/M as mob, var/method=TOUCH, var/volume, var/show_message = 1)
 	if(iscarbon(M))
@@ -55,8 +55,7 @@ datum/reagent/styptic_powder/reaction_mob(var/mob/living/M as mob, var/method=TO
 
 datum/reagent/styptic_powder/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
-	if(prob(55))
-		M.adjustBruteLoss(-8*REM)
+	M.adjustBruteLoss(-2*REM)
 	..()
 	return
 
@@ -111,9 +110,10 @@ datum/reagent/charcoal
 datum/reagent/charcoal/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
 	M.adjustToxLoss(-1.5*REM)
-	for(var/datum/reagent/R in M.reagents.reagent_list)
-		if(R != src)
-			M.reagents.remove_reagent(R.id,1)
+	if(prob(50))
+		for(var/datum/reagent/R in M.reagents.reagent_list)
+			if(R != src)
+				M.reagents.remove_reagent(R.id,1)
 	..()
 	return
 
@@ -124,7 +124,7 @@ datum/reagent/charcoal/on_mob_life(var/mob/living/M as mob)
 	required_reagents = list("ash" = 1, "sodiumchloride" = 1)
 	result_amount = 2
 	mix_message = "The mixture yields a fine black powder."
-	required_temp = 380
+	min_temp = 380
 
 /datum/chemical_reaction/silver_sulfadiazine
 	name = "Silver Sulfadiazine"
@@ -173,6 +173,8 @@ datum/reagent/omnizine/on_mob_life(var/mob/living/M as mob)
 	M.adjustOxyLoss(-1*REM)
 	M.adjustBruteLoss(-2*REM)
 	M.adjustFireLoss(-2*REM)
+	if(prob(50))
+		M.losebreath -= 1
 	..()
 	return
 
@@ -210,7 +212,7 @@ datum/reagent/calomel/on_mob_life(var/mob/living/M as mob)
 	result = "calomel"
 	required_reagents = list("mercury" = 1, "chlorine" = 1)
 	result_amount = 2
-	required_temp = 374
+	min_temp = 374
 	mix_message = "Stinging vapors rise from the solution."
 
 datum/reagent/potass_iodide
@@ -249,10 +251,11 @@ datum/reagent/pen_acid/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
 	if(M.radiation > 0)
 		M.radiation -= 7
-	if(prob(70))
+	if(prob(75))
 		M.adjustToxLoss(-4*REM)
 	if(prob(33))
 		M.adjustBruteLoss(1*REM)
+		M.adjustFireLoss(1*REM)
 	if(M.radiation < 0)
 		M.radiation = 0
 	for(var/datum/reagent/R in M.reagents.reagent_list)
@@ -280,16 +283,15 @@ datum/reagent/sal_acid
 
 datum/reagent/sal_acid/on_mob_life(var/mob/living/M as mob)
 	if(!M) M = holder.my_atom
-	if(M.getBruteLoss() < 50)
-		if(prob(50))
-			M.adjustBruteLoss(-1*REM)
+	if(prob(55))
+		M.adjustBruteLoss(-2*REM)
 	..()
 	return
 
 datum/reagent/sal_acid/overdose_process(var/mob/living/M as mob)
-	if(M.getBruteLoss() < 50)
-		if(prob(50))
-			M.adjustBruteLoss(2*REM)
+	if(volume > 25)
+		if(prob(8))
+			M.adjustToxLoss(rand(1,2))
 	..()
 	return
 
@@ -349,7 +351,7 @@ datum/reagent/perfluorodecalin/on_mob_life(var/mob/living/carbon/human/M as mob)
 	result = "perfluorodecalin"
 	required_reagents = list("hydrogen" = 1, "fluorine" = 1, "oil" = 1)
 	result_amount = 3
-	required_temp = 370
+	min_temp = 370
 	mix_message = "The mixture rapidly turns into a dense pink liquid."
 
 datum/reagent/ephedrine
@@ -560,7 +562,7 @@ datum/reagent/atropine/on_mob_life(var/mob/living/M as mob)
 		M.losebreath = 5
 	if(M.confused > 60)
 		M.confused += 5
-	M.reagents.remove_reagent("sarin",10)
+	M.reagents.remove_reagent("tabun",10)
 	..()
 	return
 
@@ -687,7 +689,7 @@ datum/reagent/life
 	result = null
 	required_reagents = list("strange_reagent" = 1, "synthflesh" = 1, "blood" = 1)
 	result_amount = 3
-	required_temp = 374
+	min_temp = 374
 
 /datum/chemical_reaction/life/on_reaction(var/datum/reagents/holder, var/created_volume)
 	chemical_mob_spawn(holder, 1, "Life")
@@ -700,14 +702,12 @@ proc/chemical_mob_spawn(var/datum/reagents/holder, var/amount_to_spawn, var/reac
 		var/atom/A = holder.my_atom
 		var/turf/T = get_turf(A)
 		var/area/my_area = get_area(T)
-		var/message = "A [reaction_name] reaction has occured in [my_area.name]. (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[T.x];Y=[T.y];Z=[T.z]'>JMP</A>)"
-		message += " (<A HREF='?_src_=vars;Vars=\ref[A]'>VV</A>)"
-
+		var/message = "A [reaction_name] reaction has occured in (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[T.x];Y=[T.y];Z=[T.z]'>[my_area.name]</A>)"
 		var/mob/M = get(A, /mob)
 		if(M)
-			message += " - Carried By: [M.real_name] ([M.key]) (<A HREF='?_src_=holder;adminplayeropts=\ref[M]'>PP</A>) (<A HREF='?_src_=holder;adminmoreinfo=\ref[M]'>?</A>)"
+			message += " - carried by: [key_name_admin(M)]"
 		else
-			message += " - Last Fingerprint: [(A.fingerprintslast ? A.fingerprintslast : "N/A")]"
+			message += " - last fingerprint: [(A.fingerprintslast ? A.fingerprintslast : "N/A")]"
 
 		message_admins(message, 0, 1)
 
@@ -786,6 +786,8 @@ datum/reagent/antihol/on_mob_life(var/mob/living/M as mob)
 	M.slurring = 0
 	M.confused = 0
 	M.reagents.remove_reagent("ethanol", 8)
+	if(M.health < 25)
+		M.adjustToxLoss(-2.0)
 	..()
 
 /datum/chemical_reaction/antihol
@@ -820,6 +822,35 @@ datum/reagent/stimulants/reagent_deleted(var/mob/living/M as mob)
 	M.adjustBruteLoss(12)
 	M.adjustToxLoss(24)
 	M.Stun(4)
+	..()
+	return
+
+/datum/reagent/medicine/stimulative_agent
+	name = "Stimulative Agent"
+	id = "stimulative_agent"
+	description = "An illegal compound that dramatically enhances the body's performance and healing capabilities."
+	color = "#C8A5DC"
+	metabolization_rate = 0.5 * REAGENTS_METABOLISM
+	overdose_threshold = 60
+
+/datum/reagent/medicine/stimulative_agent/on_mob_life(mob/living/M)
+	M.status_flags |= GOTTAGOFAST
+	if(M.health < 50 && M.health > 0)
+		M.adjustOxyLoss(-1*REM)
+		M.adjustToxLoss(-1*REM)
+		M.adjustBruteLoss(-1*REM)
+		M.adjustFireLoss(-1*REM)
+	M.AdjustParalysis(-3)
+	M.AdjustStunned(-3)
+	M.AdjustWeakened(-3)
+	M.adjustStaminaLoss(-5*REM)
+	..()
+
+/datum/reagent/medicine/stimulative_agent/overdose_process(mob/living/M)
+	if(prob(33))
+		M.adjustStaminaLoss(2.5*REM)
+		M.adjustToxLoss(1*REM)
+		M.losebreath++
 	..()
 	return
 
@@ -912,3 +943,100 @@ datum/reagent/haloperidol/on_mob_life(var/mob/living/M as mob)
 	required_reagents = list("chlorine" = 1, "fluorine" = 1, "aluminum" = 1, "potass_iodide" = 1, "oil" = 1)
 	result_amount = 4
 	mix_message = "The chemicals mix into an odd pink slush."
+
+
+/datum/reagent/ether
+	name = "Ether"
+	id = "ether"
+	description = "A strong anesthetic and sedative."
+	reagent_state = LIQUID
+	color = "#96DEDE"
+
+/datum/reagent/ether/on_mob_life(var/mob/living/M as mob)
+	if(!M) M = holder.my_atom
+	switch(current_cycle)
+		if(0 to 15)
+			if(prob(5))
+				M.emote("yawn")
+		if(16 to 35)
+			M.drowsyness = max(M.drowsyness, 10)
+		if(36 to INFINITY)
+			M.Paralyse(10)
+			M.drowsyness = max(M.drowsyness, 15)
+	..()
+	return
+
+/datum/chemical_reaction/ether
+	name = "Ether"
+	id = "ether"
+	result = "ether"
+	required_reagents = list("sacid" = 1, "ethanol" = 1, "oxygen" = 1)
+	result_amount = 1
+	mix_message = "The mixture yields a pungent odor, which makes you tired."
+
+//////////////////////////////
+//		Synth-Meds			//
+//////////////////////////////
+
+//Degreaser: Anti-toxin / Lube Remover
+/datum/reagent/degreaser
+	name = "Degreaser"
+	id = "degreaser"
+	description = "An industrial degreaser which can be used to clean residual build-up from machinery and surfaces."
+	reagent_state = LIQUID
+	color = "#CC7A00"
+	process_flags = SYNTHETIC
+
+/datum/chemical_reaction/degreaser
+	name = "Degreaser"
+	id = "degreaser"
+	result = "degreaser"
+	required_reagents = list("oil" = 1, "sterilizine" = 1)
+	result_amount = 2
+
+/datum/reagent/degreaser/reaction_turf(var/turf/simulated/T, var/volume)
+	if (!istype(T)) return
+	src = null
+	if(volume >= 1)
+		if(T.wet >= 2)			//Clears lube! Fight back against the slipping, and WIN!
+			T.wet = 0
+			if(T.wet_overlay)
+				T.overlays -= T.wet_overlay
+				T.wet_overlay = null
+			return
+
+/datum/reagent/degreaser/on_mob_life(var/mob/living/M as mob)
+	if(!M) M = holder.my_atom
+	M.adjustToxLoss(-1.5*REM)
+	for(var/datum/reagent/R in M.reagents.reagent_list)
+		if(R != src)
+			if(R.id == "ultralube" || R.id == "lube")
+				//Flushes lube and ultra-lube even faster than other chems
+				M.reagents.remove_reagent(R.id, 5)
+			else
+				M.reagents.remove_reagent(R.id,1)
+	..()
+	return
+
+//Liquid Solder: Mannitol
+/datum/reagent/liquid_solder
+	name = "Liquid Solder"
+	id = "liquid_solder"
+	description = "A solution formulated to clean and repair damaged connections in posibrains while in use."
+	reagent_state = LIQUID
+	color = "#D7B395"
+	process_flags = SYNTHETIC
+
+/datum/reagent/liquid_solder/on_mob_life(mob/living/M as mob)
+	M.adjustBrainLoss(-3)
+	..()
+	return
+
+/datum/chemical_reaction/liquid_solder
+	name = "Liquid Solder"
+	id = "liquid_solder"
+	result = "liquid_solder"
+	required_reagents = list("ethanol" = 1, "copper" = 1, "silver" = 1)
+	result_amount = 3
+	min_temp = 370
+	mix_message = "The solution gently swirls with a metallic sheen."

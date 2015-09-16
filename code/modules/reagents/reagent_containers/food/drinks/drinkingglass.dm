@@ -6,20 +6,20 @@
 	icon_state = "glass_empty"
 	amount_per_transfer_from_this = 10
 	volume = 50
-	g_amt = 500
+	materials = list(MAT_GLASS=500)
 
 
 	proc/smash(mob/living/target as mob, mob/living/user as mob)
 		//Creates a shattering noise and replaces the drinking glass with a glass shard
 		user.drop_item()
-		var/obj/item/weapon/shard/S = getFromPool(/obj/item/weapon/shard, user.loc)
+		var/obj/item/weapon/shard/S = PoolOrNew(/obj/item/weapon/shard, user.loc)
 		user.put_in_active_hand(S)
 
 		playsound(src, "shatter", 70, 1)
 		user.put_in_active_hand(S)
 		src.transfer_fingerprints_to(S)
 
-		del(src)
+		qdel(src)
 
 
 	attack(mob/living/target as mob, mob/living/user as mob)
@@ -27,7 +27,7 @@
 		if(!target)
 			return
 
-		if(user.a_intent != "harm")
+		if(user.a_intent != I_HARM)
 			return ..()
 
 		force = 5
@@ -556,6 +556,14 @@
 					icon_state = "rewriter"
 					name = "Rewriter"
 					desc = "The secert of the sanctuary of the Libarian..."
+				if("applejack")
+					icon_state = "cognacglass"
+					name = "Glass of applejack"
+					desc = "When cider isn't strong enough, you gotta jack it."
+				if("jackrose")
+					icon_state = "patronglass"
+					name = "Jack Rose"
+					desc = "Drinking this makes you feel like you belong in a luxury hotel bar during the 1920s."
 				else
 					icon_state ="glass_brown"
 					name = "Glass of ..what?"

@@ -57,18 +57,14 @@
 	cartridge = new /obj/item/weapon/dart_cartridge(src)
 	update_icon()
 
-/obj/item/weapon/gun/dartgun/examine()
-	set src in view()
-	update_icon()
-	..()
-	if (!(usr in view(2)) && usr!=src.loc)
-		return
-	if (beakers.len)
-		usr << "\blue [src] contains:"
-		for(var/obj/item/weapon/reagent_containers/glass/beaker/B in beakers)
-			if(B.reagents && B.reagents.reagent_list.len)
-				for(var/datum/reagent/R in B.reagents.reagent_list)
-					usr << "\blue [R.volume] units of [R.name]"
+/obj/item/weapon/gun/dartgun/examine(mob/user)
+	if(..(user, 2))
+		if(beakers.len)
+			user << "\blue [src] contains:"
+			for(var/obj/item/weapon/reagent_containers/glass/beaker/B in beakers)
+				if(B.reagents && B.reagents.reagent_list.len)
+					for(var/datum/reagent/R in B.reagents.reagent_list)
+						user << "\blue [R.volume] units of [R.name]"
 
 /obj/item/weapon/gun/dartgun/attackby(obj/item/I as obj, mob/user as mob, params)
 	if(istype(I, /obj/item/weapon/dart_cartridge))
@@ -155,7 +151,7 @@
 		cartridge.darts--
 		src.update_icon()
 		S.reagents.trans_to(D, S.reagents.total_volume)
-		del(S)
+		qdel(S)
 		D.icon_state = "syringeproj"
 		D.name = "syringe"
 		D.flags |= NOREACT
@@ -180,30 +176,30 @@
 						M.attack_log += "\[[time_stamp()]\] <b>[user]/[user.ckey]</b> shot <b>[M]/[M.ckey]</b> with a <b>dartgun</b> ([R])"
 						user.attack_log += "\[[time_stamp()]\] <b>[user]/[user.ckey]</b> shot <b>[M]/[M.ckey]</b> with a <b>dartgun</b> ([R])"
 						if(M.ckey)
-							msg_admin_attack("[user] ([user.ckey])[isAntag(user) ? "(ANTAG)" : ""] shot [M] ([M.ckey]) with a dartgun ([R]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
+							msg_admin_attack("[key_name_admin(user)] shot [M] ([M.ckey]) with a dartgun ([R]).")
 						if(!iscarbon(user))
 							M.LAssailant = null
 						else
 							M.LAssailant = user
 
 					else
-						M.attack_log += "\[[time_stamp()]\] <b>UNKNOWN SUBJECT (No longer exists)</b> shot <b>[M]/[M.ckey]</b> with a <b>dartgun</b> ([R])"
-						msg_admin_attack("UNKNOWN shot [M] ([M.ckey]) with a <b>dartgun</b> ([R]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
+						M.attack_log += "\[[time_stamp()]\] <b>UNKNOWN SUBJECT (No longer exists)</b> shot <b>[key_name_admin(M)]</b> with a <b>dartgun</b> ([R])"
+						msg_admin_attack("UNKNOWN shot [key_name(M)] with a <b>dartgun</b> ([R]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
 
 					if(D.reagents)
 						D.reagents.trans_to(M, 15)
 					M << "<span class='danger'>You feel a slight prick.</span>"
 
-					del(D)
+					qdel(D)
 					break
 			if(D)
 				for(var/atom/A in D.loc)
 					if(A == user) continue
-					if(A.density) del(D)
+					if(A.density) qdel(D)
 
 			sleep(1)
 
-		if (D) spawn(10) del(D)
+		if (D) spawn(10) qdel(D)
 
 		return
 
@@ -297,7 +293,7 @@
 	starting_chems = list("silver_sulfadiazine","styptic_powder","charcoal")
 
 /obj/item/weapon/gun/dartgun/vox/raider
-	starting_chems = list("space_drugs","morphine","haloperidol")
+	starting_chems = list("space_drugs","ether","haloperidol")
 
 /obj/effect/syringe_gun_dummy //moved this shitty thing here
 	name = ""

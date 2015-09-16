@@ -6,7 +6,7 @@
 	spawn_positions = 1
 	supervisors = "the captain"
 	selection_color = "#ffdddd"
-	idtype = /obj/item/weapon/card/id/silver
+	idtype = /obj/item/weapon/card/id/hos
 	req_admin_notify = 1
 	access = list(access_security, access_sec_doors, access_brig, access_armory, access_court,
 			            access_forensics_lockers, access_pilot, access_morgue, access_maint_tunnels, access_all_personal_lockers,
@@ -39,7 +39,7 @@
 		else
 			H.equip_or_collect(new /obj/item/weapon/storage/box/survival(H.back), slot_in_backpack)
 			H.equip_or_collect(new /obj/item/weapon/restraints/handcuffs(H), slot_in_backpack)
-			H.equip_or_collect(new /obj/item/weapon/melee/telebaton(H.back), slot_in_backpack)
+			H.equip_or_collect(new /obj/item/weapon/melee/classic_baton/telescopic(H.back), slot_in_backpack)
 		var/obj/item/weapon/implant/loyalty/L = new/obj/item/weapon/implant/loyalty(H)
 		L.imp_in = H
 		L.implanted = 1
@@ -58,6 +58,7 @@
 	spawn_positions = 1
 	supervisors = "the head of security"
 	selection_color = "#ffeeee"
+	idtype = /obj/item/weapon/card/id/security
 	access = list(access_security, access_sec_doors, access_brig, access_armory, access_court, access_maint_tunnels, access_morgue, access_weapons)
 	minimal_access = list(access_security, access_sec_doors, access_brig, access_armory, access_court, access_maint_tunnels, access_weapons)
 	minimal_player_age = 21
@@ -103,7 +104,7 @@
 	supervisors = "the head of security"
 	selection_color = "#ffeeee"
 	alt_titles = list("Forensic Technician")
-
+	idtype = /obj/item/weapon/card/id/security
 	access = list(access_security, access_sec_doors, access_forensics_lockers, access_morgue, access_maint_tunnels, access_court, access_weapons)
 	minimal_access = list(access_sec_doors, access_forensics_lockers, access_morgue, access_maint_tunnels, access_court, access_weapons)
 	alt_titles = list("Forensic Technician")
@@ -138,7 +139,7 @@
 			H.equip_or_collect(new /obj/item/weapon/storage/box/survival(H.back), slot_in_backpack)
 			H.equip_or_collect(new /obj/item/weapon/storage/box/evidence(H), slot_in_backpack)
 			H.equip_or_collect(new /obj/item/device/detective_scanner(H), slot_in_backpack)
-			H.equip_or_collect(new /obj/item/weapon/melee/telebaton(H.back), slot_in_backpack)
+			H.equip_or_collect(new /obj/item/weapon/melee/classic_baton/telescopic(H.back), slot_in_backpack)
 		var/obj/item/weapon/implant/loyalty/L = new/obj/item/weapon/implant/loyalty(H)
 		L.imp_in = H
 		L.implanted = 1
@@ -163,6 +164,7 @@
 	selection_color = "#ffeeee"
 	access = list(access_security, access_sec_doors, access_brig, access_court, access_maint_tunnels, access_morgue, access_weapons, access_medical)
 	minimal_access = list(access_security, access_sec_doors, access_brig, access_court, access_maint_tunnels, access_weapons, access_medical)
+	idtype = /obj/item/weapon/card/id/security
 	minimal_player_age = 14
 	equip(var/mob/living/carbon/human/H)
 		if(!H)	return 0
@@ -202,6 +204,7 @@
 	supervisors = "the head of security"
 	selection_color = "#ffeeee"
 	access = list(access_medical, access_morgue, access_surgery, access_chemistry, access_virology, access_genetics, access_security, access_brig)
+	idtype = /obj/item/weapon/card/id/security
 	minimal_access = list(access_medical, access_morgue, access_surgery, access_security, access_sec_doors, access_brig, access_court, access_maint_tunnels)
 
 	equip(var/mob/living/carbon/human/H)
@@ -211,7 +214,7 @@
 			if(2) H.equip_or_collect(new /obj/item/weapon/storage/backpack/medic(H), slot_back)
 			if(3) H.equip_or_collect(new /obj/item/weapon/storage/backpack/satchel_med(H), slot_back)
 			if(4) H.equip_or_collect(new /obj/item/weapon/storage/backpack/satchel(H), slot_back)
-		H.equip_or_collect(new /obj/item/clothing/under/rank/medical(H), slot_w_uniform)
+		H.equip_or_collect(new /obj/item/clothing/under/rank/security/brigphys(H), slot_w_uniform)
 		H.equip_or_collect(new /obj/item/clothing/suit/storage/fr_jacket(H), slot_wear_suit)
 		H.equip_or_collect(new /obj/item/clothing/glasses/hud/health_advanced, slot_glasses)
 		H.equip_or_collect(new /obj/item/clothing/shoes/white(H), slot_shoes)
@@ -238,6 +241,7 @@
 	spawn_positions = 1
 	supervisors = "the head of security"
 	selection_color = "#ffeeee"
+	idtype = /obj/item/weapon/card/id/security
 	access = list(access_security, access_sec_doors, access_brig, access_court, access_maint_tunnels, access_morgue, access_weapons, access_pilot, access_external_airlocks)
 	minimal_access = list(access_security, access_sec_doors, access_brig, access_court, access_maint_tunnels, access_weapons, access_pilot, access_external_airlocks)
 	minimal_player_age = 7

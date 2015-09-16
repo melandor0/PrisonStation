@@ -29,8 +29,9 @@
 	var/age = 30		//Player's age (pure fluff)
 	var/b_type = "A+"	//Player's bloodtype
 
-	var/underwear = 1	//Which underwear the player wants
-	var/undershirt = 0	//Which undershirt the player wants.
+	var/underwear = "Nude"	//Which underwear the player wants
+	var/undershirt = "Nude"	//Which undershirt the player wants
+	var/socks = "Nude" //Which socks the player wants
 	var/backbag = 2		//Which backpack type the player has chosen. Nothing, Satchel or Backpack.
 
 	//Equipment slots
@@ -82,7 +83,7 @@
 
 	var/lastFart = 0 // Toxic fart cooldown.
 
-	var/frozen = 0 //used for preventing attacks on admin-frozen people
-
 	var/fire_dmi = 'icons/mob/OnFire.dmi'
 	var/fire_sprite = "Standing"
+
+	var/datum/body_accessory/body_accessory = null

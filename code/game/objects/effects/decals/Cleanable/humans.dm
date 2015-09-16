@@ -21,11 +21,6 @@ var/global/list/image/splatter_cache=list()
 	var/list/datum/disease2/disease/virus2 = list()
 	var/amount = 5
 
-/obj/effect/decal/cleanable/blood/Del()
-	for(var/datum/disease2/disease/D in viruses)
-		D.cure(0)
-	..()
-
 /obj/effect/decal/cleanable/blood/New()
 	..()
 	update_icon()
@@ -37,7 +32,7 @@ var/global/list/image/splatter_cache=list()
 				if(B != src)
 					if (B.blood_DNA)
 						blood_DNA |= B.blood_DNA.Copy()
-					del(B)
+					qdel(B)
 	spawn(DRYING_TIME * (amount+1))
 		dry()
 
@@ -208,6 +203,14 @@ var/global/list/image/splatter_cache=list()
                         if (step_to(src, get_step(src, direction), 0))
                                 break
 
+
+/obj/effect/decal/cleanable/blood/old/New()
+	..()
+	dry()
+
+/obj/effect/decal/cleanable/blood/gibs/old/New()
+	..()
+	dry()
 
 /obj/effect/decal/cleanable/mucus
 	name = "mucus"

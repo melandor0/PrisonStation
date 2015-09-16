@@ -75,6 +75,16 @@
 	icon_state = "zeldacrowbar"
 	item_state = "crowbar"
 
+/obj/item/weapon/claymore/fluff //MrBarrelrolll: Maximus Greenwood
+	name = "Greenwood's Blade"
+	desc = "A replica claymore with strange markings scratched into the blade."
+	force = 5
+	sharp = 0
+	edge = 0
+
+/obj/item/weapon/claymore/fluff/IsShield()
+	return 0
+
 //////////////////////////////////
 //////////// Clothing ////////////
 //////////////////////////////////
@@ -107,6 +117,13 @@
 	icon = 'icons/obj/custom_items.dmi'
 	icon_state = "norah_briggs_1"
 
+/obj/item/clothing/head/bearpelt/fluff/polar //Gibson1027: Sploosh
+	name = "polar bear pelt hat"
+	desc = "Fuzzy, and also stained with blood."
+	icon = 'icons/obj/custom_items.dmi'
+	icon_state = "polarbearpelt"
+	item_state = "polarbearpelt"
+
 //////////// Suits ////////////
 
 /obj/item/clothing/suit/storage/labcoat/fluff/aeneas_rinil //Robotics Labcoat - Aeneas Rinil [APPR]
@@ -121,6 +138,45 @@
 	icon = 'icons/obj/custom_items.dmi'
 	icon_state = "deus_blueshield"
 	item_state = "deus_blueshield"
+
+/obj/item/clothing/suit/jacket/fluff/kidosvest //Anxipal: Kido Qasteth
+	name = "Kido's Vest"
+	desc = "A rugged leather vest with a tag labelled \"Men of Mayhem.\""
+	icon = 'icons/obj/custom_items.dmi'
+	icon_state = "kidosvest"
+	item_state = "kidosvest"
+
+//Kluys fluff nanofibre suit
+/obj/item/clothing/suit/kluysfluff
+	name = "Nano Fibre Jacket"
+	desc = "A Black Suit made out of nanofibre. The newest of cyberpunk fashion using hightech liquid to solid materials."
+	icon_state = "Kluysfluff1"
+	item_state = "Kluysfluff1"
+	blood_overlay_type = "coat"
+	body_parts_covered = UPPER_TORSO|ARMS
+
+/obj/item/clothing/suit/kluysfluff/verb/toggle()
+	set name = "Toggle Nanofibre Mode"
+	set category = "Object"
+	set src in usr
+
+	if(!usr.canmove || usr.stat || usr.restrained())
+		return 0
+
+	switch(icon_state)
+		if("Kluysfluff1")
+			src.icon_state = "Kluysfluff2"
+			usr << "The fibre unfolds into a jacket"
+		if("Kluysfluff2")
+			src.icon_state = "Kluysfluff3"
+			usr << "The fibre unfolds into a coat"
+		if("Kluysfluff3")
+			src.icon_state = "Kluysfluff1"
+			usr << "The fibre gets sucked back into its holder."
+		else
+			usr << "You attempt to hit the button but can't"
+			return
+	usr.update_inv_wear_suit()	//so our overlays update
 
 //////////// Uniforms ////////////
 /obj/item/clothing/under/psysuit/fluff/isaca_sirius_1 // Xilia: Isaca Sirius
@@ -236,7 +292,7 @@
 	icon_state = "noble_boot"
 	_color = "noble_boot"
 	item_state = "noble_boot"
-	
+
 /////Arachno-Man Costume set //the flagbearer: Willow Walker
 /obj/item/clothing/under/fluff/arachno_suit // Custom Jumpsuit
 	name = "Arachno-Man costume"
@@ -247,7 +303,7 @@
 	_color = "superior_suit"
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
 	flags_inv = HIDEGLOVES|HIDESHOES
-	
+
 /obj/item/clothing/head/fluff/arachno_mask
 	name = "Arachno-Man mask"
 	desc = "Put it on. The mask, it's gonna make you stronger!"
@@ -257,5 +313,34 @@
 	body_parts_covered = HEAD
 	flags = BLOCKHAIR
 	flags_inv = HIDEFACE
+
+
+///Aeronuatical Jumpsuit and Jacket //Fox P McCloud: Fox McCloud
+
+//Huge thanks to Nienhaus for these sprites!
+
+/obj/item/clothing/under/fluff/fox
+	name = "Aeronautics Jumpsuit"
+	desc = "A jumpsuit tailor made for spacefaring fighter pilots; this one seems very old."
+	icon = 'icons/obj/custom_items.dmi'
+	icon_state = "fox_suit"
+	item_state = "g_suit"
+	_color = "fox_suit"
+	displays_id = 0 //still appears on examine; this is pure fluff.
+
+/obj/item/clothing/suit/jacket/fluff/fox
+	name = "Aeronautics Jacket"
+	desc = "An aviator styled jacket made from a peculiar material; this one seems very old."
+	icon = 'icons/obj/custom_items.dmi'
+	icon_state = "fox_jacket"
+	item_state = "fox_jacket"
+
+/obj/item/clothing/under/fluff/kharshai // Kharshai: Athena Castile
+	name = "Castile formal outfit"
+	desc = "A white and gold formal uniform, accompanied by a small pin with the numbers '004' etched upon it."
+	icon = 'icons/obj/custom_items.dmi'
+	icon_state = "castile_dress"
+	item_state = "castile_dress"
+	_color = "castile_dress"
 
 //////////// Weapons ////////////

@@ -12,9 +12,6 @@ var/global/sent_syndicate_strike_team = 0
 	if(!ticker)
 		alert("The game hasn't started yet!")
 		return
-//	if(world.time < 6000)
-//		alert("Not so fast, buddy. Wait a few minutes until the game gets going. There are [(6000-world.time)/10] seconds remaining.")
-//		return
 	if(sent_syndicate_strike_team == 1)
 		alert("The Syndicate are already sending a team, Mr. Dumbass.")
 		return
@@ -108,13 +105,13 @@ var/global/sent_syndicate_strike_team = 0
 	var/syndicate_commando_rank = pick("Corporal", "Sergeant", "Staff Sergeant", "Sergeant 1st Class", "Master Sergeant", "Sergeant Major")
 	var/syndicate_commando_name = pick(last_names)
 
-	new_syndicate_commando.gender = pick(MALE, FEMALE)
-
 	var/datum/preferences/A = new()//Randomize appearance for the commando.
-	A.randomize_appearance_for(new_syndicate_commando)
-
-	new_syndicate_commando.real_name = "[!syndicate_leader_selected ? syndicate_commando_rank : syndicate_commando_leader_rank] [syndicate_commando_name]"
-	new_syndicate_commando.age = !syndicate_leader_selected ? rand(23,35) : rand(35,45)
+	if(syndicate_leader_selected)
+		A.age = rand(35,45)
+		A.real_name = "[syndicate_commando_leader_rank] [syndicate_commando_name]"
+	else
+		A.real_name = "[syndicate_commando_rank] [syndicate_commando_name]"
+	A.copy_to(new_syndicate_commando)
 
 	new_syndicate_commando.dna.ready_dna(new_syndicate_commando)//Creates DNA.
 
@@ -163,16 +160,16 @@ var/global/sent_syndicate_strike_team = 0
 	equip_to_slot_or_del(new /obj/item/weapon/melee/energy/sword(src), slot_l_store)
 	equip_to_slot_or_del(new /obj/item/weapon/grenade/empgrenade(src), slot_r_store)
 	equip_to_slot_or_del(new /obj/item/weapon/tank/emergency_oxygen/double/full(src), slot_s_store)
-	equip_to_slot_or_del(new /obj/item/weapon/gun/projectile/automatic/m2411(src), slot_belt)
+	equip_to_slot_or_del(new /obj/item/weapon/gun/projectile/automatic/pistol/m2411(src), slot_belt)
 
 	equip_to_slot_or_del(new /obj/item/weapon/gun/projectile/automatic/l6_saw(src), slot_r_hand)
 
 	var/obj/item/weapon/card/id/syndicate/W = new(src) //Untrackable by AI
 	W.name = "[real_name]'s ID Card"
-	W.icon_state = "id"
+	W.icon_state = "syndie"
 	W.access = get_all_accesses()//They get full station access because obviously the syndicate has HAAAX, and can make special IDs for their most elite members.
 	W.assignment = "Syndicate Commando"
-	W.access = get_syndicate_access(W.assignment)
+	W.access += get_syndicate_access(W.assignment)
 	W.registered_name = real_name
 	equip_to_slot_or_del(W, slot_wear_id)
 

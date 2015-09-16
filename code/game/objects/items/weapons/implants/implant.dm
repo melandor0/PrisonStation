@@ -4,6 +4,7 @@
 	name = "implant"
 	icon = 'icons/obj/device.dmi'
 	icon_state = "implant"
+	origin_tech = "materials=2;biotech=3;programming=2"
 	var/implanted = null
 	var/mob/living/imp_in = null
 	var/obj/item/organ/external/part = null
@@ -47,11 +48,12 @@
 	Destroy()
 		if(part)
 			part.implants.Remove(src)
-		..()
+		return ..()
 
 /obj/item/weapon/implant/tracking
 	name = "tracking"
 	desc = "Track with this."
+	origin_tech = "materials=2;magnets=2;programming=2;biotech=2"
 	var/id = 1.0
 
 
@@ -92,6 +94,7 @@ Implant Specifics:<BR>"}
 /obj/item/weapon/implant/dexplosive
 	name = "explosive"
 	desc = "And boom goes the weasel."
+	origin_tech = "materials=2;combat=3;biotech=4;syndicate=4"
 	icon_state = "implant_evil"
 
 	get_data()
@@ -127,6 +130,7 @@ Implant Specifics:<BR>"}
 /obj/item/weapon/implant/explosive
 	name = "explosive implant"
 	desc = "A military grade micro bio-explosive. Highly dangerous."
+	origin_tech = "materials=2;combat=3;biotech=4;syndicate=4"
 	var/elevel = "Localized Limb"
 	var/phrase = "supercalifragilisticexpialidocious"
 	icon_state = "implant_evil"
@@ -153,7 +157,7 @@ Implant Specifics:<BR>"}
 		msg = sanitize_simple(msg, replacechars)
 		if(findtext(msg,phrase))
 			activate()
-			del(src)
+			qdel(src)
 
 	activate()
 		if (malfunction == MALFUNCTION_PERMANENT)
@@ -162,8 +166,8 @@ Implant Specifics:<BR>"}
 		var/need_gib = null
 		if(istype(imp_in, /mob/))
 			var/mob/T = imp_in
-			message_admins("Explosive implant triggered in [T] ([T.key]). (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[T.x];Y=[T.y];Z=[T.z]'>JMP</a>) ")
-			log_game("Explosive implant triggered in [T] ([T.key]).")
+			message_admins("Explosive implant triggered in [key_name_admin(T)]")
+			log_game("Explosive implant triggered in [key_name(T)].")
 			need_gib = 1
 
 			if(ishuman(imp_in))
@@ -177,11 +181,11 @@ Implant Specifics:<BR>"}
 							istype(part,/obj/item/organ/external/head))
 							part.createwound(BRUISE, 60)	//mangle them instead
 							explosion(get_turf(imp_in), -1, -1, 2, 3)
-							del(src)
+							qdel(src)
 						else
 							explosion(get_turf(imp_in), -1, -1, 2, 3)
 							part.droplimb()
-							del(src)
+							qdel(src)
 				if (elevel == "Destroy Body")
 					explosion(get_turf(T), -1, 0, 1, 6)
 					T.gib()
@@ -247,11 +251,12 @@ Implant Specifics:<BR>"}
 					else
 						part.droplimb()
 				explosion(get_turf(imp_in), -1, -1, 2, 3)
-				del(src)
+				qdel(src)
 
 /obj/item/weapon/implant/chem
 	name = "chem"
 	desc = "Injects things."
+	origin_tech = "materials=3;biotech=4"
 	allow_reagents = 1
 
 	get_data()
@@ -294,7 +299,7 @@ the implant may become unstable and either pre-maturely inject the subject or si
 		if(!src.reagents.total_volume)
 			R << "You hear a faint click from your chest."
 			spawn(0)
-				del(src)
+				qdel(src)
 		return
 
 	emp_act(severity)
@@ -316,6 +321,7 @@ the implant may become unstable and either pre-maturely inject the subject or si
 /obj/item/weapon/implant/loyalty
 	name = "loyalty"
 	desc = "Makes you loyal or such."
+	origin_tech = "materials=2;biotech=4;programming=4"
 
 	get_data()
 		var/dat = {"
@@ -369,7 +375,8 @@ the implant may become unstable and either pre-maturely inject the subject or si
 		if(M == user)
 			user << "<span class='notice'>Making yourself loyal to yourself was a great idea! Perhaps even the best idea ever! Actually, you just feel like an idiot.</span>"
 			if(isliving(user))
-				user:brainloss += 20
+				var/mob/living/L = user
+				L.adjustBrainLoss(20)
 			return
 		if(locate(/obj/item/weapon/implant/loyalty) in H.contents)
 			H.visible_message("<span class='warning'>[H] seems to resist the implant!</span>", "<span class='warning'>You feel a strange sensation in your head that quickly dissipates.</span>")
@@ -405,6 +412,7 @@ the implant may become unstable and either pre-maturely inject the subject or si
 /obj/item/weapon/implant/adrenalin
 	name = "adrenalin"
 	desc = "Removes all stuns and knockdowns."
+	origin_tech = "materials=2;biotech=4;combat=3;syndicate=4"
 	var/uses = 3
 
 	get_data()
@@ -435,7 +443,7 @@ the implant may become unstable and either pre-maturely inject the subject or si
 
 			source.reagents.add_reagent("synaptizine", 10)
 			source.reagents.add_reagent("omnizine", 10)
-			source.reagents.add_reagent("methamphetamine", 10)
+			source.reagents.add_reagent("stimulative_agent", 10)
 
 		return
 
@@ -484,17 +492,17 @@ the implant may become unstable and either pre-maturely inject the subject or si
 					a.autosay("[mobname] has died in Space!", "[mobname]'s Death Alarm")
 				else
 					a.autosay("[mobname] has died in [t.name]!", "[mobname]'s Death Alarm")
-				del(a)
+				qdel(a)
 				processing_objects.Remove(src)
 			if ("emp")
 				var/obj/item/device/radio/headset/a = new /obj/item/device/radio/headset(null)
 				var/name = prob(50) ? t.name : pick(teleportlocs)
 				a.autosay("[mobname] has died in [name]!", "[mobname]'s Death Alarm")
-				del(a)
+				qdel(a)
 			else
 				var/obj/item/device/radio/headset/a = new /obj/item/device/radio/headset(null)
 				a.autosay("[mobname] has died-zzzzt in-in-in...", "[mobname]'s Death Alarm")
-				del(a)
+				qdel(a)
 				processing_objects.Remove(src)
 
 	emp_act(severity)			//for some reason alarms stop going off in case they are emp'd, even without this
@@ -522,6 +530,7 @@ the implant may become unstable and either pre-maturely inject the subject or si
 	name = "compressed matter implant"
 	desc = "Based on compressed matter technology, can store a single item."
 	icon_state = "implant_evil"
+	origin_tech = "materials=2;magnets=4;bluespace=4;syndicate=4"
 	var/activation_emote = "sigh"
 	var/obj/item/scanned = null
 
@@ -552,7 +561,7 @@ the implant may become unstable and either pre-maturely inject the subject or si
 			imp_in.put_in_hands(scanned)
 		else
 			scanned.loc = t
-		del src
+		qdel(src)
 
 	implanted(mob/source as mob)
 		src.activation_emote = input("Choose activation emote:") in list("blink", "blink_r", "eyebrow", "chuckle", "twitch_s", "frown", "nod", "blush", "giggle", "grin", "groan", "shrug", "smile", "pale", "sniff", "whimper", "wink")
@@ -573,7 +582,7 @@ the implant may become unstable and either pre-maturely inject the subject or si
 /obj/item/weapon/implant/emp
 	name = "emp implant"
 	desc = "Triggers an EMP."
-
+	origin_tech = "materials=2;biotech=3;magnets=4;syndicate=4"
 	var/activation_emote = "chuckle"
 	var/uses = 2
 

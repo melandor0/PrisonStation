@@ -21,12 +21,12 @@
 					if(!O:amount)
 						return
 					while(metal_amount < 150000 && O:amount)
-						src.metal_amount += O:m_amt /*O:height * O:width * O:length * 100000.0*/
+						src.metal_amount += O:materials[MAT_METAL] /*O:height * O:width * O:length * 100000.0*/
 						O:amount--
 						count++
 
 					if (O:amount < 1)
-						del(O)
+						qdel(O)
 
 					user << "You insert [count] metal sheet\s into the fabricator."
 					src.overlays -= "fab-load-metal"

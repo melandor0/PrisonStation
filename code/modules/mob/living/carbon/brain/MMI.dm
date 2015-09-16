@@ -8,10 +8,6 @@
 	w_class = 3
 	origin_tech = "biotech=3"
 
-	var/list/construction_cost = list("metal"=1000,"glass"=500)
-	var/construction_time = 75
-	//these vars are so the mecha fabricator doesn't shit itself anymore. --NEO
-
 	req_access = list(access_robotics)
 
 	//Revised. Brainmob is now contained directly within object of transfer. MMI in this case.
@@ -50,7 +46,7 @@
 				name = "Man-Machine Interface: [brainmob.real_name]"
 				icon_state = "mmi_full"
 				alien = 0
-			del(O)
+			qdel(O)
 
 
 			locked = 1
@@ -165,3 +161,12 @@
 			if(3)
 				brainmob.emp_damage += rand(0,10)
 	..()
+
+/obj/item/device/mmi/Destroy()
+	if(isrobot(loc))
+		var/mob/living/silicon/robot/borg = loc
+		borg.mmi = null
+	if(brainmob)
+		qdel(brainmob)
+		brainmob = null
+	return ..()

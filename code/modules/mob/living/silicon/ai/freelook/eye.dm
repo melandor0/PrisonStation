@@ -26,16 +26,17 @@
 /mob/aiEye/Destroy()
 	if (ghostimage)
 		ghost_darkness_images -= ghostimage
-		del(ghostimage)
+		qdel(ghostimage)
 		ghostimage = null;
 		updateallghostimages()
+	return ..()
 
 // Movement code. Returns 0 to stop air movement from moving it.
 /mob/aiEye/Move()
 	return 0
 
 // Hide popout menu verbs
-/mob/aiEye/examine(atom/A as mob|obj|turf in view())
+/mob/aiEye/examinate(atom/A as mob|obj|turf in view())
 	set popup_menu = 0
 	set src = usr.contents
 	return 0
@@ -99,10 +100,10 @@
 	spawn(5)
 		eyeobj.loc = src.loc
 
-/mob/living/silicon/ai/Del()
+/mob/living/silicon/ai/Destroy()
 	eyeobj.ai = null
-	del(eyeobj) // No AI, no Eye
-	..()
+	qdel(eyeobj) // No AI, no Eye
+	return ..()
 
 /atom/proc/move_camera_by_click()
 	if(istype(usr, /mob/living/silicon/ai))

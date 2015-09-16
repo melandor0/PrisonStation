@@ -33,7 +33,7 @@
 	var/photo_size = 3
 
 /obj/item/weapon/photo/attack_self(mob/user as mob)
-	src.examine(user)
+	user.examinate(src)
 
 /obj/item/weapon/photo/attackby(obj/item/weapon/P as obj, mob/user as mob, params)
 	if(istype(P, /obj/item/weapon/pen) || istype(P, /obj/item/toy/crayon))
@@ -64,16 +64,16 @@
 					user.unEquip(src)
 
 				new /obj/effect/decal/cleanable/ash(get_turf(src))
-				del(src)
+				qdel(src)
 
 			else
 				user << "\red You must hold \the [P] steady to burn \the [src]."
 
 /obj/item/weapon/photo/examine(mob/user)
-	if(in_range(usr, src) || istype(usr, /mob/dead/observer))
-		show(usr)
+	if(..(user, 1))
+		show(user)
 	else
-		usr << "<span class='notice'>It is too far away.</span>"
+		user << "<span class='notice'>It is too far away.</span>"
 
 /obj/item/weapon/photo/proc/show(mob/user as mob)
 	usr << browse_rsc(img, "tmp_photo.png")
@@ -178,7 +178,7 @@
 			return
 		user << "<span class='notice'>You insert [I] into [src].</span>"
 		user.drop_item()
-		del(I)
+		qdel(I)
 		pictures_left = pictures_max
 		return
 	..()
@@ -444,7 +444,7 @@
 	item_state = "videocam"
 	w_class = 2.0
 	slot_flags = SLOT_BELT
-	m_amt = 2000
+	materials = list(MAT_METAL=2000)
 	var/on = 0
 	var/obj/machinery/camera/camera
 	var/icon_on = "videocam_on"
@@ -472,10 +472,9 @@
 		camera.c_tag = user.name
 	user << "You switch the camera [on ? "on" : "off"]."
 
-/obj/item/device/videocam/examine()
-	..()
-	if(get_dist(usr,src) <= 1)
-		usr << "This video camera can send live feeds to the entertainment network. It's [camera ? "" : "in"]active."
+/obj/item/device/videocam/examine(mob/user)
+	if(..(user, 1))
+		user << "This video camera can send live feeds to the entertainment network. It's [camera ? "" : "in"]active."
 
 
 /obj/item/device/videocam/hear_talk(mob/M as mob, msg)

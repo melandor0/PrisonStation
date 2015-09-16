@@ -212,10 +212,10 @@
 		var/mob/living/carbon/human/D = load
 		D << "\red \b You ran over [H]!"
 		visible_message("<B>\red \The [src] ran over [H]!</B>")
-		attack_log += text("\[[time_stamp()]\] <font color='red'>ran over [H.name] ([H.ckey]), driven by [D.name] ([D.ckey])</font>")
-		msg_admin_attack("[D.name] ([D.ckey])[isAntag(D) ? "(ANTAG)" : ""] ran over [H.name] ([H.ckey]). (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>JMP</a>)")
+		attack_log += text("\[[time_stamp()]\] <font color='red'>ran over [key_name(H)], driven by [key_name(D)]</font>")
+		msg_admin_attack("[key_name_admin(D)] ran over [key_name_admin(H)]")
 	else
-		attack_log += text("\[[time_stamp()]\] <font color='red'>ran over [H.name] ([H.ckey])</font>")
+		attack_log += text("\[[time_stamp()]\] <font color='red'>ran over [key_name(H)]</font>")
 
 
 //-------------------------------------------
@@ -235,18 +235,15 @@
 		return ..()
 
 
-/obj/vehicle/train/janitor/engine/examine()
-	..()
-
-	usr << "\icon[src] This [name] contains [reagents.total_volume] unit\s of [reagents]!"
-	if(mybag)
-		usr << "\A [mybag] is hanging on the [name]."
-
-	if(!istype(usr, /mob/living/carbon/human))
+/obj/vehicle/train/janitor/engine/examine(mob/user)
+	if(!..(user, 1))
 		return
 
-	if(get_dist(usr,src) <= 1)
-		usr << "The power light is [on ? "on" : "off"].\nThere are[key ? "" : " no"] keys in the ignition."
+	user << "\icon[src] This [name] contains [reagents.total_volume] unit\s of [reagents]!"
+	if(mybag)
+		user << "\A [mybag] is hanging on the [name]."
+
+	user << "The power light is [on ? "on" : "off"].\nThere are[key ? "" : " no"] keys in the ignition."
 
 /obj/vehicle/train/janitor/engine/verb/check_power()
 	set name = "Check power level"

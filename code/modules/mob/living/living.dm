@@ -1,4 +1,8 @@
 
+/mob/living/Destroy()
+	..()
+	return QDEL_HINT_HARDDEL_NOW
+
 /mob/living/Life()
 	..()
 	if (notransform)	return
@@ -40,10 +44,10 @@
 
 /mob/living/proc/updatehealth()
 	if(status_flags & GODMODE)
-		health = 100
+		health = maxHealth
 		stat = CONSCIOUS
-	else
-		health = maxHealth - getOxyLoss() - getToxLoss() - getFireLoss() - getBruteLoss() - getCloneLoss() - halloss
+		return
+	health = maxHealth - getOxyLoss() - getToxLoss() - getFireLoss() - getBruteLoss() - getCloneLoss() - halloss
 
 
 //This proc is used for mobs which are affected by pressure to calculate the amount of pressure that actually
@@ -419,7 +423,7 @@
 								for(var/mob/O in viewers(M, null))
 									O.show_message(text("\red [] has been pulled from []'s grip by []", G.affecting, G.assailant, src), 1)
 								//G = null
-								del(G)
+								qdel(G)
 						else
 							ok = 0
 						if (locate(/obj/item/weapon/grab, M.grabbed_by.len))
@@ -481,6 +485,10 @@
 	if ((!(L.stat) && !(L.restrained())))
 		resist_grab(L) //this passes L because the proc requires a typecasted mob/living instead of just 'src'
 
+	// Sliding out of a morgue/crematorium
+	if(loc && (istype(loc, /obj/structure/morgue) || istype(loc, /obj/structure/crematorium)))
+		resist_tray(L)
+
 	//unbuckling yourself
 	if(L.buckled && (L.last_special <= world.time) )
 		resist_buckle(L) //this passes L because the proc requires a typecasted mob/living instead of just 'src'
@@ -518,7 +526,7 @@
 		src << "You wriggle out of [M]'s grip!"
 	else if(istype(H.loc,/obj/item))
 		src << "You struggle free of [H.loc]."
-		H.loc = get_turf(H)
+		H.forceMove(get_turf(H))
 
 	if(istype(M))
 		for(var/atom/A in M.contents)
@@ -561,7 +569,7 @@
 
 	for(var/obj/O in L.requests)
 		L.requests.Remove(O)
-		del(O)
+		qdel(O)
 		resisting++
 
 	for(var/obj/item/weapon/grab/G in usr.grabbed_by)
@@ -602,7 +610,7 @@
 				O.show_message("\red <B>[usr] attempts to unbuckle themself!</B>", 1)
 
 			spawn(0)
-				if(do_after(usr, 1200))
+				if(do_after(usr, 1200, target = C))
 					if(!C.buckled)
 						return
 					for(var/mob/O in viewers(C))
@@ -640,7 +648,7 @@
 
 
 	spawn(0)
-		if(do_after(usr,(breakout_time*60*10))) //minutes * 60seconds * 10deciseconds
+		if(do_after(usr,(breakout_time*60*10), target = C)) //minutes * 60seconds * 10deciseconds
 			if(!C || !L || L.stat != CONSCIOUS || L.loc != C || C.opened) //closet/user destroyed OR user dead/unconcious OR user no longer in closet OR closet opened
 				return
 
@@ -683,6 +691,17 @@
 					BD.attack_hand(usr)
 				C.open()
 
+// resist_tray allows a mob to slide themselves out of a morgue or crematorium
+/mob/living/proc/resist_tray(var/mob/living/carbon/CM)
+	if(!istype(CM))
+		return
+	if (usr.stat || usr.restrained())
+		return
+
+	usr << "<span class='alert'>You attempt to slide yourself out of \the [loc]...</span>"
+	var/obj/structure/S = loc
+	S.attack_hand(src)
+
 /* resist_stop_drop_roll allows a mob to stop, drop, and roll in order to put out a fire burning on them.
 */////
 /mob/living/proc/resist_stop_drop_roll(var/mob/living/carbon/CM)
@@ -724,7 +743,7 @@
 	for(var/mob/O in viewers(CM))
 		O.show_message( "\red <B>[usr] attempts to [hulklien ? "break" : "remove"] \the [HC]!</B>", 1)
 	spawn(0)
-		if(do_after(CM, breakouttime))
+		if(do_after(CM, breakouttime, target = src))
 			if(!CM.handcuffed || CM.buckled)
 				return // time leniency for lag which also might make this whole thing pointless but the server
 
@@ -735,7 +754,7 @@
 
 			if(hulklien)
 				CM.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
-				del(CM.handcuffed)
+				qdel(CM.handcuffed)
 				CM.handcuffed = null
 				CM.update_inv_handcuffed()
 				return
@@ -767,7 +786,7 @@
 		O.show_message( "\red <B>[usr] attempts to [hulklien ? "break" : "remove"] \the [HC]!</B>", 1)
 
 	spawn(0)
-		if(do_after(CM, breakouttime))
+		if(do_after(CM, breakouttime, target = src))
 			if(!CM.legcuffed || CM.buckled)
 				return // time leniency for lag which also might make this whole thing pointless but the server
 			for(var/mob/O in viewers(CM))//                                         lags so hard that 40s isn't lenient enough - Quarxink
@@ -830,6 +849,8 @@
 	float(!has_gravity)
 
 /mob/living/proc/float(on)
+	if(throwing)
+		return
 	if(on && !floating)
 		animate(src, pixel_y = 2, time = 10, loop = -1)
 		floating = 1
@@ -841,6 +862,21 @@
 	return "You can't fit into that vent."
 
 
+/mob/living/singularity_act()
+	var/gain = 20
+	investigate_log("([key_name(src)]) has been consumed by the singularity.","singulo") //Oh that's where the clown ended up!
+	gib()
+	return(gain)
+
+/mob/living/singularity_pull(S)
+	step_towards(src,S)
+
+/mob/living/narsie_act()
+	if(client)
+		makeNewConstruct(/mob/living/simple_animal/construct/harvester, src, null, 1)
+	spawn_dust()
+	gib()
+	return
 
 /atom/movable/proc/do_attack_animation(atom/A)
 	var/pixel_x_diff = 0
@@ -898,3 +934,10 @@
 
 /mob/living/proc/get_standard_pixel_y_offset(lying = 0)
 	return initial(pixel_y)
+
+/mob/living/proc/spawn_dust()
+	new /obj/effect/decal/cleanable/ash(loc)
+
+//used in datum/reagents/reaction() proc
+/mob/living/proc/get_permeability_protection()
+	return 0

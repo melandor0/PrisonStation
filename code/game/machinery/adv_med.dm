@@ -22,14 +22,22 @@
 /obj/machinery/bodyscanner/New()
 	..()
 	component_parts = list()
-	component_parts += new /obj/item/weapon/circuitboard/bodyscanner(src)
-	component_parts += new /obj/item/weapon/stock_parts/scanning_module(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/stack/cable_coil(src, 2)
+	component_parts += new /obj/item/weapon/circuitboard/bodyscanner(null)
+	component_parts += new /obj/item/weapon/stock_parts/scanning_module(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/stack/cable_coil(null, 2)
 	RefreshParts()
-
-/obj/machinery/bodyscanner/RefreshParts()
+	
+/obj/machinery/bodyscanner/upgraded/New()
+	..()
+	component_parts = list()
+	component_parts += new /obj/item/weapon/circuitboard/bodyscanner(null)
+	component_parts += new /obj/item/weapon/stock_parts/scanning_module/phasic(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/stack/cable_coil(null, 2)
+	RefreshParts()
 
 /obj/machinery/bodyscanner/attackby(var/obj/item/weapon/G as obj, var/mob/user as mob)
 	if (istype(G, /obj/item/weapon/screwdriver))
@@ -82,10 +90,12 @@
 		src.icon_state = "body_scanner_1"
 		src.add_fingerprint(user)
 		//G = null
-		del(G)
+		qdel(G)
 		return
 
 /obj/machinery/bodyscanner/MouseDrop_T(atom/movable/O as mob|obj, mob/user as mob)
+	if(!istype(O))
+		return
 	if(O.loc == user) //no you can't pull things out of your ass
 		return
 	if(user.restrained() || user.stat || user.weakened || user.stunned || user.paralysis || user.resting) //are you cuffed, dying, lying, stunned or other
@@ -176,7 +186,7 @@
 	src.icon_state = "bodyscanner"
 	for(var/obj/O in src)
 		//O = null
-		del(O)
+		qdel(O)
 		//Foreach goto(124)
 	src.add_fingerprint(usr)
 	return
@@ -227,7 +237,7 @@
 	if(prob(50))
 		for(var/atom/movable/A as mob|obj in src)
 			A.loc = src.loc
-		del(src)
+		qdel(src)
 
 /obj/machinery/body_scanconsole
 	var/obj/machinery/bodyscanner/connected
@@ -259,14 +269,12 @@
 /obj/machinery/body_scanconsole/New()
 	..()
 	component_parts = list()
-	component_parts += new /obj/item/weapon/circuitboard/bodyscanner_console(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/stack/cable_coil(src, 2)
+	component_parts += new /obj/item/weapon/circuitboard/bodyscanner_console(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/stack/cable_coil(null, 2)
 	RefreshParts()
 	findscanner()
-
-/obj/machinery/body_scanconsole/RefreshParts()
 
 /obj/machinery/body_scanconsole/ex_act(severity)
 	switch(severity)
@@ -284,7 +292,7 @@
 
 /obj/machinery/body_scanconsole/blob_act()
 	if(prob(50))
-		del(src)
+		qdel(src)
 
 /obj/machinery/body_scanconsole/proc/findscanner()
 	spawn( 5 )
@@ -340,20 +348,23 @@
 
 	default_deconstruction_crowbar(G)
 
-
 /obj/machinery/body_scanconsole/attack_ai(user as mob)
-	return src.attack_hand(user)
+	return attack_hand(user)
+	
+/obj/machinery/body_scanconsole/attack_ghost(user as mob)
+	return attack_hand(user)
 
 /obj/machinery/body_scanconsole/attack_hand(user as mob)
-	if(..())
-		return
 	if(stat & (NOPOWER|BROKEN))
 		return
+		
 	if (panel_open)
 		user << "<span class='notice'>Close the maintenance panel first.</span>"
 		return
+		
 	if(!src.connected)
 		findscanner()
+		
 	if (src.connected)
 		if(!connected.occupant)
 			user << "<span class='notice'>The scanner is empty.</span>"
@@ -408,7 +419,7 @@
 							dat += text("[]\tBlood Level %: [] ([] units)</FONT><BR>", (blood_volume > 448 ?"<font color='blue'>" : "<font color='red'>"), blood_percent, blood_volume)
 						if(occupant.reagents)
 							dat += text("Epinephrine units: [] units<BR>", occupant.reagents.get_reagent_amount("Epinephrine"))
-							dat += text("Morphine: [] units<BR>", occupant.reagents.get_reagent_amount("morphine"))
+							dat += text("Ether: [] units<BR>", occupant.reagents.get_reagent_amount("ether"))
 							dat += text("[]\tSilver Sulfadiazine: [] units</FONT><BR>", (occupant.reagents.get_reagent_amount("silver_sulfadiazine") < 30 ? "<font color='black'>" : "<font color='red'>"), occupant.reagents.get_reagent_amount("silver_sulfadiazine"))
 							dat += text("[]\tStyptic Powder: [] units<BR>", (occupant.reagents.get_reagent_amount("styptic_powder") < 30 ? "<font color='black'>" : "<font color='red'>"), occupant.reagents.get_reagent_amount("styptic_powder"))
 							dat += text("[]\tsalbutamol: [] units<BR>", (occupant.reagents.get_reagent_amount("salbutamol") < 30 ? "<font color='black'>" : "<font color='red'>"), occupant.reagents.get_reagent_amount("salbutamol"))

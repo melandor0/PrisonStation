@@ -50,14 +50,13 @@
 #define INFECTION_LEVEL_TWO		500
 #define INFECTION_LEVEL_THREE	1000
 
+// Damage above this value must be repaired with surgery.
+#define ROBOLIMB_SELF_REPAIR_CAP 60
+
 //metal, glass, rod stacks
 #define MAX_STACK_AMOUNT_METAL	50
 #define MAX_STACK_AMOUNT_GLASS	50
 #define MAX_STACK_AMOUNT_RODS	60
-
-#define CC_PER_SHEET_METAL 3750
-#define CC_PER_SHEET_GLASS 3750
-#define CC_PER_SHEET_MISC 2000
 
 //some colors
 #define COLOR_RED 		"#FF0000"
@@ -130,3 +129,38 @@
 #define LIGHT_COLOR_WHITE		"#FFFFFF"
 
 #define RESIZE_DEFAULT_SIZE 1
+
+//transfer_ai() defines. Main proc in ai_core.dm
+#define AI_TRANS_TO_CARD	1 //Downloading AI to InteliCard.
+#define AI_TRANS_FROM_CARD	2 //Uploading AI from InteliCard
+#define AI_MECH_HACK		3 //Malfunctioning AI hijacking mecha
+
+//singularity defines
+#define STAGE_ONE 1
+#define STAGE_TWO 3
+#define STAGE_THREE 5
+#define STAGE_FOUR 7
+#define STAGE_FIVE 9
+#define STAGE_SIX 11 //From supermatter shard
+
+#define FOR_DVIEW(type, range, center, invis_flags) \
+	dview_mob.loc = center; \
+	dview_mob.see_invisible = invis_flags; \
+	for(type in view(range, dview_mob))
+#define END_FOR_DVIEW dview_mob.loc = null
+
+#define MIN_SUPPLIED_LAW_NUMBER 15
+#define MAX_SUPPLIED_LAW_NUMBER 50
+
+//Material defines
+#define MAT_METAL		"$metal"
+#define MAT_GLASS		"$glass"
+#define MAT_SILVER		"$silver"
+#define MAT_GOLD		"$gold"
+#define MAT_DIAMOND		"$diamond"
+#define MAT_URANIUM		"$uranium"
+#define MAT_PLASMA		"$plasma"
+#define MAT_BANANIUM	"$bananium"
+
+#define MAX_STACK_SIZE 50
+//The maximum size of a stack object.

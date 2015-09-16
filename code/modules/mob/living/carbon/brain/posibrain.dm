@@ -4,10 +4,8 @@
 	icon = 'icons/obj/assemblies.dmi'
 	icon_state = "posibrain"
 	w_class = 3
-	origin_tech = "engineering=4;materials=4;bluespace=2;programming=4"
+	origin_tech = "biotech=3;programming=2"
 
-	construction_cost = list("metal"=500,"glass"=500,"silver"=200,"gold"=200,"plasma"=100,"diamond"=10)
-	construction_time = 75
 	var/searching = 0
 	var/askDelay = 10 * 60 * 1
 	//var/mob/living/carbon/brain/brainmob = null
@@ -132,12 +130,8 @@
 	ghost_volunteers.Add(O)
 
 
-/obj/item/device/mmi/posibrain/examine()
-	set src in oview()
-
-	if(!usr || !src)	return
-	if( (usr.sdisabilities & BLIND || usr.blinded || usr.stat) && !istype(usr,/mob/dead/observer) )
-		usr << "<span class='notice'>Something is there but you can't see it.</span>"
+/obj/item/device/mmi/posibrain/examine(mob/user)
+	if(!..(user))
 		return
 
 	var/msg = "<span class='info'>*---------*\nThis is \icon[src] \a <EM>[src]</EM>!\n[desc]\n"
@@ -152,8 +146,7 @@
 	else
 		msg += "<span class='deadsay'>It appears to be completely inactive.</span>\n"
 	msg += "<span class='info'>*---------*</span>"
-	usr << msg
-	return
+	user << msg
 
 /obj/item/device/mmi/posibrain/emp_act(severity)
 	if(!src.brainmob)

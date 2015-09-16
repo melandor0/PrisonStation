@@ -49,7 +49,7 @@
 						pixel_x = rand(-6,6)
 						pixel_y = rand(-6,6)
 					else
-						del(src)
+						qdel(src)
 	else
 		return ..()
 
@@ -58,7 +58,7 @@
 //*******************************//
 
 var/list/fruit_icon_states = list("badrecipe","kudzupod","reishi","lime","grapes","boiledrorocore","chocolateegg")
-var/list/reagent_effects = list("toxin","charcoal","morphine","space_drugs","lsd","haloperidol")
+var/list/reagent_effects = list("toxin","charcoal","ether","space_drugs","lsd","haloperidol")
 var/jungle_plants_init = 0
 
 /proc/init_jungle_plants()

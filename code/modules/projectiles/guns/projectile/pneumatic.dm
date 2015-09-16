@@ -96,15 +96,13 @@
 	in_chamber = contents[1]
 	return !isnull(in_chamber)
 
-/obj/item/weapon/gun/launcher/pneumatic/examine()
-	set src in view()
-	..()
-	if (!(usr in view(2)) && usr!=src.loc) return
-	usr << "The valve is dialed to [pressure_setting]%."
-	if(tank)
-		usr << "The tank dial reads [tank.air_contents.return_pressure()] kPa."
-	else
-		usr << "Nothing is attached to the tank valve!"
+/obj/item/weapon/gun/launcher/pneumatic/examine(mob/user)
+	if(..(user, 2))
+		user << "The valve is dialed to [pressure_setting]%."
+		if(tank)
+			user << "The tank dial reads [tank.air_contents.return_pressure()] kPa."
+		else
+			user << "Nothing is attached to the tank valve!"
 
 /obj/item/weapon/gun/launcher/pneumatic/special_check(user)
 
@@ -145,20 +143,20 @@
 /obj/item/weapon/cannonframe/update_icon()
 	icon_state = "pneumatic[buildstate]"
 
-/obj/item/weapon/cannonframe/examine()
-	..()
+/obj/item/weapon/cannonframe/examine(mob/user)
+	..(user)
 	switch(buildstate)
-		if(1) usr << "It has a pipe segment installed."
-		if(2) usr << "It has a pipe segment welded in place."
-		if(3) usr << "It has an outer chassis installed."
-		if(4) usr << "It has an outer chassis welded in place."
-		if(5) usr << "It has a transfer valve installed."
+		if(1) user << "It has a pipe segment installed."
+		if(2) user << "It has a pipe segment welded in place."
+		if(3) user << "It has an outer chassis installed."
+		if(4) user << "It has an outer chassis welded in place."
+		if(5) user << "It has a transfer valve installed."
 
 /obj/item/weapon/cannonframe/attackby(obj/item/W as obj, mob/user as mob, params)
 	if(istype(W,/obj/item/pipe))
 		if(buildstate == 0)
 			user.drop_item()
-			del(W)
+			qdel(W)
 			user << "\blue You secure the piping inside the frame."
 			buildstate++
 			update_icon()
@@ -177,7 +175,7 @@
 	else if(istype(W,/obj/item/device/transfer_valve))
 		if(buildstate == 4)
 			user.drop_item()
-			del(W)
+			qdel(W)
 			user << "\blue You install the transfer valve and connect it to the piping."
 			buildstate++
 			update_icon()
@@ -206,7 +204,7 @@
 				playsound(src.loc, 'sound/items/Welder2.ogg', 100, 1)
 				user << "\blue You weld the valve into place."
 				new /obj/item/weapon/gun/launcher/pneumatic(get_turf(src))
-				del(src)
+				qdel(src)
 		return
 	else
 		..()

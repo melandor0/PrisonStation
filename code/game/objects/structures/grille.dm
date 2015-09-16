@@ -37,18 +37,14 @@
 	icon='icons/fence-ns.dmi'
 
 /obj/structure/grille/Destroy()
-	loc = null //garbage collect
-
+	..()
+	return QDEL_HINT_PUTINPOOL //pool grilles
 
 /obj/structure/grille/ex_act(severity)
-	returnToPool(src)
+	qdel(src)
 
 /obj/structure/grille/blob_act()
-	returnToPool(src)
-
-/obj/structure/grille/meteorhit(var/obj/M)
-	returnToPool(src)
-
+	qdel(src)
 
 /obj/structure/grille/Bumped(atom/user)
 	if(ismob(user)) shock(user, 70)
@@ -144,7 +140,7 @@
 		if(!shock(user, 100))
 			playsound(loc, 'sound/items/Wirecutter.ogg', 100, 1)
 			new /obj/item/stack/rods(loc, 2)
-			returnToPool(src)
+			qdel(src)
 	else if((isscrewdriver(W)) && (istype(loc, /turf/simulated) || anchored))
 		if(!shock(user, 90))
 			playsound(loc, 'sound/items/Screwdriver.ogg', 100, 1)
@@ -178,7 +174,7 @@
 				user << "<span class='notice'>There is already a window facing this way there.</span>"
 				return
 		user << "<span class='notice'>You start placing the window.</span>"
-		if(do_after(user,20))
+		if(do_after(user,20, target = src))
 			if(!src) return //Grille destroyed while waiting
 			for(var/obj/structure/window/WINDOW in loc)
 				if(WINDOW.dir == dir_to_set)//checking this for a 2nd time to check if a window was made while we were waiting.
@@ -224,12 +220,12 @@
 			icon_state = "brokengrille"
 			density = 0
 			destroyed = 1
-			new /obj/item/stack/rods(loc)
+			PoolOrNew(/obj/item/stack/rods,loc)
 
 		else
 			if(health <= -6)
-				new /obj/item/stack/rods(loc)
-				returnToPool(src)
+				PoolOrNew(/obj/item/stack/rods,loc)
+				qdel(src)
 				return
 	return
 

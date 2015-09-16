@@ -2,8 +2,11 @@
 	mob_list -= src
 	dead_mob_list -= src
 	living_mob_list -= src
+	qdel(hud_used)
+	if(mind && mind.current == src)
+		spellremove(src)
 	ghostize()
-	..()
+	return ..()
 
 /mob/New()
 	mob_list += src
@@ -165,7 +168,7 @@
 
 	if(!W.mob_can_equip(src, slot, disable_warning))
 		if(del_on_fail)
-			del(W)
+			qdel(W)
 		else
 			if(!disable_warning)
 				src << "\red You are unable to equip that." //Only print if del_on_fail is false
@@ -482,6 +485,18 @@ var/list/slot_equipment_priority = list( \
 	onclose(user, "mob\ref[src]")
 	return
 
+//mob verbs are faster than object verbs. See http://www.byond.com/forum/?post=1326139&page=2#comment8198716 for why this isn't atom/verb/examine()
+/mob/verb/examinate(atom/A as mob|obj|turf in view())
+	set name = "Examine"
+	set category = "IC"
+
+	if((is_blind(src) || usr.stat) && !isobserver(src))
+		src << "<span class='notice'>Something is there but you can't see it.</span>"
+		return 1
+
+	face_atom(A)
+	A.examine(src)
+
 /mob/proc/ret_grab(obj/effect/list_container/mobl/L as obj, flag)
 	if ((!( istype(l_hand, /obj/item/weapon/grab) ) && !( istype(r_hand, /obj/item/weapon/grab) )))
 		if (!( L ))
@@ -510,7 +525,7 @@ var/list/slot_equipment_priority = list( \
 				var/list/temp = list(  )
 				temp += L.container
 				//L = null
-				del(L)
+				qdel(L)
 				return temp
 			else
 				return L.container
@@ -605,77 +620,48 @@ var/list/slot_equipment_priority = list( \
 		if(lentext(msg) <= 40)
 			return "\blue [msg]"
 		else
-			return "\blue [copytext(msg, 1, 37)]... <a href='byond://?src=\ref[src];flavor_more=1'>More...</a>"
+			return "\blue [copytext_preserve_html(msg, 1, 37)]... <a href='byond://?src=\ref[src];flavor_more=1'>More...</a>"
 
 /mob/proc/is_dead()
 	return stat == DEAD
 
-
-/*
-/mob/verb/help()
-	set name = "Help"
-	src << browse('html/help.html', "window=help")
-	return
-*/
-
-
 /mob
-
 	var/newPlayerType = /mob/new_player
 
-/*
 /mob/verb/abandon_mob()
 	set name = "Respawn"
 	set category = "OOC"
 
-	if (!( abandon_allowed ))
-		usr << "\blue Respawn is disabled."
+	if (!abandon_allowed)
+		usr << "<span class='warning'>Respawning is disabled.</span>"
 		return
-	if ((stat != 2 || !( ticker )))
-		usr << "\blue <B>You must be dead to use this!</B>"
-		return
-	if (ticker.mode.name == "meteor" || ticker.mode.name == "epidemic") //BS12 EDIT
-		usr << "\blue Respawn is disabled."
-		return
-	else
-		var/deathtime = world.time - src.timeofdeath
-		var/deathtimeminutes = round(deathtime / 600)
-		var/pluralcheck = "minute"
-		if(deathtimeminutes == 0)
-			pluralcheck = ""
-		else if(deathtimeminutes == 1)
-			pluralcheck = " [deathtimeminutes] minute and"
-		else if(deathtimeminutes > 1)
-			pluralcheck = " [deathtimeminutes] minutes and"
-		var/deathtimeseconds = round((deathtime - deathtimeminutes * 600) / 10,1)
-		usr << "You have been dead for[pluralcheck] [deathtimeseconds] seconds."
-		if (deathtime < 18000)
-			usr << "You must wait 30 minutes to respawn!"
-			return
-		else
-			usr << "You can respawn now, enjoy your new life!"
 
-	log_game("[usr.name]/[usr.key] used abandon mob.")
+	if (stat != DEAD || !ticker)
+		usr << "<span class='boldnotice'>You must be dead to use this!</span>"
+		return
+
+	log_game("[key_name(usr)] has respawned.")
 
 	usr << "\blue <B>Make sure to play a different character, and please roleplay correctly!</B>"
 
 	if(!client)
-		log_game("[usr.key] AM failed due to disconnect.")
+		log_game("[key_name(usr)] respawn failed due to disconnect.")
 		return
 	client.screen.Cut()
+
 	if(!client)
-		log_game("[usr.key] AM failed due to disconnect.")
+		log_game("[key_name(usr)] respawn failed due to disconnect.")
 		return
 
-	var/mob/newPlayer = new newPlayerType()
+	var/mob/new_player/M = new /mob/new_player()
 	if(!client)
-		log_game("[usr.key] AM failed due to disconnect.")
-		del(newPlayer)
+		log_game("[key_name(usr)] respawn failed due to disconnect.")
+		qdel(M)
 		return
 
-	newPlayer.key = key
+	M.key = key
 	return
-*/
+
 /mob/verb/observe()
 	set name = "Observe"
 	set category = "OOC"
@@ -707,7 +693,7 @@ var/list/slot_equipment_priority = list( \
 				namecounts[name] = 1
 			creatures[name] = O
 
-		if(istype(O, /obj/machinery/singularity))
+		if(istype(O, /obj/singularity))
 			var/name = "Singularity"
 			if (names.Find(name))
 				namecounts[name]++
@@ -822,6 +808,7 @@ var/list/slot_equipment_priority = list( \
 		return
 
 	if (AM.anchored)
+		usr << "<span class='notice'>It won't budge!</span>"
 		return
 
 	var/mob/M = AM
@@ -916,97 +903,31 @@ var/list/slot_equipment_priority = list( \
 		add_stings_to_statpanel(mind.changeling.purchasedpowers)
 
 	if(spell_list && spell_list.len)
-		for(var/obj/effect/proc_holder/spell/wizard/S in spell_list)
+		for(var/obj/effect/proc_holder/spell/S in spell_list)
 			add_spell_to_statpanel(S)
 	if(mind && istype(src, /mob/living) && mind.spell_list && mind.spell_list.len)
-		for(var/obj/effect/proc_holder/spell/wizard/S in mind.spell_list)
+		for(var/obj/effect/proc_holder/spell/S in mind.spell_list)
 			add_spell_to_statpanel(S)
 
 
 	if(client && client.holder)
 
 		if(statpanel("DI"))	//not looking at that panel
-			stat(null, "Location:\t([x], [y], [z])")
-			stat(null, "CPU:\t[world.cpu]")
-			stat(null, "Instances:\t[world.contents.len]")
+			stat("Loc", "([x], [y], [z]) [loc]")
+			stat("CPU", "[world.cpu]")
+			stat("Instances", "[world.contents.len]")
 
-			if (garbageCollector)
-				stat(null, "\tqdel - [garbageCollector.del_everything ? "off" : "on"]")
-				stat(null, "\ton queue - [garbageCollector.queue.len]")
-				stat(null, "\ttotal delete - [garbageCollector.dels_count]")
-				stat(null, "\tsoft delete - [garbageCollector.soft_dels]")
-				stat(null, "\thard delete - [garbageCollector.hard_dels]")
-			else
-				stat(null, "Garbage Controller is not running.")
+			if(processScheduler)
+				processScheduler.statProcesses()
 
-			if(processScheduler.getIsRunning())
-				var/datum/controller/process/process
-
-				process = processScheduler.getProcess("ticker")
-				stat(null, "TIC\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("air")
-				stat(null, "AIR\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("lighting")
-				stat(null, "LIG\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("mob")
-				stat(null, "MOB([mob_list.len])\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("machinery")
-				stat(null, "MAC([machines.len])\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("obj")
-				stat(null, "OBJ([processing_objects.len])\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("bot")
-				stat(null, "BOT([aibots.len])\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("pipenet")
-				stat(null, "PIP([pipe_networks.len])\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("powernet")
-				stat(null, "POW([powernets.len])\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("nanoui")
-				stat(null, "NAN([nanomanager.processing_uis.len])\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("disease")
-				stat(null, "DIS([active_diseases.len])\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				process = processScheduler.getProcess("garbage")
-				stat(null, "GAR\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				//process = processScheduler.getProcess("sun")
-				//stat(null, "SUN\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				//process = processScheduler.getProcess("garbage")
-				//stat(null, "GAR\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				//process = processScheduler.getProcess("vote")
-				//stat(null, "VOT\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				//process = processScheduler.getProcess("shuttle controller")
-				//stat(null, "SHT\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				//process = processScheduler.getProcess("emergency shuttle")
-				//stat(null, "EME\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				//process = processScheduler.getProcess("inactivity")
-				//stat(null, "IAC\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-
-				//process = processScheduler.getProcess("event")
-				//stat(null, "EVE([events.len])\t - #[process.getTicks()]\t - [process.getLastRunTime()]")
-			else
-				stat(null, "processScheduler is not running.")
+	statpanel("Status") // Switch to the Status panel again, for the sake of the lazy Stat procs
 
 
 /mob/proc/add_stings_to_statpanel(var/list/stings)
 	for(var/obj/effect/proc_holder/changeling/S in stings)
 		if(S.chemical_cost >=0 && S.can_be_used_by(src))
 			statpanel("[S.panel]",((S.chemical_cost > 0) ? "[S.chemical_cost]" : ""),S)
-/mob/proc/add_spell_to_statpanel(var/obj/effect/proc_holder/spell/wizard/S)
+/mob/proc/add_spell_to_statpanel(var/obj/effect/proc_holder/spell/S)
 	switch(S.charge_type)
 		if("recharge")
 			statpanel(S.panel,"[S.charge_counter/10.0]/[S.charge_max/10]",S)
@@ -1049,6 +970,8 @@ var/list/slot_equipment_priority = list( \
 			else
 				lying = pick(90, 270) //180 looks like shit since BYOND inverts rather than turns in that case
 	else if(stunned)
+		drop_l_hand()
+		drop_r_hand()
 		canmove = 0
 	else
 		lying = 0
@@ -1082,6 +1005,8 @@ var/list/slot_equipment_priority = list( \
 		lying = 90
 		canmove = 0
 	else if( stunned )
+		drop_l_hand()
+		drop_r_hand()
 		canmove = 0
 	else
 		lying = 0
@@ -1291,7 +1216,7 @@ mob/proc/yank_out_object()
 	else
 		U << "<span class='warning'>You attempt to get a good grip on [selection] in [S]'s body.</span>"
 
-	if(!do_after(U, 80))
+	if(!do_after(U, 80, target = S))
 		return
 	if(!selection || !S || !U)
 		return
@@ -1326,7 +1251,7 @@ mob/proc/yank_out_object()
 			var/mob/living/carbon/human/human_user = U
 			human_user.bloody_hands(H)
 
-	selection.loc = get_turf(src)
+	selection.forceMove(get_turf(src))
 	if(!(U.l_hand && U.r_hand))
 		U.put_in_hands(selection)
 

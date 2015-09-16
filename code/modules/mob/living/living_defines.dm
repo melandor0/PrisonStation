@@ -18,7 +18,6 @@
 	var/staminaloss = 0 //Stamina damage, or exhaustion. You recover it slowly naturally, and are stunned if it gets too high. Holodeck and hallucinations deal this.
 
 	var/hallucination = 0 //Directly affects how long a mob will hallucinate for
-	var/list/atom/hallucinations = list() //A list of hallucinated people that try to attack the mob. See /obj/effect/fake_attacker in hallucinations.dm
 
 
 	var/last_special = 0 //Used by the resist verb, likely used to prevent players from bypassing next_move by logging in/out.
@@ -33,7 +32,7 @@
 
 	var/now_pushing = null
 
-	var/cameraFollow = null
+	var/atom/movable/cameraFollow = null
 
 	var/tod = null // Time of death
 
@@ -46,6 +45,9 @@
 	var/silent = null 		//Can't talk. Value goes down every life proc.
 	var/floating = 0
 	var/nightvision = 0
+
+	var/bloodcrawl = 0 //0 No blood crawling, 1 blood crawling, 2 blood crawling+mob devour
+	var/holder = null //The holder for blood crawling
 
 	var/ventcrawler = 0 //0 No vent crawling, 1 vent crawling in the nude, 2 vent crawling always
 	var/list/icon/pipes_shown = list()

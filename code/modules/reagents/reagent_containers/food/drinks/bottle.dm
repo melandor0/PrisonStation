@@ -18,7 +18,7 @@
 	var/obj/item/weapon/broken_bottle/B = new /obj/item/weapon/broken_bottle(user.loc)
 	user.put_in_active_hand(B)
 	if(prob(33))
-		getFromPool(/obj/item/weapon/shard, target.loc) // Create a glass shard at the target's location!
+		PoolOrNew(/obj/item/weapon/shard, target.loc) // Create a glass shard at the target's location!
 	B.icon_state = src.icon_state
 
 	var/icon/I = new('icons/obj/drinks.dmi', src.icon_state)
@@ -30,14 +30,14 @@
 	user.put_in_active_hand(B)
 	src.transfer_fingerprints_to(B)
 
-	del(src)
+	qdel(src)
 
 /obj/item/weapon/reagent_containers/food/drinks/bottle/attack(mob/living/target as mob, mob/living/user as mob)
 
 	if(!target)
 		return
 
-	if(user.a_intent != "harm" || !isGlass)
+	if(user.a_intent != I_HARM || !isGlass)
 		return ..()
 
 
@@ -97,10 +97,10 @@
 			else O.show_message(text("\red <B>[target] has attacked himself with a bottle of [src.name]!</B>"), 1)
 
 	//Attack logs
-	user.attack_log += text("\[[time_stamp()]\] <font color='red'>Has attacked [target.name] ([target.ckey]) with a bottle!</font>")
-	target.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been smashed with a bottle by [user.name] ([user.ckey])</font>")
+	user.attack_log += text("\[[time_stamp()]\] <font color='red'>Has attacked [key_name(target)] with a bottle!</font>")
+	target.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been smashed with a bottle by [key_name(user)]</font>")
 	if(target.ckey)
-		msg_admin_attack("[user.name] ([user.ckey])[isAntag(user) ? "(ANTAG)" : ""] attacked [target.name] ([target.ckey]) with a bottle. (INTENT: [uppertext(user.a_intent)]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
+		msg_admin_attack("[key_name_admin(user)] attacked [key_name_admin(target)] with a bottle. (INTENT: [uppertext(user.a_intent)])")
 	if(!iscarbon(user))
 		target.LAssailant = null
 	else

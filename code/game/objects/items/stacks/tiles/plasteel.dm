@@ -1,11 +1,12 @@
 /obj/item/stack/tile/plasteel
 	name = "floor tiles"
+	gender = PLURAL
 	singular_name = "floor tile"
 	desc = "Those could work as a pretty decent throwing weapon"
 	icon_state = "tile"
 	w_class = 3.0
 	force = 6.0
-	m_amt = 937.5
+	materials = list(MAT_METAL=500)
 	throwforce = 10.0
 	throw_speed = 3
 	throw_range = 7

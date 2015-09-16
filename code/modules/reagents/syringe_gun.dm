@@ -7,7 +7,7 @@
 	throw_speed = 2
 	throw_range = 10
 	force = 4
-	m_amt = 2000
+	materials = list(MAT_METAL=2000)
 	clumsy_check = 0
 	fire_sound = 'sound/items/syringeproj.ogg'
 	var/list/syringes = list()
@@ -25,13 +25,12 @@
 	in_chamber.name = S.name
 	syringes.Remove(S)
 
-	del(S)
+	qdel(S)
 	return 1
 
-/obj/item/weapon/gun/syringe/examine()
-	..()
-	usr << "Can hold [max_syringes] syringe\s. Has [syringes.len] syringe\s remaining."
-	return
+/obj/item/weapon/gun/syringe/examine(mob/user)
+	..(user)
+	user << "Can hold [max_syringes] syringe\s. Has [syringes.len] syringe\s remaining."
 
 /obj/item/weapon/gun/syringe/attack_self(mob/living/user as mob)
 	if(!syringes.len)

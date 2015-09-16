@@ -305,9 +305,9 @@
 		if (istype(R, /obj/item/device/radio))
 			// generate list of radio freqs
 			var/obj/item/device/radio/target_radio = R
-			var/freq = 1441
+			var/freq = PUBLIC_LOW_FREQ
 			var/list/freqlist = list()
-			while (freq <= 1489)
+			while (freq <= PUBLIC_HIGH_FREQ)
 				if (freq < 1451 || freq > 1459)
 					freqlist += freq
 				freq += 2
@@ -374,21 +374,21 @@
 				if(t_mind.current.client)
 					for(var/image/I in t_mind.current.client.images)
 						if((I.icon_state == "greytide" || I.icon_state == "greytide_head") && I.loc == traitor_mind.current)
-							//world.log << "deleting [traitor_mind] overlay"
-							del(I)
+							//log_to_dd("deleting [traitor_mind] overlay")
+							qdel(I)
 		if(head)
-			//world.log << "found [head.name]"
+			//log_to_dd("found [head.name]")
 			if(head.current)
 				if(head.current.client)
 					for(var/image/I in head.current.client.images)
 						if((I.icon_state == "greytide" || I.icon_state == "greytide_head") && I.loc == traitor_mind.current)
-							//world.log << "deleting [traitor_mind] overlay"
-							del(I)
+							//log_to_dd("deleting [traitor_mind] overlay")
+							qdel(I)
 	if(traitor_mind.current)
 		if(traitor_mind.current.client)
 			for(var/image/I in traitor_mind.current.client.images)
 				if(I.icon_state == "greytide" || I.icon_state == "greytide_head")
-					del(I)
+					qdel(I)
 
 /datum/game_mode/proc/remove_traitor_mind(datum/mind/traitor_mind, datum/mind/head)
 	//var/list/removal

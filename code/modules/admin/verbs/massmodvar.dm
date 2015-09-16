@@ -30,7 +30,7 @@
 
 	for(var/p in forbidden_varedit_object_types)
 		if( istype(O,p) )
-			usr << "\red It is forbidden to edit this object's variables."
+			usr << "<span class='danger'>It is forbidden to edit this object's variables.</span>"
 			return
 
 	var/list/names = list()
@@ -168,7 +168,7 @@
 			return .(O.vars[variable])
 
 		if("text")
-			var/new_value = input("Enter new text:","Text",O.vars[variable]) as text|null
+			var/new_value = input("Enter new text:","Text",O.vars[variable]) as message|null
 			if(new_value == null) return
 			O.vars[variable] = new_value
 

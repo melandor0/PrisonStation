@@ -14,7 +14,7 @@ var/global/vox_tick = 1
 		if(1) // Vox raider!
 			equip_to_slot_or_del(new /obj/item/clothing/suit/space/vox/carapace(src), slot_wear_suit)
 			equip_to_slot_or_del(new /obj/item/clothing/head/helmet/space/vox/carapace(src), slot_head)
-			equip_to_slot_or_del(new /obj/item/weapon/melee/telebaton(src), slot_belt)
+			equip_to_slot_or_del(new /obj/item/weapon/melee/classic_baton/telescopic(src), slot_belt)
 			equip_to_slot_or_del(new /obj/item/clothing/glasses/thermal/monocle(src), slot_glasses) // REPLACE WITH CODED VOX ALTERNATIVE.
 			equip_to_slot_or_del(new /obj/item/device/chameleon(src), slot_l_store)
 
@@ -52,10 +52,8 @@ var/global/vox_tick = 1
 	equip_to_slot_or_del(new /obj/item/weapon/tank/nitrogen(src), slot_back)
 	equip_to_slot_or_del(new /obj/item/device/flashlight(src), slot_r_store)
 
-	var/obj/item/weapon/card/id/syndicate/W = new(src)
+	var/obj/item/weapon/card/id/syndicate/vox/W = new(src)
 	W.name = "[real_name]'s Legitimate Human ID Card"
-	W.icon_state = "id"
-	W.access = list(access_vox)
 	W.assignment = "Trader"
 	W.registered_name = real_name
 	W.registered_user = src

@@ -36,13 +36,13 @@
 	..()
 	for(var/obj/structure/table/T in src.loc)
 		if(T != src)
-			del(T)
+			qdel(T)
 	update_icon()
 	update_adjacent()
 
 /obj/structure/table/Destroy()
 	update_adjacent()
-	..()
+	return ..()
 
 /obj/structure/table/proc/destroy()
 	new parts(loc)
@@ -300,6 +300,10 @@
 	visible_message("<span class='danger'>[user] slices [src] apart!</span>")
 	destroy()
 
+/obj/structure/table/mech_melee_attack(obj/mecha/M)
+	visible_message("<span class='danger'>[M] smashes [src] apart!</span>")
+	destroy()
+
 /obj/structure/table/attack_animal(mob/living/simple_animal/user)
 	if(user.environment_smash)
 		user.do_attack_animation(src)
@@ -398,7 +402,7 @@
 		if (istype(G.affecting, /mob/living))
 			var/mob/living/M = G.affecting
 			if (G.state < 2)
-				if(user.a_intent == "harm")
+				if(user.a_intent == I_HARM)
 					if (prob(15))	M.Weaken(5)
 					M.apply_damage(8,def_zone = "head")
 					visible_message("\red [G.assailant] slams [G.affecting]'s face against \the [src]!")
@@ -410,13 +414,13 @@
 				G.affecting.loc = src.loc
 				G.affecting.Weaken(5)
 				visible_message("\red [G.assailant] puts [G.affecting] on \the [src].")
-			del(W)
+			qdel(W)
 			return
 
 	if (istype(W, /obj/item/weapon/wrench))
 		user << "\blue Now disassembling table"
 		playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
-		if(do_after(user,50))
+		if(do_after(user,50, target = src))
 			destroy()
 		return
 
@@ -562,9 +566,9 @@
 /obj/structure/table/woodentable/attackby(obj/item/I as obj, mob/user as mob, params)
 
 	if (istype(I, /obj/item/stack/tile/grass))
-		del(I)
+		qdel(I)
 		new /obj/structure/table/woodentable/poker( src.loc )
-		del(src)
+		qdel(src)
 		visible_message("<span class='notice'>[user] adds the grass to the wooden table</span>")
 
 
@@ -581,7 +585,7 @@
 		G.affecting.loc = src.loc
 		G.affecting.Weaken(5)
 		visible_message("\red [G.assailant] puts [G.affecting] on the table.")
-		del(I)
+		qdel(I)
 		return
 	if (istype(I, /obj/item/weapon/wrench))
 		user << "\blue Now disassembling the wooden table"
@@ -589,7 +593,7 @@
 		sleep(50)
 		new /obj/item/weapon/table_parts/wood( src.loc )
 		playsound(src.loc, 'sound/items/Deconstruct.ogg', 50, 1)
-		del(src)
+		qdel(src)
 		return
 
 	if(isrobot(user))
@@ -603,7 +607,7 @@
 		for(var/mob/O in viewers(user, 4))
 			O.show_message("\blue The wooden table was sliced apart by [user]!", 1, "\red You hear wood coming apart.", 2)
 		new /obj/item/weapon/table_parts/wood( src.loc )
-		del(src)
+		qdel(src)
 		return
 
 	if(!(I.flags & ABSTRACT))
@@ -640,7 +644,7 @@
 		G.affecting.loc = src.loc
 		G.affecting.Weaken(5)
 		visible_message("\red [G.assailant] puts [G.affecting] on the table.")
-		del(W)
+		qdel(W)
 		return
 	if (istype(W, /obj/item/weapon/wrench))
 		user << "\blue Now disassembling the wooden table"
@@ -649,7 +653,7 @@
 		new /obj/item/weapon/table_parts/wood( src.loc )
 		new /obj/item/stack/tile/grass( src.loc)
 		playsound(src.loc, 'sound/items/Deconstruct.ogg', 50, 1)
-		del(src)
+		qdel(src)
 		return
 
 	if(isrobot(user))
@@ -664,7 +668,7 @@
 			O.show_message("\blue The wooden table was sliced apart by [user]!", 1, "\red You hear wood coming apart.", 2)
 		new /obj/item/weapon/table_parts/wood( src.loc )
 		new /obj/item/stack/tile/grass( src.loc)
-		del(src)
+		qdel(src)
 		return
 
 	if(!(W.flags & ABSTRACT))
@@ -692,12 +696,12 @@
 		var/obj/item/stack/sheet/glass/G = I
 		if(G.amount >= 2)
 			user << "<span class='notice'>You start to add the glass to \the [src].</span>"
-			if(do_after(user, 10))
+			if(do_after(user, 10, target = src))
 				G.use(2)
 				user << "<span class='notice'>You add the glass to \the [src].</span>"
 				playsound(get_turf(src), 'sound/items/Deconstruct.ogg', 50, 1)
 				new /obj/structure/table/glass(loc)
-				del(src)
+				qdel(src)
 		else
 			user << "<span class='notice'>You don't have enough glass! You need at least 2 sheets.</span>"
 			return
@@ -705,12 +709,12 @@
 	if(iswrench(I))
 		user << "<span class='notice'>You start to deconstruct \the [src].</span>"
 		playsound(src.loc, 'sound/items/Ratchet.ogg', 75, 1)
-		if(do_after(user, 10))
+		if(do_after(user, 10, target = src))
 			playsound(src.loc, 'sound/items/Deconstruct.ogg', 75, 1)
 			user << "<span class='notice'>You dismantle \the [src].</span>"
 			new /obj/item/stack/sheet/metal(loc)
 			new /obj/item/stack/sheet/metal(loc)
-			del(src)
+			qdel(src)
 
 /obj/structure/table/glass
 	name = "glass table"
@@ -725,9 +729,9 @@
 /obj/structure/table/glass/proc/collapse() //glass table collapse is called twice in this code, more efficent to just have a proc
 	src.visible_message("<span class='warning'>\The [src] shatters, and the frame collapses!</span>", "<span class='warning'>You hear metal collapsing and glass shattering.</span>")
 	new /obj/item/weapon/table_parts/glass(loc)
-	getFromPool(/obj/item/weapon/shard, loc)
+	PoolOrNew(/obj/item/weapon/shard, loc)
 	if(prob(50)) //50% chance to spawn two shards
-		getFromPool(/obj/item/weapon/shard, loc)
+		PoolOrNew(/obj/item/weapon/shard, loc)
 	qdel(src)
 
 /obj/structure/table/glass/attackby(obj/item/I as obj, mob/user as mob, params)
@@ -745,7 +749,7 @@
 		G.affecting.loc = src.loc
 		G.affecting.Weaken(7)
 		visible_message("<span class='warning'>[G.assailant] smashes [G.affecting] onto \the [src]!</span>")
-		del(I)
+		qdel(I)
 		src.collapse()
 		return
 
@@ -756,7 +760,7 @@
 		new /obj/item/weapon/table_parts/glass( src.loc )
 		new /obj/item/stack/sheet/glass( src.loc )
 		playsound(src.loc, 'sound/items/Deconstruct.ogg', 50, 1)
-		del(src)
+		qdel(src)
 		return
 
 	if(isrobot(user))
@@ -771,7 +775,7 @@
 			O.show_message("<span class='notice'>\The [src] was sliced apart by [user]!</span>", 1, "<span class='warning'>You hear glass being sliced apart.</span>", 2)
 		new /obj/item/weapon/table_parts/glass( src.loc )
 		new /obj/item/stack/sheet/glass( src.loc )
-		del(src)
+		qdel(src)
 		return
 
 	if(!(I.flags & ABSTRACT))
@@ -812,14 +816,14 @@
 			if(src.status == 2)
 				user << "\blue Now weakening the reinforced table"
 				playsound(src.loc, 'sound/items/Welder.ogg', 50, 1)
-				if (do_after(user, 50))
+				if (do_after(user, 50, target = src))
 					if(!src || !WT.isOn()) return
 					user << "\blue Table weakened"
 					src.status = 1
 			else
 				user << "\blue Now strengthening the reinforced table"
 				playsound(src.loc, 'sound/items/Welder.ogg', 50, 1)
-				if (do_after(user, 50))
+				if (do_after(user, 50, target = src))
 					if(!src || !WT.isOn()) return
 					user << "\blue Table strengthened"
 					src.status = 2
@@ -844,11 +848,12 @@
 	anchored = 1.0
 	throwpass = 1	//You can throw objects over this, despite it's density.
 	var/parts = /obj/item/weapon/rack_parts
+	var/health = 5
 
 /obj/structure/rack/proc/destroy()
 	new parts(loc)
 	density = 0
-	del(src)
+	qdel(src)
 
 /obj/structure/rack/ex_act(severity)
 	switch(severity)
@@ -865,11 +870,11 @@
 
 /obj/structure/rack/blob_act()
 	if(prob(75))
-		del(src)
+		qdel(src)
 		return
 	else if(prob(50))
 		new /obj/item/weapon/rack_parts(src.loc)
-		del(src)
+		qdel(src)
 		return
 
 /obj/structure/rack/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
@@ -896,7 +901,7 @@
 	if (istype(W, /obj/item/weapon/wrench))
 		new /obj/item/weapon/rack_parts( src.loc )
 		playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
-		del(src)
+		qdel(src)
 		return
 	if(isrobot(user))
 		return
@@ -905,17 +910,23 @@
 			W.Move(loc)
 	return
 
-/obj/structure/rack/meteorhit(obj/O as obj)
-	del(src)
-
-
-/obj/structure/table/attack_hand(mob/user)
+/obj/structure/rack/attack_hand(mob/user)
 	if(HULK in user.mutations)
 		visible_message("<span class='danger'>[user] smashes [src] apart!</span>")
 		user.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
 		destroy()
+	else
+		user.changeNext_move(CLICK_CD_MELEE)
+		user.do_attack_animation(src)
+		playsound(loc, 'sound/items/dodgeball.ogg', 80, 1)
+		user.visible_message("<span class='warning'>[user] kicks [src].</span>", \
+							 "<span class='danger'>You kick [src].</span>")
+		health -= rand(1,2)
+		healthcheck()
 
-
+/obj/structure/rack/mech_melee_attack(obj/mecha/M)
+	visible_message("<span class='danger'>[M] smashes [src] apart!</span>")
+	destroy()
 
 /obj/structure/rack/attack_alien(mob/living/user)
 	user.do_attack_animation(src)
@@ -931,3 +942,7 @@
 
 /obj/structure/rack/attack_tk() // no telehulk sorry
 	return
+
+/obj/structure/rack/proc/healthcheck()
+	if(health <= 0)
+		destroy()

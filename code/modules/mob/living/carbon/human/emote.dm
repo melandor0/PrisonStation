@@ -116,7 +116,12 @@
 			m_type = 1
 
 		if("wag")
-			if(species.bodyflags & TAIL_WAGGING)
+			if(body_accessory)
+				if(body_accessory.try_restrictions(src))
+					message = "<B>[src]</B> starts wagging \his tail."
+					start_tail_wagging(1)
+
+			else if(species.bodyflags & TAIL_WAGGING)
 				if(!wear_suit || !(wear_suit.flags_inv & HIDETAIL) && !istype(wear_suit, /obj/item/clothing/suit/space))
 					message = "<B>[src]</B> starts wagging \his tail."
 					src.start_tail_wagging(1)
@@ -126,7 +131,7 @@
 				return
 
 		if("swag")
-			if(species.bodyflags & TAIL_WAGGING)
+			if(species.bodyflags & TAIL_WAGGING || body_accessory)
 				message = "<B>[src]</B> stops wagging \his tail."
 				src.stop_tail_wagging(1)
 			else
@@ -787,7 +792,7 @@
 
 			if(SUPER_FART in mutations)
 				visible_message("\red <b>[name]</b> hunches down and grits their teeth!")
-				if(do_after(usr,30))
+				if(do_after(usr,30, target = src))
 					visible_message("\red <b>[name]</b> unleashes a [pick("tremendous","gigantic","colossal")] fart!","You hear a [pick("tremendous","gigantic","colossal")] fart.")
 					//playsound(L.loc, 'superfart.ogg', 50, 0)
 					for(var/mob/living/V in range(location,aoe_range))
@@ -841,11 +846,11 @@
 	set desc = "Sets a description which will be shown when someone examines you."
 	set category = "IC"
 
-	pose =  sanitize(copytext(input(usr, "This is [src]. \He is...", "Pose", null)  as text, 1, MAX_MESSAGE_LEN))
+	pose = sanitize(copytext(input(usr, "This is [src]. \He is...", "Pose", null)  as text, 1, MAX_MESSAGE_LEN))
 
 /mob/living/carbon/human/verb/set_flavor()
 	set name = "Set Flavour Text"
 	set desc = "Sets an extended description of your character's features."
 	set category = "IC"
 
-	flavor_text =  sanitize(copytext(input(usr, "Please enter your new flavour text.", "Flavour text", null)  as text, 1))
+	flavor_text = TextPreview(input(usr, "Please enter your new flavour text.", "Flavour text", null) as text)

@@ -96,6 +96,7 @@ Class Procs:
 /obj/machinery
 	name = "machinery"
 	icon = 'icons/obj/stationobjs.dmi'
+	pressure_resistance = 10
 	var/stat = 0
 	var/emagged = 0
 	var/use_power = 1
@@ -136,7 +137,7 @@ Class Procs:
 	if (src in machines)
 		removeAtProcessing()
 
-	..()
+	return ..()
 
 /obj/machinery/process() // If you dont use process or power why are you here
 	return PROCESS_KILL
@@ -174,7 +175,11 @@ Class Procs:
 
 /obj/machinery/blob_act()
 	if(prob(50))
-		del(src)
+		qdel(src)
+
+//sets the use_power var and then forces an area power update
+/obj/machinery/proc/update_use_power(var/new_use_power)
+	use_power = new_use_power
 
 /obj/machinery/proc/auto_use_power()
 	if(!powered(power_channel))
@@ -219,7 +224,7 @@ Class Procs:
 		var/re_init=0
 		if("set_tag" in href_list)
 			if(!(href_list["set_tag"] in settagwhitelist))//I see you're trying Href exploits, I see you're failing, I SEE ADMIN WARNING. (seriously though, this is a powerfull HREF, I originally found this loophole, I'm not leaving it in on my PR)
-				message_admins("set_tag HREF (var attempted to edit: [href_list["set_tag"]]) exploit attempted by [key_name(user, user.client)] (<A HREF='?_src_=holder;adminmoreinfo=\ref[user]'>?</A>) on [src] ([x],[y],[z] - <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>)")
+				message_admins("set_tag HREF (var attempted to edit: [href_list["set_tag"]]) exploit attempted by [key_name_admin(user)] on [src] (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>)")
 				return 1
 			if(!(href_list["set_tag"] in vars))
 				usr << "<span class='warning'>Something went wrong: Unable to find [href_list["set_tag"]] in vars!</span>"
@@ -290,15 +295,21 @@ Class Procs:
 			update_multitool_menu(usr)
 			return 1
 
-/obj/machinery/Topic(href, href_list, var/nowindow = 0, var/datum/topic_state/custom_state = default_state)
-	if(..())
+/obj/machinery/Topic(href, href_list, var/nowindow = 0, var/datum/topic_state/state = default_state)
+	if(..(href, href_list, nowindow, state))
 		return 1
+
 	handle_multitool_topic(href,href_list,usr)
 	add_fingerprint(usr)
 	return 0
 
+/obj/machinery/proc/operable(var/additional_flags = 0)
+	return !inoperable(additional_flags)
 
-/obj/machinery/CanUseTopic(var/mob/user, var/be_close)
+/obj/machinery/proc/inoperable(var/additional_flags = 0)
+	return (stat & (NOPOWER|BROKEN|additional_flags))
+
+/obj/machinery/CanUseTopic(var/mob/user)
 	if(!interact_offline && (stat & (NOPOWER|BROKEN)))
 		return STATUS_CLOSE
 
@@ -347,9 +358,6 @@ Class Procs:
 
 	src.add_fingerprint(user)
 
-	var/area/A = get_area(src)
-	A.powerupdate = 1
-
 	return 0
 
 /obj/machinery/CheckParts()
@@ -373,7 +381,7 @@ Class Procs:
 		for(var/obj/item/I in component_parts)
 			if(I.reliability != 100 && crit_fail)
 				I.crit_fail = 1
-			I.loc = src.loc
+			I.forceMove(loc)
 		qdel(src)
 
 /obj/machinery/proc/default_deconstruction_screwdriver(var/mob/user, var/icon_state_open, var/icon_state_closed, var/obj/item/weapon/screwdriver/S)
@@ -402,7 +410,7 @@ Class Procs:
 	if(istype(W))
 		user << "<span class='notice'>Now [anchored ? "un" : ""]securing [name].</span>"
 		playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
-		if(do_after(user, time))
+		if(do_after(user, time, target = src))
 			user << "<span class='notice'>You've [anchored ? "un" : ""]secured [name].</span>"
 			anchored = !anchored
 			playsound(src.loc, 'sound/items/Deconstruct.ogg', 50, 1)
@@ -423,9 +431,13 @@ Class Procs:
 /obj/machinery/proc/exchange_parts(mob/user, obj/item/weapon/storage/part_replacer/W)
 	var/shouldplaysound = 0
 	if(istype(W) && component_parts)
-		if(panel_open)
+		if(panel_open || W.works_from_distance)
 			var/obj/item/weapon/circuitboard/CB = locate(/obj/item/weapon/circuitboard) in component_parts
 			var/P
+			if(W.works_from_distance)
+				user << "<span class='notice'>Following parts detected in the machine:</span>"
+				for(var/var/obj/item/C in component_parts)
+					user << "<span class='notice'>    [C.name]</span>"
 			for(var/obj/item/weapon/stock_parts/A in component_parts)
 				for(var/D in CB.req_components)
 					if(ispath(A.type, D))
@@ -462,7 +474,7 @@ Class Procs:
 		if(I.reliability != 100 && crit_fail)
 			I.crit_fail = 1
 		I.loc = loc
-	del(src)
+	qdel(src)
 	return 1
 
 /obj/machinery/proc/on_assess_perp(mob/living/carbon/human/perp)
@@ -471,7 +483,7 @@ Class Procs:
 /obj/machinery/proc/is_assess_emagged()
 	return emagged
 
-/obj/machinery/proc/assess_perp(mob/living/carbon/human/perp, var/auth_weapons, var/check_records, var/check_arrest)
+/obj/machinery/proc/assess_perp(mob/living/carbon/human/perp, var/check_access, var/auth_weapons, var/check_records, var/check_arrest)
 	var/threatcount = 0	//the integer returned
 
 	if(is_assess_emagged())
@@ -485,6 +497,12 @@ Class Procs:
 	var/obj/item/weapon/card/id/id = GetIdCard(perp)
 	if(id && istype(id, /obj/item/weapon/card/id/syndicate))
 		threatcount -= 2
+	// A proper	CentCom id is hard currency.
+	else if(id && istype(id, /obj/item/weapon/card/id/centcom))
+		threatcount -= 2
+
+	if(check_access && !allowed(perp))
+		threatcount += 4
 
 	if(auth_weapons && !src.allowed(perp))
 		if(istype(perp.l_hand, /obj/item/weapon/gun) || istype(perp.l_hand, /obj/item/weapon/melee))
@@ -512,3 +530,17 @@ Class Procs:
 			threatcount += 4
 
 	return threatcount
+
+
+/obj/machinery/proc/shock(mob/user, prb)
+	if(inoperable())
+		return 0
+	if(!prob(prb))
+		return 0
+	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
+	s.set_up(5, 1, src)
+	s.start()
+	if (electrocute_mob(user, get_area(src), src, 0.7))
+		if(user.stunned)
+			return 1
+	return 0

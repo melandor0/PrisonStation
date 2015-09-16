@@ -1,10 +1,11 @@
 /obj/item/clothing/under/color
 	desc = "A standard issue colored jumpsuit. Variety is the spice of life!"
 
+
 /obj/item/clothing/under/color/random/New()
 	..()
-	var/list/excluded = list(/obj/item/clothing/under/color/random, /obj/item/clothing/under/color, /obj/item/clothing/under/color/blackf, /obj/item/clothing/under/color/blue/dodgeball, /obj/item/clothing/under/color/orange/prison, /obj/item/clothing/under/color/red/dodgeball, /obj/item/clothing/under/color/red/jersey, /obj/item/clothing/under/color/blue/jersey)
-	var/obj/item/clothing/under/color/C = pick(typesof(/obj/item/clothing/under/color) - excluded)
+	var/list/excluded = list(/obj/item/clothing/under/color/random, /obj/item/clothing/under/color/blackf, /obj/item/clothing/under/color/blue/dodgeball, /obj/item/clothing/under/color/orange/prison, /obj/item/clothing/under/color/red/dodgeball, /obj/item/clothing/under/color/red/jersey, /obj/item/clothing/under/color/blue/jersey)
+	var/obj/item/clothing/under/color/C = pick(subtypesof(/obj/item/clothing/under/color) - excluded)
 	name = initial(C.name)
 	icon_state = initial(C.icon_state)
 	item_state = initial(C.item_state)
@@ -48,7 +49,6 @@
 	item_state = "gy_suit"
 	_color = "grey"
 	flags = ONESIZEFITSALL
-	species_fit = list("Vox")
 
 /obj/item/clothing/under/color/grey/greytide
 	flags = ONESIZEFITSALL | NODROP
@@ -108,6 +108,10 @@
 	desc = "Groovy!"
 	icon_state = "psyche"
 	_color = "psyche"
+	species_fit = list("Vox")
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/species/vox/uniform.dmi'
+		)
 
 /obj/item/clothing/under/color/lightblue
 	name = "light blue jumpsuit"

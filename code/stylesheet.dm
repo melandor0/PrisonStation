@@ -74,7 +74,7 @@ h1.alert, h2.alert		{color: #000000;}
 .tajaran				{color: #803B56;}
 .tajaran_signlang		{color: #941C1C;}
 .skrell					{color: #00CED1;}
-.soghun					{color: #228B22;}
+.soghun					{color: #145314;}
 .solcom					{color: #22228B;}
 .changeling				{color: #800080;}
 .vox					{color: #AA00AA;}
@@ -83,21 +83,22 @@ h1.alert, h2.alert		{color: #000000;}
 .kidan					{color: #664205;}
 .slime					{color: #0077AA;}
 .clown					{color: #ff0000;}
-.shadowling				{color: #311648;}
+.shadowling				{color: #3b2769;}
 .vulpkanin				{color: #B97A57;}
-.rough					{font-family: "Trebuchet MS", cursive, sans-serif;}
+.rough					{color: #7092BE; font-family: "Trebuchet MS", cursive, sans-serif;}
 .say_quote				{font-family: Georgia, Verdana, sans-serif;}
 .sans					{font-family: "Comic Sans MS", cursive, sans-serif; font-weight: bold;}
+.cultspeech				{color: #7F0000; font-style: italic;}
 
 .say_quote				{font-family: Georgia, Verdana, sans-serif;}
 
 .interface				{color: #330033;}
 
 .big					{font-size: 3;}
+.reallybig				{font-size: 4;}
 .greentext				{color: #00FF00;	font-size: 3;}
 .redtext				{color: #FF0000;	font-size: 3;}
 
 BIG IMG.icon 			{width: 32px; height: 32px;}
-
 
 </style>"}

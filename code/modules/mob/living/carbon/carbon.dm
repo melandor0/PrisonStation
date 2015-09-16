@@ -1,10 +1,18 @@
 mob/living
 	var/canEnterVentWith = "/obj/item/weapon/implant=0&/obj/item/clothing/mask/facehugger=0&/obj/item/device/radio/borg=0&/obj/machinery/camera=0"
+	var/datum/middleClickOverride/middleClickOverride = null
 
 /mob/living/carbon/Login()
 	..()
 	update_hud()
 	return
+
+/mob/living/carbon/Destroy()
+	for(var/atom/movable/guts in internal_organs)
+		qdel(guts)
+	for(var/atom/movable/food in stomach_contents)
+		qdel(food)
+	return ..()
 
 /mob/living/carbon/Life()
 	..()
@@ -12,6 +20,13 @@ mob/living
 	// Increase germ_level regularly
 	if(germ_level < GERM_LEVEL_AMBIENT && prob(30))	//if you're just standing there, you shouldn't get more germs beyond an ambient level
 		germ_level++
+
+/mob/living/carbon/blob_act()
+	if (stat == DEAD)
+		return
+	else
+		show_message("<span class='userdanger'>The blob attacks!</span>")
+		adjustBruteLoss(10)
 
 /mob/living/carbon/Move(NewLoc, direct)
 	. = ..()
@@ -282,7 +297,7 @@ var/list/ventcrawl_machinery = list(/obj/machinery/atmospherics/unary/vent_pump,
 	if(!ventcrawler)
 		if(ishuman(src))
 			var/mob/living/carbon/human/H = src
-			if(!H.species.ventcrawler)	ventcrawlerlocal = H.species.ventcrawler
+			ventcrawlerlocal = H.species.ventcrawler
 
 	if(!ventcrawlerlocal)	return
 
@@ -318,7 +333,7 @@ var/list/ventcrawl_machinery = list(/obj/machinery/atmospherics/unary/vent_pump,
 			visible_message("<span class='notice'>[src] begins climbing into the ventilation system...</span>", \
 							"<span class='notice'>You begin climbing into the ventilation system...</span>")
 
-			if(!do_after(src, 45))
+			if(!do_after(src, 45, target = src))
 				return
 
 			if(!client)
@@ -428,7 +443,7 @@ var/list/ventcrawl_machinery = list(/obj/machinery/atmospherics/unary/vent_pump,
 
 	if (istype(item, /obj/item/weapon/grab))
 		var/obj/item/weapon/grab/G = item
-		item = G.throw() //throw the person instead of the grab
+		item = G.get_mob_if_throwable() //throw the person instead of the grab
 		if(ismob(item))
 			var/turf/start_T = get_turf(loc) //Get the start and target tile for the descriptors
 			var/turf/end_T = get_turf(target)
@@ -437,9 +452,9 @@ var/list/ventcrawl_machinery = list(/obj/machinery/atmospherics/unary/vent_pump,
 				var/start_T_descriptor = "<font color='#6b5d00'>tile at [start_T.x], [start_T.y], [start_T.z] in area [get_area(start_T)]</font>"
 				var/end_T_descriptor = "<font color='#6b4400'>tile at [end_T.x], [end_T.y], [end_T.z] in area [get_area(end_T)]</font>"
 
-				M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been thrown by [usr.name] ([usr.ckey]) from [start_T_descriptor] with the target [end_T_descriptor]</font>")
-				usr.attack_log += text("\[[time_stamp()]\] <font color='red'>Has thrown [M.name] ([M.ckey]) from [start_T_descriptor] with the target [end_T_descriptor]</font>")
-				msg_admin_attack("[usr.name] ([usr.ckey])[isAntag(usr) ? "(ANTAG)" : ""] has thrown [M.name] ([M.ckey]) from [start_T_descriptor] with the target [end_T_descriptor] (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[usr.x];Y=[usr.y];Z=[usr.z]'>JMP</a>)")
+				M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been thrown by [key_name(usr)] from [start_T_descriptor] with the target [end_T_descriptor]</font>")
+				usr.attack_log += text("\[[time_stamp()]\] <font color='red'>Has thrown [key_name(M)] from [start_T_descriptor] with the target [end_T_descriptor]</font>")
+				msg_admin_attack("[key_name_admin(usr)] has thrown [key_name_admin(M)] from [start_T_descriptor] with the target [end_T_descriptor]")
 
 				if(!iscarbon(usr))
 					M.LAssailant = null
@@ -669,3 +684,11 @@ var/list/ventcrawl_machinery = list(/obj/machinery/atmospherics/unary/vent_pump,
 		return -6
 	else
 		return initial(pixel_y)
+		
+/mob/living/carbon/get_all_slots()
+	return list(l_hand,
+				r_hand,
+				handcuffed,
+				legcuffed,
+				back,
+				wear_mask)

@@ -26,20 +26,15 @@
 	if (fixture_type == "bulb")
 		icon_state = "bulb-construct-stage1"
 
-/obj/machinery/light_construct/examine()
-	set src in view()
-	..()
-	if (!(usr in view(2))) return
-	switch(src.stage)
-		if(1)
-			usr << "It's an empty frame."
-			return
-		if(2)
-			usr << "It's wired."
-			return
-		if(3)
-			usr << "The casing is closed."
-			return
+/obj/machinery/light_construct/examine(mob/user)
+	if(..(user, 2))
+		switch(src.stage)
+			if(1)
+				usr << "It's an empty frame."
+			if(2)
+				usr << "It's wired."
+			if(3)
+				usr << "The casing is closed."
 
 /obj/machinery/light_construct/attackby(obj/item/weapon/W as obj, mob/living/user as mob, params)
 	src.add_fingerprint(user)
@@ -47,13 +42,13 @@
 		if (src.stage == 1)
 			playsound(src.loc, 'sound/items/Ratchet.ogg', 75, 1)
 			usr << "You begin deconstructing [src]."
-			if (!do_after(usr, 30))
+			if (!do_after(usr, 30, target = src))
 				return
 			new /obj/item/stack/sheet/metal( get_turf(src.loc), sheets_refunded )
 			user.visible_message("[user.name] deconstructs [src].", \
 				"You deconstruct [src].", "You hear a noise.")
 			playsound(src.loc, 'sound/items/Deconstruct.ogg', 75, 1)
-			del(src)
+			qdel(src)
 		if (src.stage == 2)
 			usr << "You have to remove the wires first."
 			return
@@ -111,7 +106,7 @@
 
 			newlight.dir = src.dir
 			src.transfer_fingerprints_to(newlight)
-			del(src)
+			qdel(src)
 			return
 	..()
 
@@ -165,19 +160,6 @@
 	desc = "A small lighting fixture."
 	light_type = /obj/item/weapon/light/bulb
 
-// the desk lamps are a bit special
-/obj/machinery/light/small/lamp
-	name = "desk lamp"
-	icon_state = "lamp1"
-	base_state = "lamp"
-	desc = "A desk lamp with an adjustable mount."
-
-// green-shaded desk lamp
-/obj/machinery/light/small/lamp/green
-	desc = "A classic green-shaded desk lamp."
-	icon_state = "lampgreen1"
-	base_state = "lampgreen"
-
 /obj/machinery/light/spot
 	name = "spotlight"
 	fitting = "large tube"
@@ -224,7 +206,7 @@
 	if(A)
 		on = 0
 //		A.update_lights()
-	..()
+	return ..()
 
 /obj/machinery/light/update_icon()
 
@@ -269,7 +251,7 @@
 		use_power = 1
 		set_light(0)
 
-	active_power_usage = ((light_range + light_power) * 10)
+	active_power_usage = brightness_range * 10
 	if(on != on_gs)
 		on_gs = on
 
@@ -281,18 +263,17 @@
 	update()
 
 // examine verb
-/obj/machinery/light/examine()
-	set src in oview(1)
-	if(usr && !usr.stat)
+/obj/machinery/light/examine(mob/user)
+	if(..(user, 1))
 		switch(status)
 			if(LIGHT_OK)
-				usr << "[desc] It is turned [on? "on" : "off"]."
+				user << "[desc] It is turned [on? "on" : "off"]."
 			if(LIGHT_EMPTY)
-				usr << "[desc] The [fitting] has been removed."
+				user << "[desc] The [fitting] has been removed."
 			if(LIGHT_BURNED)
-				usr << "[desc] The [fitting] is burnt out."
+				user << "[desc] The [fitting] is burnt out."
 			if(LIGHT_BROKEN)
-				usr << "[desc] The [fitting] has been smashed."
+				user << "[desc] The [fitting] has been smashed."
 
 
 
@@ -328,7 +309,7 @@
 				update()
 
 				user.drop_item()	//drop the item to update overlays and such
-				del(L)
+				qdel(L)
 
 				if(on && rigged)
 
@@ -383,7 +364,7 @@
 			newlight.fingerprints = src.fingerprints
 			newlight.fingerprintshidden = src.fingerprintshidden
 			newlight.fingerprintslast = src.fingerprintslast
-			del(src)
+			qdel(src)
 			return
 
 		user << "You stick \the [W] into the light socket!"
@@ -577,17 +558,17 @@
 
 #define LIGHTING_POWER_FACTOR 20		//20W per unit luminosity
 
-/*
+
 /obj/machinery/light/process()//TODO: remove/add this from machines to save on processing as needed ~Carn PRIORITY
 	if(on)
-		use_power(light_range * LIGHTING_POWER_FACTOR, LIGHT)
-*/
+		use_power(brightness_range * LIGHTING_POWER_FACTOR, LIGHT)
+
 
 // called when area power state changes
 /obj/machinery/light/power_change()
 	spawn(10)
 		var/area/A = get_area_master(src)
-		seton(A.lightswitch && A.power_light)
+		if(A) seton(A.lightswitch && A.power_light)
 
 // called when on fire
 
@@ -604,7 +585,7 @@
 		sleep(2)
 		explosion(T, 0, 0, 2, 2)
 		sleep(1)
-		del(src)
+		qdel(src)
 
 // the light item
 // can be tube or bulb subtypes
@@ -618,7 +599,7 @@
 	var/status = 0		// LIGHT_OK, LIGHT_BURNED or LIGHT_BROKEN
 	var/base_state
 	var/switchcount = 0	// number of times switched
-	m_amt = 60
+	materials = list(MAT_METAL=60)
 	var/rigged = 0		// true if rigged to explode
 	var/brightness_range = 2 //how much light it gives off
 	var/brightness_power = 1
@@ -630,7 +611,7 @@
 	icon_state = "ltube"
 	base_state = "ltube"
 	item_state = "c_tube"
-	g_amt = 100
+	materials = list(MAT_GLASS=100)
 	brightness_range = 8
 	brightness_power = 3
 
@@ -646,7 +627,7 @@
 	icon_state = "lbulb"
 	base_state = "lbulb"
 	item_state = "contvapour"
-	g_amt = 100
+	materials = list(MAT_GLASS=100)
 	brightness_range = 5
 	brightness_power = 2
 	brightness_color = "#a0a080"
@@ -661,7 +642,7 @@
 	icon_state = "fbulb"
 	base_state = "fbulb"
 	item_state = "egg4"
-	g_amt = 100
+	materials = list(MAT_GLASS=100)
 	brightness_range = 5
 	brightness_power = 2
 
@@ -719,7 +700,7 @@
 	if(!proximity) return
 	if(istype(target, /obj/machinery/light))
 		return
-	if(user.a_intent != "harm")
+	if(user.a_intent != I_HARM)
 		return
 
 	shatter()

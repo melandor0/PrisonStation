@@ -164,7 +164,7 @@ var/list/tape_roll_applications = list()
 	breaktape(W, user)
 
 /obj/item/tape/attack_hand(mob/user as mob)
-	if (user.a_intent == "help" && src.allowed(user))
+	if (user.a_intent == I_HELP && src.allowed(user))
 		user.show_viewers("\blue [user] lifts [src], allowing passage.")
 		src.density = 0
 		spawn(200)
@@ -176,7 +176,7 @@ var/list/tape_roll_applications = list()
 	breaktape(/obj/item/weapon/wirecutters,user)
 
 /obj/item/tape/proc/breaktape(obj/item/weapon/W as obj, mob/user as mob)
-	if(user.a_intent == "help" && ((!can_puncture(W) && src.allowed(user))))
+	if(user.a_intent == I_HELP && ((!can_puncture(W) && src.allowed(user))))
 		user << "You can't break the [src] with that!"
 		return
 	user.show_viewers("\blue [user] breaks the [src]!")
@@ -198,10 +198,10 @@ var/list/tape_roll_applications = list()
 			for (var/obj/item/tape/P in cur)
 				if(P.icon_state == icon_dir)
 					N = 0
-					del(P)
+					qdel(P)
 			cur = get_step(cur,dir[i])
 
-	del(src)
+	qdel(src)
 	return
 
 

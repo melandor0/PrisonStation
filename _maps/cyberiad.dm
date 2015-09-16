@@ -25,10 +25,10 @@ z8 = syndicate station
         #include "map_files\cyberiad\z8.dmm"
 
         #define MAP_FILE "cyberiad.dmm"
-        #define MAP_NAME "NCS Cyberiad"
+        #define MAP_NAME "NSS Cyberiad"
 
 #elif !defined(MAP_OVERRIDE)
 
-	#warn a map has already been included, ignoring MetaStation.
+	#warn a map has already been included, ignoring Cyberiad.
 
 #endif

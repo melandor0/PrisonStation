@@ -12,6 +12,39 @@
 	max_heat_protection_temperature = HELMET_MAX_TEMP_PROTECT
 	siemens_coefficient = 0.7
 	loose = 4 // generally well seated
+	species_fit = list("Vox")
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/species/vox/helmet.dmi'
+		)
+
+/obj/item/clothing/head/helmet/visor
+	name = "visor helmet"
+	desc = "A helmet with a built-in visor. It doesn't seem to do anything, but it sure looks cool!"
+	icon_state = "helmetgoggles"
+
+/obj/item/clothing/head/helmet/thermal
+	name = "thermal visor helmet"
+	desc = "A helmet with a built-in thermal scanning visor."
+	icon_state = "helmetthermals"
+	vision_flags = SEE_MOBS
+
+/obj/item/clothing/head/helmet/meson
+	name = "meson visor helmet"
+	desc = "A helmet with a built-in meson scanning visor."
+	icon_state = "helmetmesons"
+	vision_flags = SEE_TURFS
+
+/obj/item/clothing/head/helmet/material
+	name = "material visor helmet"
+	desc = "A helmet with a built-in material scanning visor."
+	icon_state = "helmetmaterials"
+	vision_flags = SEE_OBJS
+
+/obj/item/clothing/head/helmet/night
+	name = "night-vision helmet"
+	desc = "A helmet with a built-in pair of night vision goggles."
+	icon_state = "helmetNVG"
+	see_darkness = 0
 
 /obj/item/clothing/head/helmet/alt
 	name = "bulletproof helmet"
@@ -19,6 +52,10 @@
 	icon_state = "swat"
 	item_state = "swat-alt"
 	armor = list(melee = 25, bullet = 80, laser = 10, energy = 10, bomb = 40, bio = 0, rad = 0)
+	species_fit = list("Vox")
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/species/vox/helmet.dmi'
+		)
 
 /obj/item/clothing/head/helmet/riot
 	name = "riot helmet"
@@ -43,6 +80,10 @@
 	heat_protection = HEAD
 	max_heat_protection_temperature = SPACE_HELM_MAX_TEMP_PROTECT
 	siemens_coefficient = 0.5
+	species_fit = list("Vox")
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/species/vox/head.dmi'
+		)
 
 /obj/item/clothing/head/helmet/swat/syndicate
 	name = "blood-red helmet"
@@ -119,6 +160,7 @@ obj/item/clothing/head/blob
 /obj/item/clothing/head/helmet/ert/command
 	name = "emergency response team commander helmet"
 	desc = "An in-atmosphere helmet worn by the commander of a NanoTrasen Emergency Response Team. Has blue highlights."
+	icon_state = "erthelmet_cmd"
 
 //Security
 /obj/item/clothing/head/helmet/ert/security

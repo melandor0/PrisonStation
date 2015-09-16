@@ -3,7 +3,8 @@
 /obj/machinery/computer/prisoner
 	name = "Prisoner Management"
 	icon = 'icons/obj/computer.dmi'
-	icon_state = "explosive"
+	icon_keyboard = "security_key"
+	icon_screen = "explosive"
 	req_access = list(access_armory)
 	circuit = "/obj/item/weapon/circuitboard/prisoner"
 	var/id = 0.0
@@ -64,7 +65,7 @@
 				var/loc_display = "Unknown"
 				var/mob/living/carbon/M = T.imp_in
 				if((M.z in config.station_levels) && !istype(M.loc, /turf/space))
-					var/turf/mob_loc = get_turf_loc(M)
+					var/turf/mob_loc = get_turf(M)
 					loc_display = mob_loc.loc
 				if(T.malfunction)
 					loc_display = pick(teleportlocs)

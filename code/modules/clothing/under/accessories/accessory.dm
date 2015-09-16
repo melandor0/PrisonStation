@@ -80,7 +80,7 @@
 
 /obj/item/clothing/accessory/stethoscope/attack(mob/living/carbon/human/M, mob/living/user)
 	if(ishuman(M) && isliving(user))
-		if(user.a_intent == "help")
+		if(user.a_intent == I_HELP)
 			var/body_part = parse_zone(user.zone_sel.selecting)
 			if(body_part)
 				var/their = "their"
@@ -118,10 +118,11 @@
 	desc = "A bronze medal."
 	icon_state = "bronze"
 	_color = "bronze"
+	materials = list(MAT_METAL=1000)
 
 /obj/item/clothing/accessory/medal/conduct
 	name = "distinguished conduct medal"
-	desc = "A bronze medal awarded for distinguished conduct. Whilst a great honor, this is most basic award given by Nanotrasen. It is often awarded by a captain to a member of his crew."
+	desc = "A bronze medal awarded for distinguished conduct. Whilst a great honor, this is the most basic award given by Nanotrasen. It is often awarded by a captain to a member of his crew."
 
 /obj/item/clothing/accessory/medal/bronze_heart
 	name = "bronze heart medal"
@@ -137,6 +138,7 @@
 	desc = "A silver medal."
 	icon_state = "silver"
 	_color = "silver"
+	materials = list(MAT_SILVER=1000)
 
 /obj/item/clothing/accessory/medal/silver/valor
 	name = "medal of valor"
@@ -151,6 +153,7 @@
 	desc = "A prestigious golden medal."
 	icon_state = "gold"
 	_color = "gold"
+	materials = list(MAT_GOLD=1000)
 
 /obj/item/clothing/accessory/medal/gold/captain
 	name = "medal of captaincy"
@@ -326,3 +329,22 @@
 /obj/item/clothing/accessory/petcollar/attack_self(mob/user as mob)
 	tagname = copytext(sanitize(input(user, "Would you like to change the name on the tag?", "Name your new pet", "Spot") as null|text),1,MAX_NAME_LEN)
 	name = "[initial(name)] - [tagname]"
+
+/proc/english_accessory_list(obj/item/clothing/under/U)
+	if(!istype(U) || !U.accessories.len)
+		return
+	var/list/A = U.accessories
+	var/total = A.len
+	if (total == 1)
+		return "\a [A[1]]"
+	else if (total == 2)
+		return "\a [A[1]] and \a [A[2]]"
+	else
+		var/output = ""
+		var/index = 1
+		var/comma_text = ", "
+		while (index < total)
+			output += "\a [A[index]][comma_text]"
+			index++
+
+		return "[output]and \a [A[index]]"

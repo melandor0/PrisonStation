@@ -63,7 +63,7 @@
 	handle_rotation()
 	if(pulling) // Driver
 		if(pulling.loc == src.loc) // We moved onto the wheelchair? Revert!
-			pulling.loc = T
+			pulling.forceMove(T)
 		else
 			spawn(0)
 			if(get_dist(src, pulling) > 1) // We are too far away? Losing control.
@@ -95,7 +95,7 @@
 				pulling = null
 		else
 			if (occupant && (src.loc != occupant.loc))
-				src.loc = occupant.loc // Failsafe to make sure the wheelchair stays beneath the occupant after driving
+				forceMove(occupant.loc) // Failsafe to make sure the wheelchair stays beneath the occupant after driving
 	handle_rotation()
 
 /obj/structure/stool/bed/chair/wheelchair/attack_hand(mob/user as mob)
@@ -133,7 +133,7 @@
 	..()
 	if(!buckled_mob)	return
 
-	if(propelled || (pulling && (pulling.a_intent == "harm")))
+	if(propelled || (pulling && (pulling.a_intent == I_HARM)))
 		var/mob/living/occupant = buckled_mob
 		unbuckle()
 
@@ -155,9 +155,9 @@
 		if(pulling)
 			occupant.visible_message("<span class='danger'>[pulling] has thrusted \the [name] into \the [A], throwing \the [occupant] out of it!</span>")
 
-			pulling.attack_log += "\[[time_stamp()]\]<font color='red'> Crashed [occupant.name]'s ([occupant.ckey]) [name] into \a [A]</font>"
-			occupant.attack_log += "\[[time_stamp()]\]<font color='orange'> Thrusted into \a [A] by [pulling.name] ([pulling.ckey]) with \the [name]</font>"
-			msg_admin_attack("[pulling.name] ([pulling.ckey])[isAntag(pulling) ? "(ANTAG)" : ""] has thrusted [occupant.name]'s ([occupant.ckey]) [name] into \a [A] (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[pulling.x];Y=[pulling.y];Z=[pulling.z]'>JMP</a>)")
+			pulling.attack_log += "\[[time_stamp()]\]<font color='red'> Crashed [key_name(occupant)] [name] into \a [A]</font>"
+			occupant.attack_log += "\[[time_stamp()]\]<font color='orange'> Thrusted into \a [A] by [key_name(pulling)] with \the [name]</font>"
+			msg_admin_attack("[key_name_admin(pulling)] has thrusted [key_name_admin(occupant)] [name] into \a [A]")
 		else
 			occupant.visible_message("<span class='danger'>[occupant] crashed into \the [A]!</span>")
 

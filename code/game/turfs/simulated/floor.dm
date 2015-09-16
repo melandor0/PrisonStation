@@ -99,7 +99,7 @@ var/list/wood_icons = list("wood","wood-broken")
 		return
 
 	if(air)
-		update_visuals(air)
+		update_visuals()
 
 	if(is_plasteel_floor())
 		if(!broken && !burnt)
@@ -111,17 +111,28 @@ var/list/wood_icons = list("wood","wood-broken")
 		var/obj/item/stack/tile/light/T = floor_tile
 		if(T.on)
 			switch(T.state)
-				if(0)
+				if(LIGHTFLOOR_ON)
 					icon_state = "light_on"
-					set_light(5)
-				if(1)
-					var/num = pick("1","2","3","4")
-					icon_state = "light_on_flicker[num]"
-					set_light(5)
-				if(2)
-					icon_state = "light_on_broken"
-					set_light(5)
-				if(3)
+					set_light(5,null,LIGHT_COLOR_LIGHTBLUE)
+				if(LIGHTFLOOR_WHITE)
+					icon_state = "light_on-w"
+					set_light(5,null,LIGHT_COLOR_WHITE)
+				if(LIGHTFLOOR_RED)
+					icon_state = "light_on-r"
+					set_light(5,null,LIGHT_COLOR_RED)
+				if(LIGHTFLOOR_GREEN)
+					icon_state = "light_on-g"
+					set_light(5,null,LIGHT_COLOR_PURE_GREEN)
+				if(LIGHTFLOOR_YELLOW)
+					icon_state = "light_on-y"
+					set_light(5,null,"#FFFF00")
+				if(LIGHTFLOOR_BLUE)
+					icon_state = "light_on-b"
+					set_light(5,null,LIGHT_COLOR_DARKBLUE)
+				if(LIGHTFLOOR_PURPLE)
+					icon_state = "light_on-p"
+					set_light(5,null,LIGHT_COLOR_PURPLE)
+				else
 					icon_state = "light_off"
 					set_light(0)
 		else
@@ -333,7 +344,7 @@ var/list/wood_icons = list("wood","wood-broken")
 						FF.update_icon() //so siding get updated properly
 
 	if(!floor_tile) return
-	del(floor_tile)
+	qdel(floor_tile)
 	icon_plating = "plating"
 	set_light(0)
 	floor_tile = null
@@ -454,7 +465,7 @@ var/list/wood_icons = list("wood","wood-broken")
 			var/obj/item/stack/tile/light/T = floor_tile
 			if(T.state)
 				user.drop_item(C)
-				del(C)
+				qdel(C)
 				T.state = C //fixing it by bashing it with a light bulb, fun eh?
 				update_icon()
 				user << "\blue You replace the light bulb."
@@ -506,7 +517,7 @@ var/list/wood_icons = list("wood","wood-broken")
 		if (is_plating())
 			if (R.amount >= 2)
 				user << "\blue Reinforcing the floor..."
-				if(do_after(user, 30) && R && R.amount >= 2 && is_plating())
+				if(do_after(user, 30, target = src) && R && R.amount >= 2 && is_plating())
 					ChangeTurf(/turf/simulated/floor/engine)
 					playsound(src, 'sound/items/Deconstruct.ogg', 80, 1)
 					R.use(2)
@@ -605,3 +616,21 @@ var/list/wood_icons = list("wood","wood-broken")
 			P.y = src.y
 			P.z = src.z
 			P.loc = src
+
+/turf/simulated/floor/singularity_pull(S, current_size)
+	if(current_size == STAGE_THREE)
+		if(prob(30))
+			make_plating()
+	else if(current_size == STAGE_FOUR)
+		if(prob(50))
+			make_plating()
+	else if(current_size >= STAGE_FIVE)
+		if(prob(70))
+			make_plating()
+		else
+			if(prob(50))
+				ReplaceWithLattice()
+
+/turf/simulated/floor/narsie_act()
+	if(prob(20))
+		ChangeTurf(/turf/simulated/floor/engine/cult)

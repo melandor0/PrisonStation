@@ -56,8 +56,7 @@
 	air_update_turf(1)
 	update_freelok_sight()
 	airlocks -= src
-	..()
-	return
+	return ..()
 
 /obj/machinery/door/Bumped(atom/AM)
 	if(p_open || operating) return
@@ -124,11 +123,6 @@
 			flick("door_deny", src)
 	return
 
-/obj/machinery/door/meteorhit(obj/M as obj)
-	src.open()
-	return
-
-
 /obj/machinery/door/attack_ai(mob/user as mob)
 	return src.attack_hand(user)
 
@@ -172,7 +166,7 @@
 
 /obj/machinery/door/blob_act()
 	if(prob(40))
-		del(src)
+		qdel(src)
 	return
 
 
@@ -268,11 +262,6 @@
 	operating = 0
 	air_update_turf(1)
 	update_freelok_sight()
-
-	//I shall not add a check every x ticks if a door has closed over some fire.
-	var/obj/effect/hotspot/fire = locate() in loc
-	if(fire)
-		qdel(fire)
 	return
 
 /obj/machinery/door/proc/crush()

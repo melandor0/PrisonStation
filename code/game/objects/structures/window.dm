@@ -1,37 +1,21 @@
-//This proc is called in master-controller, and updates the color of all windows and windoors on the map
-var/global/wcBar
-var/global/wcBrig
-var/global/wcCommon
-var/global/wcColored
-/proc/color_windows_init()
-	var/list/bar = list("#0d8395", "#58b5c3", "#58c366", "#90d79a", "#ffffff")
-	var/list/brig = list("#aa0808", "#7f0606", "#ff0000")
-	var/list/common = list("#379963", "#0d8395", "#58b5c3", "#49e46e", "#8fcf44", "#ffffff")
-
-	wcBar = pick(bar)
-	wcBrig = pick(brig)
-	wcCommon = pick(common)
+var/global/wcBar = pick(list("#0d8395", "#58b5c3", "#58c366", "#90d79a", "#ffffff"))
+var/global/wcBrig = pick(list("#aa0808", "#7f0606", "#ff0000"))
+var/global/wcCommon = pick(list("#379963", "#0d8395", "#58b5c3", "#49e46e", "#8fcf44", "#ffffff"))
 
 /obj/proc/color_windows(var/obj/W as obj)
-	if(!wcColored)
-		sleep(50) // Sleeping to make sure the glass has initialized on the map
-		wcColored = 1
-
 	var/list/wcBarAreas = list(/area/crew_quarters/bar)
-	var/list/wcBrigAreas = list(/area/security,/area/security/main,/area/security/lobby,/area/security/brig,/area/security/permabrig,/area/security/prison,/area/security/prison/cell_block/A,/area/security/prison/cell_block/B,/area/security/prison/cell_block/C,/area/security/execution,/area/security/processing,/area/security/interrogation,/area/security/interrogationobs,/area/security/evidence,/area/security/prisonlockers,/area/security/medbay,/area/security/processing,/area/security/warden,/area/security/armoury,/area/security/securearmoury,/area/security/armoury/gamma,/area/security/securehallway,/area/security/hos,/area/security/podbay,/area/security/detectives_office,/area/security/range,/area/security/nuke_storage,/area/security/customs,/area/security/customs2,/area/security/checkpoint,/area/security/checkpoint2,/area/security/checkpoint2,/area/security/checkpoint/supply,/area/security/checkpoint/engineering,/area/security/checkpoint/medical,/area/security/checkpoint/science,/area/security/vacantoffice2,/area/prison,/area/prison/arrival_airlock,/area/prison/control,/area/prison/crew_quarters,/area/prison/rec_room,/area/prison/closet,/area/prison/hallway/fore,/area/prison/hallway/aft,/area/prison/hallway/port,/area/prison/hallway/starboard,/area/prison/morgue,/area/prison/medical_research,/area/prison/medical,/area/prison/solar,/area/prison/podbay,/area/prison/solar_control,/area/prison/solitary,/area/prison/cell_block,/area/prison/cell_block/A,/area/prison/cell_block/B,/area/prison/cell_block/C,/area/shuttle/gamma/space,/area/shuttle/gamma/station,/area/security/prisonershuttle)
+	var/list/wcBrigAreas = list(/area/security,/area/prison,/area/shuttle/gamma)
 
 	var/newcolor
-	for(var/A in wcBarAreas)
-		if(W.areaMaster == locate(A))
-			newcolor = wcBar
-			break
+	var/turf/T = get_turf(W)
+	if(!istype(T))	return
+	var/area/A = T.loc
 
-	for(var/A in wcBrigAreas)
-		if(W.areaMaster == locate(A))
-			newcolor = wcBrig
-			break
-
-	if(!newcolor)
+	if(is_type_in_list(A,wcBarAreas))
+		newcolor = wcBar
+	else if(is_type_in_list(A,wcBrigAreas))
+		newcolor = wcBrig
+	else
 		newcolor = wcCommon
 
 	return newcolor
@@ -69,7 +53,7 @@ var/global/wcColored
 // This should result in the same materials used to make the window.
 /obj/structure/window/proc/destroy()
 	for(var/i=0;i<sheets;i++)
-		getFromPool(shardtype, loc)
+		PoolOrNew(shardtype, loc)
 
 		if(reinf)
 			new /obj/item/stack/rods(loc)
@@ -92,8 +76,9 @@ var/global/wcColored
 /obj/structure/window/blob_act()
 	destroy()
 
-/obj/structure/window/meteorhit()
-	destroy()
+/obj/structure/window/singularity_pull(S, current_size)
+	if(current_size >= STAGE_FIVE)
+		destroy()
 
 /obj/structure/window/CheckExit(var/atom/movable/O, var/turf/target)
 	if(istype(O) && O.checkpass(PASSGLASS))
@@ -105,6 +90,8 @@ var/global/wcColored
 /obj/structure/window/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
 	if(istype(mover) && mover.checkpass(PASSGLASS))
 		return 1
+	if(dir == SOUTHWEST || dir == SOUTHEAST || dir == NORTHWEST || dir == NORTHEAST)
+		return 0	//full tile window, you can't move into it!
 	if(get_dir(loc, target) == dir)
 		return !density
 	else
@@ -112,7 +99,6 @@ var/global/wcColored
 
 /obj/structure/window/hitby(AM as mob|obj)
 	..()
-	visible_message("<span class='danger'>[src] was hit by [AM].</span>")
 	var/tforce = 0
 	if(isobj(AM))
 		var/obj/item/I = AM
@@ -133,7 +119,7 @@ var/global/wcColored
 		user.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!"))
 		user.visible_message("<span class='danger'>[user] smashes through [src]!</span>")
 		destroy()
-	else if (usr.a_intent == "harm")
+	else if (usr.a_intent == I_HARM)
 		user.changeNext_move(CLICK_CD_MELEE)
 		playsound(get_turf(src), 'sound/effects/glassknock.ogg', 80, 1)
 		usr.visible_message("\red [usr.name] bangs against the [src.name]!", \
@@ -185,7 +171,7 @@ var/global/wcColored
 		if(istype(G.affecting,/mob/living))
 			var/mob/living/M = G.affecting
 			var/state = G.state
-			del(W)	//gotta delete it here because if window breaks, it won't get deleted
+			qdel(W)	//gotta delete it here because if window breaks, it won't get deleted
 			switch (state)
 				if(1)
 					M.visible_message("<span class='warning'>[user] slams [M] against \the [src]!</span>")
@@ -233,7 +219,7 @@ var/global/wcColored
 	else if(istype(W, /obj/item/weapon/wrench) && !anchored && health > 7) //Disassemble deconstructed window into parts
 		playsound(src.loc, 'sound/items/Ratchet.ogg', 50, 1)
 		for(var/i=0;i<sheets;i++)
-			var/obj/item/stack/sheet/glass/NG = getFromPool(glasstype, src.loc)
+			var/obj/item/stack/sheet/glass/NG = PoolOrNew(glasstype, src.loc)
 			for (var/obj/item/stack/sheet/glass/G in src.loc) //Stack em up
 				if(G==NG)
 					continue
@@ -255,7 +241,7 @@ var/global/wcColored
 		density = 0
 		air_update_turf(1)
 		update_nearby_icons()
-		del(src)
+		qdel(src)
 	else
 		if(W.damtype == BRUTE || W.damtype == BURN)
 			user.changeNext_move(CLICK_CD_MELEE)
@@ -345,7 +331,7 @@ var/global/wcColored
 	air_update_turf(1)
 	if(loc && !disassembled)
 		playsound(get_turf(src), "shatter", 70, 1)
-	..()
+	return ..()
 
 
 /obj/structure/window/Move()

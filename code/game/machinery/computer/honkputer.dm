@@ -2,7 +2,9 @@
 	name = "HONKputer Mark I"
 	desc = "A yellow computer used in case of critically low levels of HONK."
 	icon = 'icons/obj/machines/HONKputer.dmi'
-	icon_state = "honk"
+	icon_state = "honkputer"
+	icon_keyboard = "key_honk"
+	icon_screen = "honkcomms"
 	light_color = LIGHT_COLOR_PINK
 	req_access = list(access_clown)
 	circuit = "/obj/item/weapon/circuitboard/HONKputer"
@@ -94,7 +96,7 @@
 /obj/machinery/computer/HONKputer/attackby(I as obj, user as mob, params)
 	if(istype(I, /obj/item/weapon/screwdriver) && circuit)
 		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
-		if(do_after(user, 20))
+		if(do_after(user, 20, target = src))
 			var/obj/structure/computerframe/HONKputer/A = new /obj/structure/computerframe/HONKputer( src.loc )
 			var/obj/item/weapon/circuitboard/M = new circuit( A )
 			A.circuit = M
@@ -110,7 +112,7 @@
 				user << "\blue You disconnect the monitor."
 				A.state = 4
 				A.icon_state = "4"
-			del(src)
+			qdel(src)
 	else
 		src.attack_hand(user)
 	return

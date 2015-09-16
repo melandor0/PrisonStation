@@ -18,17 +18,17 @@
 
 /obj/item/weapon/chrono_eraser/dropped()
 	if(PA)
-		del(PA)
+		qdel(PA)
 
 /obj/item/weapon/chrono_eraser/Destroy()
 	dropped()
-	..()
+	return ..()
 
 /obj/item/weapon/chrono_eraser/ui_action_click()
 	var/mob/living/carbon/user = src.loc
 	if(iscarbon(user) && (user.back == src))
 		if(PA)
-			del(PA)
+			qdel(PA)
 		else
 			PA = new(src)
 			user.put_in_hands(PA)
@@ -41,7 +41,6 @@
 	icon = 'icons/obj/chronos.dmi'
 	icon_state = "chronogun"
 	item_state = "chronogun"
-	icon_override = 'icons/mob/in-hand/guns.dmi'
 	w_class = 3.0
 	projectile_type = "/obj/item/projectile/energy/chrono_beam"
 	fire_sound = 'sound/weapons/Laser.ogg'
@@ -58,10 +57,10 @@
 		TED = T
 	else //admin must have spawned it
 		TED = new(src.loc)
-		del(src)
+		qdel(src)
 
 /obj/item/weapon/gun/energy/chrono_gun/dropped()
-	del(src)
+	qdel(src)
 
 /obj/item/weapon/gun/energy/chrono_gun/update_icon()
 	return
@@ -77,7 +76,7 @@
 		TED = null
 	if(field)
 		field_disconnect(field)
-	..()
+	return ..()
 
 /obj/item/weapon/gun/energy/chrono_gun/proc/field_connect(var/obj/effect/chrono_field/F)
 	var/mob/living/user = src.loc
@@ -177,7 +176,7 @@
 /obj/effect/chrono_field/Destroy()
 	if(gun && gun.field_check(src))
 		gun.field_disconnect(src)
-	..()
+	return ..()
 
 /obj/effect/chrono_field/update_icon()
 	var/ttk_frame = 1 - (tickstokill / initial(tickstokill))
@@ -193,7 +192,7 @@
 		if(tickstokill > initial(tickstokill))
 			for(var/atom/movable/AM in contents)
 				AM.loc = loc
-			del(src)
+			qdel(src)
 		else if(tickstokill <= 0)
 			captured << "<span class='boldnotice'>As the last essence of your being is erased from time, you begin to re-experience your most enjoyable memory. You feel happy...</span>"
 			var/mob/dead/observer/ghost = captured.ghostize(1)
@@ -202,8 +201,8 @@
 					ghost.mind = null
 				if(gun)
 					gun.pass_mind(captured.mind)
-			del(captured)
-			del(src)
+			qdel(captured)
+			qdel(src)
 		else
 			captured.Paralyse(4)
 			if(captured.reagents)
@@ -222,7 +221,7 @@
 			else
 				tickstokill++
 	else
-		del(src)
+		qdel(src)
 
 /obj/effect/chrono_field/bullet_act(var/obj/item/projectile/P)
 	if(istype(P, /obj/item/projectile/energy/chrono_beam))
@@ -244,6 +243,9 @@
 	return GM
 
 /obj/effect/chrono_field/Move()
+	return
+
+/obj/effect/chrono_field/singularity_act()
 	return
 
 /obj/effect/chrono_field/ex_act()

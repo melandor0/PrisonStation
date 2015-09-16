@@ -311,9 +311,9 @@
 			apply_material_decorations = 0
 		if(22)
 			if(prob(50))
-				new_item = getFromPool(/obj/item/weapon/shard, loc)
+				new_item = PoolOrNew(/obj/item/weapon/shard, loc)
 			else
-				new_item = getFromPool(/obj/item/weapon/shard/plasma, loc)
+				new_item = PoolOrNew(/obj/item/weapon/shard/plasma, loc)
 
 			apply_prefix = 0
 			apply_image_decorations = 0
@@ -324,8 +324,7 @@
 			apply_image_decorations = 0
 			apply_material_decorations = 0
 		if(24)
-			var/list/possible_spawns = typesof(/obj/item/weapon/stock_parts)
-			possible_spawns -= /obj/item/weapon/stock_parts
+			var/list/possible_spawns = subtypesof(/obj/item/weapon/stock_parts)
 			possible_spawns -= /obj/item/weapon/stock_parts/subspace
 
 			var/new_type = pick(possible_spawns)

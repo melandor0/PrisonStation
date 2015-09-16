@@ -150,7 +150,7 @@ client/proc/one_click_antag()
 	var/time_passed = world.time
 
 	for(var/mob/G in respawnable_list)
-		if(G.client.prefs.be_special & BE_WIZARD)
+		if(istype(G) && G.client && G.client.prefs.be_special & BE_WIZARD)
 			if(!jobban_isbanned(G, "wizard") && !jobban_isbanned(G, "Syndicate"))
 				if(player_old_enough_antag(G.client,BE_WIZARD))
 					spawn(0)
@@ -167,8 +167,8 @@ client/proc/one_click_antag()
 	sleep(300)
 
 	if(candidates.len)
-		shuffle(candidates)
-		for(var/mob/i in candidates)
+		candidates = shuffle(candidates)
+		for(var/mob/dead/observer/i in candidates)
 			if(!i || !i.client) continue //Dont bother removing them from the list since we only grab one wizard
 
 			theghost = i
@@ -224,7 +224,7 @@ client/proc/one_click_antag()
 	var/time_passed = world.time
 
 	for(var/mob/G in respawnable_list)
-		if(G.client.prefs.be_special & BE_OPERATIVE)
+		if(istype(G) && G.client && G.client.prefs.be_special & BE_OPERATIVE)
 			if(!jobban_isbanned(G, "operative") && !jobban_isbanned(G, "Syndicate"))
 				if(player_old_enough_antag(G.client,BE_OPERATIVE))
 					spawn(0)
@@ -292,7 +292,7 @@ client/proc/one_click_antag()
 				if(synd_mind.current.client)
 					for(var/image/I in synd_mind.current.client.images)
 						if(I.icon_state == "synd")
-							del(I)
+							qdel(I)
 
 		for(var/datum/mind/synd_mind in ticker.mode.syndicates)
 			if(synd_mind.current)
@@ -367,7 +367,7 @@ client/proc/one_click_antag()
 					candidates.Remove(theghost)
 
 				if(!theghost)
-					del(new_syndicate_commando)
+					qdel(new_syndicate_commando)
 					break
 
 				new_syndicate_commando.key = theghost.key
@@ -396,16 +396,8 @@ client/proc/one_click_antag()
 	//First we spawn a dude.
 	var/mob/living/carbon/human/new_character = new(pick(latejoin))//The mob being spawned.
 
-	new_character.gender = pick(MALE,FEMALE)
-
 	var/datum/preferences/A = new()
-	A.randomize_appearance_for(new_character)
-	if(new_character.gender == MALE)
-		new_character.real_name = "[pick(first_names_male)] [pick(last_names)]"
-	else
-		new_character.real_name = "[pick(first_names_female)] [pick(last_names)]"
-	new_character.name = new_character.real_name
-	new_character.age = rand(17,45)
+	A.copy_to(new_character)
 
 	new_character.dna.ready_dna(new_character)
 	new_character.key = G_found.key
@@ -418,14 +410,13 @@ client/proc/one_click_antag()
 	var/syndicate_commando_rank = pick("Corporal", "Sergeant", "Staff Sergeant", "Sergeant 1st Class", "Master Sergeant", "Sergeant Major")
 	var/syndicate_commando_name = pick(last_names)
 
-	new_syndicate_commando.gender = pick(MALE, FEMALE)
-
 	var/datum/preferences/A = new()//Randomize appearance for the commando.
-	A.randomize_appearance_for(new_syndicate_commando)
-
-	new_syndicate_commando.real_name = "[!syndicate_leader_selected ? syndicate_commando_rank : syndicate_commando_leader_rank] [syndicate_commando_name]"
-	new_syndicate_commando.name = new_syndicate_commando.real_name
-	new_syndicate_commando.age = !syndicate_leader_selected ? rand(23,35) : rand(35,45)
+	if(syndicate_leader_selected)
+		A.real_name = "[syndicate_commando_leader_rank] [syndicate_commando_name]"
+		A.age = rand(35,45)
+	else
+		A.real_name = "[syndicate_commando_rank] [syndicate_commando_name]"
+	A.copy_to(new_syndicate_commando)
 
 	new_syndicate_commando.dna.ready_dna(new_syndicate_commando)//Creates DNA.
 
@@ -451,7 +442,7 @@ client/proc/one_click_antag()
 
 	//Generates a list of candidates from active ghosts.
 	for(var/mob/G in respawnable_list)
-		if(G.client.prefs.be_special & BE_RAIDER)
+		if(istype(G) && G.client && G.client.prefs.be_special & BE_RAIDER)
 			if(player_old_enough_antag(G.client,BE_RAIDER))
 				if(!jobban_isbanned(G, "raider") && !jobban_isbanned(G, "Syndicate"))
 					spawn(0)
@@ -487,7 +478,7 @@ client/proc/one_click_antag()
 					candidates.Remove(theghost)
 
 				if(!theghost)
-					del(new_vox)
+					qdel(new_vox)
 					break
 
 				new_vox.key = theghost.key
@@ -610,14 +601,7 @@ client/proc/one_click_antag()
 
 				var/mob/living/carbon/human/newMember = new(L.loc)
 
-				newMember.gender = pick(MALE,FEMALE)
-				A.randomize_appearance_for(newMember)
-				if(newMember.gender == MALE)
-					newMember.real_name = "[pick(first_names_male)] [pick(last_names)]"
-				else
-					newMember.real_name = "[pick(first_names_female)] [pick(last_names)]"
-				newMember.name = newMember.real_name
-				newMember.age = rand(17,45)
+				A.copy_to(newMember)
 
 				newMember.dna.ready_dna(newMember)
 
@@ -639,14 +623,7 @@ client/proc/one_click_antag()
 
 				var/mob/living/carbon/human/newMember = new(L.loc)
 
-				newMember.gender = pick(MALE,FEMALE)
-				A.randomize_appearance_for(newMember)
-				if(newMember.gender == MALE)
-					newMember.real_name = "[pick(first_names_male)] [pick(last_names)]"
-				else
-					newMember.real_name = "[pick(first_names_female)] [pick(last_names)]"
-				newMember.name = newMember.real_name
-				newMember.age = rand(17,45)
+				A.copy_to(newMember)
 
 				newMember.dna.ready_dna(newMember)
 

@@ -10,6 +10,8 @@
 		while sprite_sheets should be used for "flexible" clothing items that do not need to be refitted (e.g. vox wearing jumpsuits).
 	*/
 	var/list/sprite_sheets_refit = null
+	lefthand_file = 'icons/mob/inhands/clothing_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/clothing_righthand.dmi'
 
 //BS12: Species-restricted clothing check.
 /obj/item/clothing/mob_can_equip(M as mob, slot)
@@ -87,7 +89,7 @@
 		O = (H.l_ear == src ? H.r_ear : H.l_ear)
 		user.unEquip(O)
 		if(!istype(src,/obj/item/clothing/ears/offear))
-			del(O)
+			qdel(O)
 			O = src
 	else
 		O = src
@@ -99,7 +101,7 @@
 		O.add_fingerprint(user)
 
 	if(istype(src,/obj/item/clothing/ears/offear))
-		del(src)
+		qdel(src)
 
 /obj/item/clothing/ears/offear
 	name = "Other ear"
@@ -130,6 +132,7 @@
 	w_class = 2.0
 	flags = GLASSESCOVERSEYES
 	slot_flags = SLOT_EYES
+	materials = list(MAT_GLASS = 250)
 	var/vision_flags = 0
 	var/darkness_view = 0//Base human is 2
 	var/invisa_view = 0
@@ -162,6 +165,10 @@ BLIND     // can't see anything
 	var/pickpocket = 0 //Master pickpocket?
 	var/clipped = 0
 	species_restricted = list("exclude","Unathi","Tajaran","Wryn")
+	species_fit = list("Vox")
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/species/vox/gloves.dmi'
+		)
 
 /obj/item/clothing/gloves/attackby(obj/item/weapon/W, mob/user, params)
 	if(istype(W, /obj/item/weapon/wirecutters))
@@ -181,11 +188,6 @@ BLIND     // can't see anything
 		..()
 
 /obj/item/clothing/gloves/proc/Touch()
-	return
-
-/obj/item/clothing/gloves/examine()
-	set src in usr
-	..()
 	return
 
 /obj/item/clothing/under/proc/set_sensors(mob/usr as mob)
@@ -231,6 +233,12 @@ BLIND     // can't see anything
 				for(var/mob/V in viewers(usr, 1))
 					V.show_message("[usr] sets [src.loc]'s sensors to maximum.", 1)
 
+/obj/item/clothing/under/verb/toggle()
+	set name = "Toggle Suit Sensors"
+	set category = "Object"
+	set src in usr
+	set_sensors(usr)
+	..()
 //Head
 /obj/item/clothing/head
 	name = "head"
@@ -241,6 +249,9 @@ BLIND     // can't see anything
 	var/blockTracking // Do we block AI tracking?
 	var/flash_protect = 0
 	var/tint = 0
+	var/HUDType = 0
+	var/vision_flags = 0
+	var/see_darkness = 1
 
 //Mask
 /obj/item/clothing/mask
@@ -293,9 +304,15 @@ BLIND     // can't see anything
 	body_parts_covered = FEET
 	slot_flags = SLOT_FEET
 
+
 	permeability_coefficient = 0.50
 	slowdown = SHOES_SLOWDOWN
 	species_restricted = list("exclude","Unathi","Tajaran","Wryn")
+	species_fit = list("Vox")
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/species/vox/shoes.dmi'
+		)
+
 
 /obj/item/proc/negates_gravity()
 	return 0
@@ -361,6 +378,10 @@ BLIND     // can't see anything
 	permeability_coefficient = 0.90
 	slot_flags = SLOT_ICLOTHING
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
+	species_fit = list("Vox")
+	sprite_sheets = list(
+		"Vox" = 'icons/mob/species/vox/uniform.dmi'
+		)
 	var/has_sensor = 1//For the crew computer 2 = unable to change mode
 	var/sensor_mode = 0
 		/*
@@ -387,7 +408,7 @@ BLIND     // can't see anything
 	if(istype(I, /obj/item/clothing/accessory))
 		var/obj/item/clothing/accessory/A = I
 		if(can_attach_accessory(A))
-			user.drop_item()
+			user.unEquip(I) // Make absolutely sure this accessory is removed from hands
 			accessories += A
 			A.on_attached(src, user)
 
@@ -436,48 +457,21 @@ BLIND     // can't see anything
 			return
 	return
 
-/obj/item/clothing/under/examine()
-	set src in view()
-	..()
+/obj/item/clothing/under/examine(mob/user)
+	..(user)
 	switch(src.sensor_mode)
 		if(0)
-			usr << "Its sensors appear to be disabled."
+			user << "Its sensors appear to be disabled."
 		if(1)
-			usr << "Its binary life sensors appear to be enabled."
+			user << "Its binary life sensors appear to be enabled."
 		if(2)
-			usr << "Its vital tracker appears to be enabled."
+			user << "Its vital tracker appears to be enabled."
 		if(3)
-			usr << "Its vital tracker and tracking beacon appear to be enabled."
+			user << "Its vital tracker and tracking beacon appear to be enabled."
 	if(accessories.len)
 		for(var/obj/item/clothing/accessory/A in accessories)
-			usr << "\A [A] is attached to it."
+			user << "\A [A] is attached to it."
 
-/obj/item/clothing/under/verb/toggle()
-	set name = "Toggle Suit Sensors"
-	set category = "Object"
-	set src in usr
-	var/mob/M = usr
-	if (istype(M, /mob/dead/)) return
-	if (usr.stat) return
-	if(src.has_sensor >= 2)
-		usr << "The controls are locked."
-		return 0
-	if(src.has_sensor <= 0)
-		usr << "This suit does not have any sensors."
-		return 0
-	src.sensor_mode += 1
-	if(src.sensor_mode > 3)
-		src.sensor_mode = 0
-	switch(src.sensor_mode)
-		if(0)
-			usr << "You disable your suit's remote sensing equipment."
-		if(1)
-			usr << "Your suit will now report whether you are live or dead."
-		if(2)
-			usr << "Your suit will now report your vital lifesigns."
-		if(3)
-			usr << "Your suit will now report your vital lifesigns as well as your coordinate position."
-	..()
 
 /obj/item/clothing/under/verb/rollsuit()
 	set name = "Roll Down Jumpsuit"

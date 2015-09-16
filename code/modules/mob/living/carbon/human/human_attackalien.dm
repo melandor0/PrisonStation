@@ -4,25 +4,12 @@
 		return 0
 
 	switch(M.a_intent)
-		if ("help")
+		if (I_HELP)
 			visible_message(text("\blue [M] caresses [src] with its scythe like arm."))
-		if ("grab")
-			if(M == src || anchored)
-				return
-			if (w_uniform)
-				w_uniform.add_fingerprint(M)
-			var/obj/item/weapon/grab/G = new /obj/item/weapon/grab(M, src)
+		if (I_GRAB)
+			grabbedby(M)
 
-			M.put_in_active_hand(G)
-
-			grabbed_by += G
-			G.synch()
-			LAssailant = M
-
-			playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-			visible_message(text("\red [] has grabbed [] passively!", M, src))
-
-		if("harm")
+		if(I_HARM)
 			M.do_attack_animation(src)
 			if (w_uniform)
 				w_uniform.add_fingerprint(M)
@@ -43,7 +30,7 @@
 				apply_effect(4, WEAKEN, armor_block)
 			updatehealth()
 
-		if("disarm")
+		if(I_DISARM)
 			M.do_attack_animation(src)
 			var/randn = rand(1, 100)
 			if (randn <= 80)

@@ -32,16 +32,16 @@ emp_act
 			return -1 // complete projectile permutation
 
 	//Shields
-	if(check_shields(P.damage, "the [P.name]"))
-		P.on_hit(src, 2, def_zone)
+	if(check_shields(P.damage, "the [P.name]", P))
+		P.on_hit(src, 100, def_zone)
 		return 2
 
+	var/obj/item/organ/external/organ = get_organ(check_zone(def_zone))
+	if(isnull(organ))
+		return
 
 	//Shrapnel
 	if (P.damage_type == BRUTE)
-		var/obj/item/organ/external/organ = get_organ(check_zone(def_zone))
-		if(!organ)
-			return
 		var/armor = getarmor_organ(organ, "bullet")
 		if((P.embed && prob(20 + max(P.damage - armor, -10))))
 			var/obj/item/weapon/shard/shrapnel/SP = new()
@@ -50,9 +50,7 @@ emp_act
 			(SP.loc) = organ
 			organ.embed(SP)
 
-	var/mob/living/carbon/human/M = src
-	var/obj/item/organ/external/affected = M.get_organ(def_zone)
-	affected.add_autopsy_data(P.name, P.damage) // Add the bullet's name to the autopsy data
+	organ.add_autopsy_data(P.name, P.damage) // Add the bullet's name to the autopsy data
 
 	return (..(P , def_zone))
 
@@ -145,7 +143,7 @@ emp_act
 				return 1
 	return 0
 
-/mob/living/carbon/human/proc/check_reflect(var/def_zone) //Reflection checks for anything in your l_hand, r_hand, or wear_suit based on reflect_chance var of the object
+/mob/living/carbon/human/proc/check_reflect(var/def_zone) //Reflection checks for anything in your l_hand, r_hand, or wear_suit based on the reflection chance var of the object
 	if(wear_suit && istype(wear_suit, /obj/item/))
 		var/obj/item/I = wear_suit
 		if(I.IsReflect(def_zone) == 1)
@@ -160,21 +158,30 @@ emp_act
 			return 1
 	return 0
 
-/mob/living/carbon/human/proc/check_shields(var/damage = 0, var/attack_text = "the attack")
+
+//End Here
+
+/mob/living/carbon/human/proc/check_shields(var/damage = 0, var/attack_text = "the attack", var/obj/item/O)
+	if(O)
+		if(O.flags & NOSHIELD) //weapon ignores shields altogether
+			return 0
 	if(l_hand && istype(l_hand, /obj/item/weapon))//Current base is the prob(50-d/3)
 		var/obj/item/weapon/I = l_hand
 		if(I.IsShield() && (prob(50 - round(damage / 3))))
-			visible_message("\red <B>[src] blocks [attack_text] with the [l_hand.name]!</B>")
+			visible_message("<span class='danger'>[src] blocks [attack_text] with [l_hand]!</span>", \
+							"<span class='userdanger'>[src] blocks [attack_text] with [l_hand]!</span>")
 			return 1
 	if(r_hand && istype(r_hand, /obj/item/weapon))
 		var/obj/item/weapon/I = r_hand
 		if(I.IsShield() && (prob(50 - round(damage / 3))))
-			visible_message("\red <B>[src] blocks [attack_text] with the [r_hand.name]!</B>")
+			visible_message("<span class='danger'>[src] blocks [attack_text] with [r_hand]!</span>", \
+							"<span class='userdanger'>[src] blocks [attack_text] with [r_hand]!</span>")
 			return 1
 	if(wear_suit && istype(wear_suit, /obj/item/))
 		var/obj/item/I = wear_suit
 		if(I.IsShield() && (prob(50)))
-			visible_message("\red <B>The reactive teleport system flings [src] clear of [attack_text]!</B>")
+			visible_message("<span class='danger'>The reactive teleport system flings [src] clear of [attack_text]!</span>", \
+							"<span class='userdanger'>The reactive teleport system flings [src] clear of [attack_text]!</span>")
 			var/list/turfs = new/list()
 			for(var/turf/T in orange(6, src))
 				if(istype(T,/turf/space)) continue
@@ -195,11 +202,6 @@ emp_act
 	for(var/obj/O in src)
 		if(!O)	continue
 		O.emp_act(severity)
-	for(var/obj/item/organ/external/O  in organs)
-		if(O.status & ORGAN_DESTROYED)	continue
-		O.emp_act(severity)
-		for(var/obj/item/organ/I  in O.internal_organs)
-			I.emp_act(severity)
 	..()
 
 /mob/living/carbon/human/emag_act(user as mob, var/obj/item/organ/external/affecting)
@@ -219,7 +221,7 @@ emp_act
 /mob/living/carbon/human/proc/attacked_by(var/obj/item/I, var/mob/living/user, var/def_zone)
 	if(!I || !user)	return 0
 
-	if((istype(I, /obj/item/weapon/butch/meatcleaver) || istype(I, /obj/item/weapon/twohanded/chainsaw)) && src.stat == DEAD && user.a_intent == "harm")
+	if((istype(I, /obj/item/weapon/butch/meatcleaver) || istype(I, /obj/item/weapon/twohanded/chainsaw)) && src.stat == DEAD && user.a_intent == I_HARM)
 		var/obj/item/weapon/reagent_containers/food/snacks/meat/human/newmeat = new /obj/item/weapon/reagent_containers/food/snacks/meat/human(get_turf(src.loc))
 		newmeat.name = src.real_name + newmeat.name
 		newmeat.subjectname = src.real_name
@@ -230,15 +232,15 @@ emp_act
 		--src.meatleft
 		user << "\red You hack off a chunk of meat from [src.name]"
 		if(!src.meatleft)
-			src.attack_log += "\[[time_stamp()]\] Was chopped up into meat by <b>[user]/[user.ckey]</b>"
-			user.attack_log += "\[[time_stamp()]\] Chopped up <b>[src]/[src.ckey]</b> into meat</b>"
-			msg_admin_attack("[user.name] ([user.ckey])[isAntag(user) ? "(ANTAG)" : ""] chopped up [src] ([src.ckey]) into meat (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
+			src.attack_log += "\[[time_stamp()]\] Was chopped up into meat by <b>[key_name(user)]</b>"
+			user.attack_log += "\[[time_stamp()]\] Chopped up <b>[key_name(src)]</b> into meat</b>"
+			msg_admin_attack("[key_name_admin(user)] chopped up [key_name_admin(src)] into meat")
 			if(!iscarbon(user))
 				LAssailant = null
 			else
 				LAssailant = user
 
-			del(src)
+			qdel(src)
 
 	var/obj/item/organ/external/affecting = get_organ(ran_zone(user.zone_sel.selecting))
 	if(!affecting || affecting.is_stump() || (affecting.status & ORGAN_DESTROYED))
@@ -248,7 +250,7 @@ emp_act
 
 	if(user != src)
 		user.do_attack_animation(src)
-		if(check_shields(I.force, "the [I.name]"))
+		if(check_shields(I.force, "the [I.name]", I))
 			return 0
 
 	if(istype(I,/obj/item/weapon/card/emag))
@@ -370,6 +372,11 @@ emp_act
 			return
 
 		var/obj/item/organ/external/affecting = get_organ(zone)
+		if(!affecting)
+			var/missverb = (O.gender == PLURAL) ? "whizz" : "whizzes"
+			visible_message("<span class='notice'>\The [O] [missverb] past [src]'s missing [parse_zone(zone)]!</span>",
+				"<span class='notice'>\The [O] [missverb] past your missing [parse_zone(zone)]!</span>")
+			return
 		var/hit_area = affecting.name
 
 		src.visible_message("\red [src] has been hit in the [hit_area] by [O].")
@@ -380,12 +387,11 @@ emp_act
 
 		if(ismob(O.thrower))
 			var/mob/M = O.thrower
-			var/client/assailant = M.client
-			if(assailant)
-				src.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been hit with a [O], thrown by [M.name] ([assailant.ckey])</font>")
-				M.attack_log += text("\[[time_stamp()]\] <font color='red'>Hit [src.name] ([src.ckey]) with a thrown [O]</font>")
+			if(M)
+				src.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been hit with a [O], thrown by [key_name(M)]</font>")
+				M.attack_log += text("\[[time_stamp()]\] <font color='red'>Hit [key_name(src)] with a thrown [O]</font>")
 				if(!istype(src,/mob/living/simple_animal/mouse))
-					msg_admin_attack("[src.name] ([src.ckey]) was hit by a [O], thrown by [M.name] ([assailant.ckey])[isAntag(M) ? "(ANTAG)" : ""] (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>JMP</a>)")
+					msg_admin_attack("[key_name_admin(src)] was hit by a [O], thrown by [key_name_admin(M)]")
 
 		//thrown weapon embedded object code.
 		if(dtype == BRUTE && istype(O,/obj/item))
@@ -459,7 +465,7 @@ emp_act
 	if(penetrated_dam) SS.create_breaches(damtype, penetrated_dam)
 
 /mob/living/carbon/human/mech_melee_attack(obj/mecha/M)
-	if(M.occupant.a_intent == "harm")
+	if(M.occupant.a_intent == I_HARM)
 		if(M.damtype == "brute")
 			step_away(src,M,15)
 		var/obj/item/organ/external/affecting = get_organ(pick("chest", "chest", "chest", "head"))
@@ -483,7 +489,10 @@ emp_act
 		M.occupant_message("<span class='danger'>You hit [src].</span>")
 		visible_message("<span class='danger'>[src] has been hit by [M.name].</span>", \
 								"<span class='userdanger'>[src] has been hit by [M.name].</span>")
-		add_logs(M.occupant, src, "attacked", object=M, addition="(INTENT: [uppertext(M.occupant.a_intent)]) (DAMTYPE: [uppertext(M.damtype)])")
+
+		attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been attacked by \the [M] controlled by [key_name(M.occupant)] (INTENT: [uppertext(M.occupant.a_intent)])</font>")
+		M.occupant.attack_log += text("\[[time_stamp()]\] <font color='red'>Attacked [src] with \the [M] (INTENT: [uppertext(M.occupant.a_intent)])</font>")
+		msg_admin_attack("[key_name_admin(M.occupant)] attacked [key_name_admin(src)] with \the [M] (INTENT: [uppertext(M.occupant.a_intent)])")
 
 	else
 		..()
@@ -491,6 +500,7 @@ emp_act
 	return
 
 /mob/living/carbon/human/experience_pressure_difference(pressure_difference, direction)
+	playsound(src, 'sound/effects/space_wind.ogg', 50, 1)
 	if(shoes)
 		if(istype(shoes,/obj/item/clothing/shoes/magboots) && (shoes.flags & NOSLIP)) //TODO: Make a not-shit shoe var system to negate airflow.
 			return 0

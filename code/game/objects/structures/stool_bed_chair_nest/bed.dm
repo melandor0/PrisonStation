@@ -27,8 +27,7 @@
 
 /obj/structure/stool/bed/Destroy()
 	unbuckle()
-	..()
-	return
+	return ..()
 
 /obj/structure/stool/bed/attack_hand(mob/user as mob)
 	manual_unbuckle(user)
@@ -43,7 +42,7 @@
 /obj/structure/stool/bed/attack_animal(var/mob/living/simple_animal/M)//No more buckling hostile mobs to chairs to render them immobile forever
 	if(M.environment_smash)
 		new /obj/item/stack/sheet/metal(src.loc)
-		del(src)
+		qdel(src)
 
 
 /obj/structure/stool/bed/MouseDrop_T(mob/M as mob, mob/user as mob)
@@ -134,7 +133,7 @@
 			visible_message("[user] collapses \the [src.name].")
 			new/obj/item/roller(get_turf(src))
 			spawn(0)
-				del(src)
+				qdel(src)
 		return
 	..()
 
@@ -148,7 +147,7 @@
 /obj/item/roller/attack_self(mob/user)
 		var/obj/structure/stool/bed/roller/R = new /obj/structure/stool/bed/roller(user.loc)
 		R.add_fingerprint(user)
-		del(src)
+		qdel(src)
 
 /obj/item/roller/attackby(obj/item/weapon/W as obj, mob/user as mob, params)
 
@@ -182,7 +181,7 @@
 	user << "\blue You deploy the roller bed."
 	var/obj/structure/stool/bed/roller/R = new /obj/structure/stool/bed/roller(user.loc)
 	R.add_fingerprint(user)
-	del(held)
+	qdel(held)
 	held = null
 
 
@@ -224,5 +223,5 @@
 		visible_message("[usr] collapses \the [src.name]")
 		new/obj/item/roller(get_turf(src))
 		spawn(0)
-			del(src)
+			qdel(src)
 		return

@@ -22,7 +22,7 @@
 	if(!name)
 		var/atom/tmp = new path
 		src.product_name = initial(tmp.name)
-		del(tmp)
+		qdel(tmp)
 	else
 		src.product_name = name
 
@@ -146,12 +146,12 @@
 			src.product_records.Add(product)
 
 /obj/machinery/vending/Destroy()
-	del(wires) // qdel
+	qdel(wires) // qdel
 	wires = null
 	if(coin)
-		del(coin) // qdel
+		qdel(coin) // qdel
 		coin = null
-	..()
+	return ..()
 
 /obj/machinery/vending/ex_act(severity)
 	switch(severity)
@@ -176,7 +176,7 @@
 	if(prob(75))
 		malfunction()
 	else
-		del(src)
+		qdel(src)
 
 /obj/machinery/vending/proc/refill_inventory(obj/item/weapon/vending_refill/refill, datum/data/vending_product/machine, mob/user)
 	var/total = 0
@@ -306,7 +306,7 @@
 	visible_message("<span class='info'>[usr] inserts a credit chip into [src].</span>")
 	var/left = cashmoney.worth - currently_vending.price
 	usr.unEquip(cashmoney)
-	del(cashmoney)
+	qdel(cashmoney)
 
 	if(left)
 		dispense_cash(left, src.loc, user)
@@ -416,7 +416,7 @@
 	var/list/data = list()
 	if(currently_vending)
 		data["mode"] = 1
-		data["product"] = currently_vending.product_name
+		data["product"] = sanitize(currently_vending.product_name)
 		data["price"] = currently_vending.price
 		data["message_err"] = 0
 		data["message"] = src.status_message
@@ -464,11 +464,9 @@
 			usr << "There is no coin in this machine."
 			return
 
-		coin.loc = src.loc
-		if(!usr.get_active_hand())
-			usr.put_in_hands(coin)
-		usr << "\blue You remove the [coin] from the [src]"
+		usr.put_in_hands(coin)
 		coin = null
+		usr << "\blue You remove the [coin] from the [src]"
 		categories &= ~CAT_COIN
 
 	if (href_list["pay"])
@@ -560,10 +558,12 @@
 				user << "\blue You successfully pull the coin out before the [src] could swallow it."
 			else
 				user << "\blue You weren't able to pull the coin out fast enough, the machine ate it, string and all."
-				del(coin)
+				coin = null
+				qdel(coin)
 				categories &= ~CAT_COIN
 		else
-			del(coin)
+			coin = null
+			qdel(coin)
 			categories &= ~CAT_COIN
 
 	R.amount--
@@ -677,20 +677,6 @@
 	src.visible_message("\red <b>[src] launches [throw_item.name] at [target.name]!</b>")
 	return 1
 
-
-/obj/machinery/vending/proc/shock(mob/user, prb)
-	if(stat & (BROKEN|NOPOWER))		// unpowered, no shock
-		return 0
-	if(!prob(prb))
-		return 0
-	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
-	s.set_up(5, 1, src)
-	s.start()
-	if(electrocute_mob(user, get_area(src), src, 0.7))
-		return 1
-	else
-		return 0
-
 /*
  * Vending machine types
  */
@@ -743,7 +729,7 @@
 /obj/machinery/vending/assist
 	products = list(	/obj/item/device/assembly/prox_sensor = 5,/obj/item/device/assembly/igniter = 3,/obj/item/device/assembly/signaler = 4,
 						/obj/item/weapon/wirecutters = 1, /obj/item/weapon/cartridge/signal = 4)
-	contraband = list(/obj/item/device/flashlight = 5,/obj/item/device/assembly/timer = 2)
+	contraband = list(/obj/item/device/flashlight = 5,/obj/item/device/assembly/timer = 2, /obj/item/device/assembly/voice = 2, /obj/item/device/assembly/health = 2)
 	product_ads = "Only the finest!;Have some tools.;The most robust equipment.;The finest gear in space!"
 
 /obj/machinery/vending/boozeomat/New()
@@ -787,12 +773,12 @@
 	product_ads = "The healthiest!;Award-winning chocolate bars!;Mmm! So good!;Oh my god it's so juicy!;Have a snack.;Snacks are good for you!;Have some more Getmore!;Best quality snacks straight from mars.;We love chocolate!;Try our new jerky!"
 	icon_state = "snack"
 	products = list(/obj/item/weapon/reagent_containers/food/snacks/candy/candybar = 6,/obj/item/weapon/reagent_containers/food/drinks/dry_ramen = 6,/obj/item/weapon/reagent_containers/food/snacks/chips =6,
-					/obj/item/weapon/reagent_containers/food/snacks/sosjerky = 6,/obj/item/weapon/reagent_containers/food/snacks/no_raisin = 6,/obj/item/weapon/reagent_containers/food/snacks/spacetwinkie = 6,
-					/obj/item/weapon/reagent_containers/food/snacks/cheesiehonkers = 6)
+					/obj/item/weapon/reagent_containers/food/snacks/sosjerky = 6,/obj/item/weapon/reagent_containers/food/snacks/no_raisin = 6,/obj/item/weapon/reagent_containers/food/snacks/pistachios =6,
+					/obj/item/weapon/reagent_containers/food/snacks/spacetwinkie = 6,/obj/item/weapon/reagent_containers/food/snacks/cheesiehonkers = 6)
 	contraband = list(/obj/item/weapon/reagent_containers/food/snacks/syndicake = 6)
 	prices = list(/obj/item/weapon/reagent_containers/food/snacks/candy/candybar = 20,/obj/item/weapon/reagent_containers/food/drinks/dry_ramen = 30,
 					/obj/item/weapon/reagent_containers/food/snacks/chips =25,/obj/item/weapon/reagent_containers/food/snacks/sosjerky = 30,/obj/item/weapon/reagent_containers/food/snacks/no_raisin = 20,
-					/obj/item/weapon/reagent_containers/food/snacks/spacetwinkie = 30,/obj/item/weapon/reagent_containers/food/snacks/cheesiehonkers = 25)
+					/obj/item/weapon/reagent_containers/food/snacks/pistachios = 35, /obj/item/weapon/reagent_containers/food/snacks/spacetwinkie = 30,/obj/item/weapon/reagent_containers/food/snacks/cheesiehonkers = 25)
 	refill_canister = /obj/item/weapon/vending_refill/snack
 
 /obj/machinery/vending/snack/New()
@@ -856,6 +842,22 @@
 					/obj/item/weapon/cartridge/atmos = 75,/obj/item/weapon/cartridge/janitor = 100,/obj/item/weapon/cartridge/signal/toxins = 150,
 					/obj/item/weapon/cartridge/signal = 75,/obj/item/weapon/cartridge = 50)
 
+
+/obj/machinery/vending/liberationstation
+	name = "\improper Liberation Station"
+	desc = "An overwhelming amount of <b>ancient patriotism</b> washes over you just by looking at the machine."
+	icon_state = "liberationstation"
+	req_access_txt = "1"
+	product_slogans = "Liberation Station: Your one-stop shop for all things second amendment!;Be a patriot today, pick up a gun!;Quality weapons for cheap prices!;Better dead than red!"
+	product_ads = "Float like an astronaut, sting like a bullet!;Express your second amendment today!;Guns don't kill people, but you can!;Who needs responsibilities when you have guns?"
+	vend_reply = "Remember the name: Liberation Station!"
+	products = list(/obj/item/weapon/gun/projectile/automatic/pistol/deagle/gold = 2,/obj/item/weapon/gun/projectile/automatic/pistol/deagle/camo = 2,
+					/obj/item/weapon/gun/projectile/automatic/pistol/m2411 = 2,/obj/item/weapon/gun/projectile/automatic/proto = 2,
+					/obj/item/weapon/gun/projectile/shotgun/combat = 2,/obj/item/weapon/gun/projectile/automatic/gyropistol = 1,
+					/obj/item/weapon/gun/projectile/shotgun = 2,/obj/item/weapon/gun/projectile/automatic/ar = 2)
+	premium = list(/obj/item/ammo_box/magazine/smgm9mm = 2,/obj/item/ammo_box/magazine/m50 = 4,/obj/item/ammo_box/magazine/m45 = 2,/obj/item/ammo_box/magazine/m75 = 2)
+	contraband = list(/obj/item/clothing/under/patriotsuit = 1,/obj/item/weapon/bedsheet/patriot = 3)					
+					
 /obj/machinery/vending/cigarette
 	name = "Cigarette machine" //OCD had to be uppercase to look nice with the new formating
 	desc = "If you want to get cancer, might as well do it in style"
@@ -886,7 +888,7 @@
 	icon_deny = "med-deny"
 	product_ads = "Go save some lives!;The best stuff for your medbay.;Only the finest tools.;Natural chemicals!;This stuff saves lives.;Don't you want some?;Ping!"
 	req_access_txt = "5"
-	products = list(/obj/item/weapon/reagent_containers/glass/bottle/charcoal = 4,/obj/item/weapon/reagent_containers/glass/bottle/morphine = 4,/obj/item/weapon/reagent_containers/glass/bottle/epinephrine = 4,
+	products = list(/obj/item/weapon/reagent_containers/glass/bottle/charcoal = 4,/obj/item/weapon/reagent_containers/glass/bottle/morphine = 4,/obj/item/weapon/reagent_containers/glass/bottle/ether = 4,/obj/item/weapon/reagent_containers/glass/bottle/epinephrine = 4,
 					/obj/item/weapon/reagent_containers/glass/bottle/toxin = 4,/obj/item/weapon/reagent_containers/syringe/antiviral = 4,/obj/item/weapon/reagent_containers/syringe/insulin = 4,
 					/obj/item/weapon/reagent_containers/syringe = 12,/obj/item/device/healthanalyzer = 5,/obj/item/device/healthupgrade = 5,/obj/item/weapon/reagent_containers/glass/beaker = 4,
 					/obj/item/weapon/reagent_containers/dropper = 2,/obj/item/stack/medical/advanced/bruise_pack = 3, /obj/item/stack/medical/advanced/ointment = 3,
@@ -901,6 +903,7 @@
 	products = list(/obj/item/clothing/under/rank/scientist = 6,/obj/item/clothing/suit/bio_suit = 6,/obj/item/clothing/head/bio_hood = 6,
 					/obj/item/device/transfer_valve = 6,/obj/item/device/assembly/timer = 6,/obj/item/device/assembly/signaler = 6,
 					/obj/item/device/assembly/prox_sensor = 6,/obj/item/device/assembly/igniter = 6)
+	contraband = list(/obj/item/device/assembly/health = 3)
 
 /obj/machinery/vending/wallmed1
 	name = "NanoMed"
@@ -971,7 +974,7 @@
 					/obj/item/seeds/poppyseed = 3,/obj/item/seeds/ambrosiavulgarisseed = 3,/obj/item/seeds/whitebeetseed = 3,/obj/item/seeds/watermelonseed = 3,/obj/item/seeds/limeseed = 3,
 					/obj/item/seeds/lemonseed = 3,/obj/item/seeds/orangeseed = 3,/obj/item/seeds/grassseed = 3,/obj/item/seeds/cocoapodseed = 3,
 					/obj/item/seeds/cabbageseed = 3,/obj/item/seeds/grapeseed = 3,/obj/item/seeds/pumpkinseed = 3,/obj/item/seeds/cherryseed = 3,/obj/item/seeds/plastiseed = 3,/obj/item/seeds/riceseed = 3,
-					/obj/item/seeds/tobaccoseed = 3, /obj/item/seeds/coffeeaseed = 3, /obj/item/seeds/teaasperaseed = 3)
+					/obj/item/seeds/tobaccoseed = 3, /obj/item/seeds/coffeeaseed = 3, /obj/item/seeds/teaasperaseed = 3,/obj/item/seeds/peanutseed = 3)
 
 	contraband = list(/obj/item/seeds/amanitamycelium = 2,/obj/item/seeds/glowshroom = 2,/obj/item/seeds/libertymycelium = 2,/obj/item/seeds/nettleseed = 2,
 						/obj/item/seeds/plumpmycelium = 2,/obj/item/seeds/reishimycelium = 2)
@@ -1029,7 +1032,7 @@
 					/obj/item/clothing/accessory/waistcoat = 1,/obj/item/clothing/under/suit_jacket = 1,/obj/item/clothing/head/that =1,/obj/item/clothing/under/kilt = 1,/obj/item/clothing/head/beret = 1,/obj/item/clothing/accessory/waistcoat = 1,
 					/obj/item/clothing/glasses/monocle =1,/obj/item/clothing/head/bowlerhat = 1,/obj/item/weapon/cane = 1,/obj/item/clothing/under/sl_suit = 1,
 					/obj/item/clothing/mask/fakemoustache = 1,/obj/item/clothing/suit/bio_suit/plaguedoctorsuit = 1,/obj/item/clothing/head/plaguedoctorhat = 1,/obj/item/clothing/mask/gas/plaguedoctor = 1,
-					/obj/item/clothing/suit/apron = 1,/obj/item/clothing/under/waiter = 1,
+					/obj/item/clothing/suit/apron = 1,/obj/item/clothing/under/waiter = 1,/obj/item/clothing/suit/jacket/miljacket = 1,
 					/obj/item/clothing/under/pirate = 1,/obj/item/clothing/suit/pirate_brown = 1,/obj/item/clothing/suit/pirate_black =1,/obj/item/clothing/under/pirate_rags =1,/obj/item/clothing/head/pirate = 1,/obj/item/clothing/head/bandana = 1,
 					/obj/item/clothing/head/bandana = 1,/obj/item/clothing/under/soviet = 1,/obj/item/clothing/head/ushanka = 1,/obj/item/clothing/suit/imperium_monk = 1,
 					/obj/item/clothing/mask/gas/cyborg = 1,/obj/item/clothing/suit/holidaypriest = 1,/obj/item/clothing/head/wizard/marisa/fake = 1,
@@ -1211,12 +1214,12 @@
 	/obj/item/clothing/under/suit_jacket/really_black=2,/obj/item/clothing/under/pants/jeans=3,/obj/item/clothing/under/pants/classicjeans=2,
 	/obj/item/clothing/under/pants/camo = 1,/obj/item/clothing/under/pants/blackjeans=2,/obj/item/clothing/under/pants/khaki=2,
 	/obj/item/clothing/under/pants/white=2,/obj/item/clothing/under/pants/red=1,/obj/item/clothing/under/pants/black=2,
-	/obj/item/clothing/under/pants/tan=2,/obj/item/clothing/under/pants/blue=1,/obj/item/clothing/under/pants/track=1,
+	/obj/item/clothing/under/pants/tan=2,/obj/item/clothing/under/pants/blue=1,/obj/item/clothing/under/pants/track=1,/obj/item/clothing/suit/jacket/miljacket = 1,
 	/obj/item/clothing/accessory/scarf/red=1,/obj/item/clothing/accessory/scarf/green=1,/obj/item/clothing/accessory/scarf/darkblue=1,
 	/obj/item/clothing/accessory/scarf/purple=1,/obj/item/clothing/accessory/scarf/yellow=1,/obj/item/clothing/accessory/scarf/orange=1,
 	/obj/item/clothing/accessory/scarf/lightblue=1,/obj/item/clothing/accessory/scarf/white=1,/obj/item/clothing/accessory/scarf/black=1,
 	/obj/item/clothing/accessory/scarf/zebra=1,/obj/item/clothing/accessory/scarf/christmas=1,/obj/item/clothing/accessory/stripedredscarf=1,
-	/obj/item/clothing/accessory/stripedbluescarf=1,/obj/item/clothing/accessory/stripedgreenscarf=1,/obj/item/clothing/accessory/petcollar =3,/obj/item/clothing/accessory/waistcoat=1,
+	/obj/item/clothing/accessory/stripedbluescarf=1,/obj/item/clothing/accessory/stripedgreenscarf=1,/obj/item/clothing/accessory/waistcoat=1,
 	/obj/item/clothing/under/sundress=2,/obj/item/clothing/under/stripeddress = 1, /obj/item/clothing/under/sailordress = 1, /obj/item/clothing/under/redeveninggown = 1, /obj/item/clothing/under/blacktango=1,/obj/item/clothing/suit/jacket=3,
 	/obj/item/clothing/glasses/regular=2,/obj/item/clothing/head/sombrero=1,/obj/item/clothing/suit/poncho=1,
 	/obj/item/clothing/suit/ianshirt=1,/obj/item/clothing/shoes/laceup=2,/obj/item/clothing/shoes/black=4,
@@ -1250,3 +1253,36 @@
 	/obj/item/weapon/pen/red = 5)
 	contraband = list(/obj/item/toy/crayon/mime = 1,/obj/item/toy/crayon/rainbow = 1)
 	premium = list(/obj/item/weapon/contraband/poster = 5)
+
+/obj/machinery/vending/crittercare
+	name = "CritterCare"
+	desc = "A vending machine for pet supplies."
+	product_slogans = "Stop by for all your animal's needs!;Cuddly pets deserve a stylish collar!;Pets in space, what could be more adorable?;Freshest fish eggs in the system!;Rocks are the perfect pet, buy one today!"
+	product_ads = "House-training costs extra!;Now with 1000% more cat hair!;Allergies are a sign of weakness!;Dogs are man's best friend. Remember that Vulpkanin!; Heat lamps for Unathi!; Vox-y want a cracker?"
+	vend_delay = 34
+	icon_state = "crittercare"
+	products = list(/obj/item/clothing/accessory/petcollar = 5, /obj/item/weapon/fish_net = 5, /obj/item/weapon/fishfood = 5,
+					/obj/item/weapon/tank_brush = 5, /obj/item/weapon/egg_scoop = 5, /obj/item/fish_eggs/goldfish = 5,
+					/obj/item/fish_eggs/clownfish = 5, /obj/item/fish_eggs/shark = 5, /obj/item/fish_eggs/feederfish = 10,
+					/obj/item/fish_eggs/salmon = 5, /obj/item/fish_eggs/catfish = 5, /obj/item/fish_eggs/glofish = 5,
+					/obj/item/fish_eggs/electric_eel = 5, /obj/item/fish_eggs/shrimp = 10, /obj/item/toy/pet_rock = 5,
+					)
+	prices = list(/obj/item/clothing/accessory/petcollar = 50, /obj/item/weapon/fish_net = 15, /obj/item/weapon/fishfood = 15,
+					/obj/item/weapon/tank_brush = 15, /obj/item/weapon/egg_scoop = 15, /obj/item/fish_eggs/goldfish = 10,
+					/obj/item/fish_eggs/clownfish = 10, /obj/item/fish_eggs/shark = 10, /obj/item/fish_eggs/feederfish = 5,
+					/obj/item/fish_eggs/salmon = 10, /obj/item/fish_eggs/catfish = 10, /obj/item/fish_eggs/glofish = 10,
+					/obj/item/fish_eggs/electric_eel = 10, /obj/item/fish_eggs/shrimp = 5, /obj/item/toy/pet_rock = 100,
+					)
+	contraband = list(/obj/item/fish_eggs/babycarp = 5)
+	premium = list(/obj/item/toy/pet_rock/fred = 1, /obj/item/toy/pet_rock/roxie = 1)
+	refill_canister = /obj/item/weapon/vending_refill/crittercare
+
+/obj/machinery/vending/crittercare/New()
+	..()
+	component_parts = list()
+	var/obj/item/weapon/circuitboard/vendor/V = new(null)
+	V.set_type(type)
+	component_parts += V
+	component_parts += new /obj/item/weapon/vending_refill/crittercare(0)
+	component_parts += new /obj/item/weapon/vending_refill/crittercare(0)
+	component_parts += new /obj/item/weapon/vending_refill/crittercare(0)

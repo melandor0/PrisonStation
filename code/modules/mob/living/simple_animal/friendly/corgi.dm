@@ -105,7 +105,7 @@
 			user << "<span class='warning'>You can't shave this corgi, it's already been shaved!</span>"
 			return
 		user.visible_message("[user] starts to shave [src] using \the [O].", "<span class='notice'>You start to shave [src] using \the [O]...</span>")
-		if(do_after(user, 50))
+		if(do_after(user, 50, target = src))
 			user.visible_message("[user] shaves [src]'s hair using \the [O].")
 			playsound(loc, 'sound/items/Welder2.ogg', 20, 1)
 			shaved = 1
@@ -363,6 +363,11 @@
 				desc = "That's not red paint. That's real corgi blood."
 				valid = 1
 
+			if(/obj/item/clothing/mask/fakemoustache)
+				name = "Definitely Not [real_name]"
+				desc = "That's Definitely Not [real_name]"
+				valid = 1
+
 	if(valid)
 		if(user && !user.drop_item())
 			user << "<span class='warning'>\The [item_to_add] is stuck to your hand, you cannot put it on [src]'s head!</span>"
@@ -590,8 +595,8 @@
 /mob/living/simple_animal/pet/corgi/attack_hand(mob/living/carbon/human/M)
 	. = ..()
 	switch(M.a_intent)
-		if("help")	wuv(1,M)
-		if("harm")	wuv(-1,M)
+		if(I_HELP)	wuv(1,M)
+		if(I_HARM)	wuv(-1,M)
 
 /mob/living/simple_animal/pet/corgi/proc/wuv(change, mob/M)
 	if(change)
@@ -663,5 +668,5 @@
 	s.set_up(3, 1, src)
 	s.start()
 	respawnable_list += src
-	del src
+	qdel(src)
 	return

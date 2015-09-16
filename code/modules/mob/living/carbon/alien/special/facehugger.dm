@@ -44,7 +44,7 @@ var/const/MAX_ACTIVE_TIME = 400
 	Attach(M)
 
 /obj/item/clothing/mask/facehugger/examine(mob/user)
-	..()
+	..(user)
 	if(!real)//So that giant red text about probisci doesn't show up.
 		return
 	switch(stat)
@@ -169,7 +169,7 @@ var/const/MAX_ACTIVE_TIME = 400
 
 	if(ishuman(target))
 		var/mob/living/carbon/human/H = target
-		if((H.species.flags & IS_SYNTHETIC))
+		if(!H.check_has_mouth())
 			return
 
 	if(!sterile)

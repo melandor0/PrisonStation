@@ -26,17 +26,17 @@
 	processing_objects |= src
 	handle_rotation()
 
-/obj/structure/stool/bed/chair/cart/examine()
-	set src in usr
-	switch(health)
-		if(75 to 99)
-			usr << "\blue It appears slightly dented."
-		if(40 to 74)
-			usr << "\red It appears heavily dented."
-		if(1 to 39)
-			usr << "\red It appears severely dented."
-		if((INFINITY * -1) to 0)
-			usr << "It appears completely unsalvageable"
+/obj/structure/stool/bed/chair/cart/examine(mob/user)
+	if(..(user, 1))
+		switch(health)
+			if(75 to 99)
+				usr << "\blue It appears slightly dented."
+			if(40 to 74)
+				usr << "\red It appears heavily dented."
+			if(1 to 39)
+				usr << "\red It appears severely dented."
+			if((INFINITY * -1) to 0)
+				usr << "It appears completely unsalvageable"
 
 /obj/structure/stool/bed/chair/cart/attackby(obj/item/W, mob/user, params)
 	if (istype(W, /obj/item/weapon/weldingtool))
@@ -281,11 +281,13 @@
 	R.my_atom = src
 
 
-/obj/structure/stool/bed/chair/cart/janicart/examine()
-	..()
-	usr << "\icon[src] This [name] contains [reagents.total_volume] unit\s of [reagents]!"
+/obj/structure/stool/bed/chair/cart/janicart/examine(mob/user)
+	if(!..(user, 1))
+		return
+
+	user << "\icon[src] This [name] contains [reagents.total_volume] unit\s of [reagents]!"
 	if(mybag)
-		usr << "\A [mybag] is hanging on the [name]."
+		user << "\A [mybag] is hanging on the [name]."
 
 /obj/structure/stool/bed/chair/cart/janicart/attackby(obj/item/W, mob/user, params)
 	..()
@@ -484,7 +486,7 @@
 				user << "<span class='notice'>[src] can't hold any more signs.</span>"
 		else if(istype(I, /obj/item/weapon/crowbar))
 			user.visible_message("<span class='warning'>[user] begins to empty the contents of [src].</span>")
-			if(do_after(user, 30))
+			if(do_after(user, 30, target = src))
 				usr << "<span class='notice'>You empty the contents of [src]'s bucket onto the floor.</span>"
 				reagents.reaction(src.loc)
 				src.reagents.clear_reagents()

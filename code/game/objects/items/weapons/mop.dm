@@ -24,7 +24,7 @@
 		A.clean_blood()
 		for(var/obj/effect/O in A)
 			if(istype(O,/obj/effect/decal/cleanable) || istype(O,/obj/effect/overlay) || istype(O,/obj/effect/rune))
-				del(O)
+				qdel(O)
 	reagents.reaction(A, TOUCH, 10)	//10 is the multiplier for the reaction effect. probably needed to wet the floor properly.
 	reagents.remove_any(1)			//reaction() doesn't use up the reagents
 
@@ -44,7 +44,7 @@
 	if(istype(turf))
 		user.visible_message("<span class='warning'>[user] begins to clean \the [turf] with [src].</span>")
 
-		if(do_after(user, mopspeed))
+		if(do_after(user, mopspeed, target = src))
 			clean(turf)
 			user << "<span class='notice'>You have finished mopping!</span>"
 

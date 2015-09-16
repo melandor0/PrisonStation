@@ -3,6 +3,7 @@
 	icon = 'icons/mob/slimes.dmi'
 	icon_state = "grey baby slime"
 	pass_flags = PASSTABLE
+	ventcrawler = 2
 	speak_emote = list("telepathically chirps")
 
 	layer = 5
@@ -212,23 +213,8 @@
 
 
 /mob/living/carbon/slime/blob_act()
-	if (stat == 2)
-		return
-	var/shielded = 0
-
-	var/damage = null
-	if (stat != 2)
-		damage = rand(10,30)
-
-	if(shielded)
-		damage /= 4
-
-		//paralysis += 1
-
 	show_message("<span class='userdanger'> The blob attacks you!</span>")
-
-	adjustFireLoss(damage)
-
+	adjustBruteLoss(20)
 	updatehealth()
 	return
 
@@ -237,17 +223,6 @@
 	return
 
 /mob/living/carbon/slime/attack_ui(slot)
-	return
-
-/mob/living/carbon/slime/meteorhit(O as obj)
-	for(var/mob/M in viewers(src, null))
-		if ((M.client && !( M.blinded )))
-			M.show_message(text("\red [] has been hit by []", src, O), 1)
-	if (health > 0)
-		adjustBruteLoss((istype(O, /obj/effect/meteor/small) ? 10 : 25))
-		adjustFireLoss(30)
-
-		updatehealth()
 	return
 
 /mob/living/carbon/slime/attack_slime(mob/living/carbon/slime/M as mob)
@@ -295,7 +270,7 @@
 
 	switch(L.a_intent)
 
-		if("help")
+		if(I_HELP)
 			visible_message("<span class='notice'>[L] rubs its head against [src].</span>")
 
 
@@ -391,22 +366,11 @@
 
 	switch(M.a_intent)
 
-		if ("help")
+		if (I_HELP)
 			help_shake_act(M)
 
-		if ("grab")
-			if (M == src || anchored)
-				return
-			var/obj/item/weapon/grab/G = new /obj/item/weapon/grab(M, src)
-
-			M.put_in_active_hand(G)
-
-			G.synch()
-
-			LAssailant = M
-
-			playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-			visible_message("<span class='warning'>[M] has grabbed [src] passively!</span>")
+		if (I_GRAB)
+			grabbedby(M)
 
 		else
 			M.do_attack_animation(src)
@@ -452,10 +416,10 @@
 		return
 
 	switch(M.a_intent)
-		if ("help")
+		if (I_HELP)
 			visible_message("<span class='notice'>[M] caresses [src] with its scythe like arm.</span>")
 
-		if ("harm")
+		if (I_HARM)
 			M.do_attack_animation(src)
 			if (prob(95))
 				attacked += 10
@@ -475,21 +439,10 @@
 				visible_message("<span class='danger'>[M] has attempted to lunge at [name]!</span>", \
 						"<span class='userdanger'>[M] has attempted to lunge at [name]!</span>")
 
-		if ("grab")
-			if (M == src || anchored)
-				return
-			var/obj/item/weapon/grab/G = new /obj/item/weapon/grab(M, src )
+		if (I_GRAB)
+			grabbedby(M)
 
-			M.put_in_active_hand(G)
-
-			G.synch()
-
-			LAssailant = M
-
-			playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-			visible_message("<span class='warning'> [M] has grabbed [name] passively!</span>")
-
-		if ("disarm")
+		if (I_DISARM)
 			M.do_attack_animation(src)
 			playsound(loc, 'sound/weapons/pierce.ogg', 25, 1, -1)
 			var/damage = 5
@@ -649,7 +602,7 @@ mob/living/carbon/slime/var/temperature_resistance = T0C+75
 			user <<"You apply the enhancer. It now has triple the amount of uses."
 			Uses = 3
 			enhanced = 1
-			del(O)
+			qdel(O)
 
 /obj/item/slime_extract/New()
 		..()
@@ -788,14 +741,14 @@ mob/living/carbon/slime/var/temperature_resistance = T0C+75
 		pet.icon_dead = "[M.colour] baby slime dead"
 		pet.colour = "[M.colour]"
 		user <<"You feed the slime the potion, removing it's powers and calming it."
-		del(M)
+		qdel(M)
 		var/newname = sanitize(copytext(input(user, "Would you like to give the slime a name?", "Name your new pet", "pet slime") as null|text,1,MAX_NAME_LEN))
 
 		if (!newname)
 			newname = "pet slime"
 		pet.name = newname
 		pet.real_name = newname
-		del(src)
+		qdel(src)
 
 /obj/item/weapon/slimepotion2
 	name = "advanced docility potion"
@@ -819,14 +772,14 @@ mob/living/carbon/slime/var/temperature_resistance = T0C+75
 		pet.icon_dead = "[M.colour] baby slime dead"
 		pet.colour = "[M.colour]"
 		user <<"You feed the slime the potion, removing it's powers and calming it."
-		del(M)
+		qdel(M)
 		var/newname = sanitize(copytext(input(user, "Would you like to give the slime a name?", "Name your new pet", "pet slime") as null|text,1,MAX_NAME_LEN))
 
 		if (!newname)
 			newname = "pet slime"
 		pet.name = newname
 		pet.real_name = newname
-		del(src)
+		qdel(src)
 
 
 /obj/item/weapon/slimesteroid
@@ -851,7 +804,7 @@ mob/living/carbon/slime/var/temperature_resistance = T0C+75
 
 		user <<"You feed the slime the steroid. It now has triple the amount of extract."
 		M.cores = 3
-		del(src)
+		qdel(src)
 
 /obj/item/weapon/slimesteroid2
 	name = "extract enhancer"
@@ -896,7 +849,7 @@ mob/living/carbon/slime/var/temperature_resistance = T0C+75
 		G.loc = src.loc
 		G.key = ghost.key
 		G << "You are an adamantine golem. You move slowly, but are highly resistant to heat and cold as well as blunt trauma. You are unable to wear clothes, but can still use most tools. Serve [user], and assist them in completing their goals at any cost."
-		del (src)
+		qdel(src)
 
 
 	proc/announce_to_ghosts()

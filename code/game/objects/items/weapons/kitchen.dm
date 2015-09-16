@@ -40,7 +40,7 @@
 	if(!istype(M))
 		return ..()
 
-	if(user.a_intent != "help")
+	if(user.a_intent != I_HELP)
 		if(user.zone_sel.selecting == "head" || user.zone_sel.selecting == "eyes")
 			if((CLUMSY in user.mutations) && prob(50))
 				M = user
@@ -141,7 +141,7 @@
 	throwforce = 6.0
 	throw_speed = 3
 	throw_range = 6
-	m_amt = 12000
+	materials = list(MAT_METAL=12000)
 	origin_tech = "materials=1"
 	attack_verb = list("slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
 
@@ -155,6 +155,7 @@
 	name = "combat knife"
 	force = 15.0
 	throwforce = 10.0
+	w_class = 2
 	origin_tech = "materials=2;combat=2"
 	desc = "A razor sharp knife, built from advanced alloys, designed for quick, melee killing. Also not half bad as a kitchen knife."
 	slot_flags = SLOT_BELT
@@ -182,7 +183,7 @@
 	throwforce = 8.0
 	throw_speed = 3
 	throw_range = 6
-	m_amt = 12000
+	materials = list(MAT_METAL=12000)
 	origin_tech = "materials=1"
 	attack_verb = list("cleaved", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
 	sharp = 1

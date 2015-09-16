@@ -22,15 +22,14 @@
 	return
 
 /obj/item/stack/Destroy()
-	if (src && usr && usr.machine==src)
+	if (usr && usr.machine==src)
 		usr << browse(null, "window=stack")
-	..()
+	return ..()
 
-/obj/item/stack/examine()
-	set src in view(1)
-	..()
-	usr << "There are [src.amount] [src.singular_name]\s in the stack."
-	return
+/obj/item/stack/examine(mob/user)
+	if(..(user, 1))
+		user << "There are [src.amount] [src.singular_name]\s in the stack."
+
 
 /obj/item/stack/attack_self(mob/user as mob)
 	list_recipes(user)
@@ -131,7 +130,7 @@
 			return
 		if (R.time)
 			usr << "\blue Building [R.title] ..."
-			if (!do_after(usr, R.time))
+			if (!do_after(usr, R.time, target = src))
 				return
 		if (src.amount < R.req_amount*multiplier)
 			return
@@ -142,11 +141,11 @@
 			new_item.amount = R.res_amount*multiplier
 			//new_item.add_to_stacks(usr)
 		src.amount-=R.req_amount*multiplier
-		if (src.amount<=0)
+		if (src.amount < 1) // Just in case a stack's amount ends up fractional somehow
 			var/oldsrc = src
 			src = null //dont kill proc after del()
 			usr.unEquip(oldsrc, 1)
-			del(oldsrc)
+			del(oldsrc) // Not qdel, because qdel'd stacks act strange for cyborgs
 			if (istype(O,/obj/item))
 				usr.put_in_hands(O)
 		O.add_fingerprint(usr)
@@ -165,10 +164,11 @@
 	if (amount < used)
 		return 0
 	amount -= used
-	if (amount <= 0)
+	if (amount < 1) // Just in case a stack's amount ends up fractional somehow
 		if(usr)
 			usr.unEquip(src, 1)
-		qdel(src)
+		spawn()
+			del(src) // Not qdel, because qdel'd stacks act strange for cyborgs
 	update_icon()
 	return 1
 
@@ -190,6 +190,9 @@
 
 /obj/item/stack/proc/get_amount()
 	return amount
+
+/obj/item/stack/proc/get_max_amount()
+	return max_amount
 
 /obj/item/stack/attack_hand(mob/user as mob)
 	if (user.get_inactive_hand() == src)

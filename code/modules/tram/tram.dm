@@ -1,36 +1,3 @@
-/obj/tram/ex_act(severity)
-	switch(severity)
-		if(1.0)
-			qdel(src)
-			return
-		if(2.0)
-			if(prob(50))
-				qdel(src)
-			return
-		if(3.0)
-			if(prob(25))
-				qdel(src)
-			return
-
-/obj/tram/blob_act()
-	if(prob(50))
-		qdel(src)
-
-/obj/tram/meteorhit()
-	qdel(src)
-
-/obj/tram/attack_animal(var/mob/living/simple_animal/M as mob)
-	if(M.melee_damage_upper == 0)	return
-	if(prob(M.melee_damage_upper))
-		qdel(src)
-	src.visible_message("\red <B>[M] has [M.attacktext] [src]!</B>")
-	M.attack_log += text("\[[time_stamp()]\] <font color='red'>attacked [src.name]</font>")
-
-/obj/tram/bullet_act(var/obj/item/projectile/proj)
-	if(prob(proj.damage))
-		qdel(src)
-	..()
-
 /obj/tram/tram_controller
 	name = ""
 	desc = "tram controller"
@@ -48,6 +15,13 @@
 	var/last_played_rail
 
 	var/automode = 0
+	var/fast_mode = 0
+
+	var/activated = 0
+	var/looptick = 0
+
+	var/delay_timer = null
+
 	var/list/blacklist = list(/obj/tram/rail,/atom/movable/lighting_overlay)
 	var/list/ancwhitelist = list(/obj/tram, /obj/vehicle, /obj/structure/stool/bed/chair, /obj/structure/grille, /obj/structure/window)
 
@@ -59,7 +33,6 @@
 			init_tram() //Combine walls and floors and anything inside the tram
 			init_controllers() //Find control pads
 			gen_collision() //Generate collision system
-			processing_objects.Add(src) //Add to processing objects manually
 
 /obj/tram/tram_controller/Destroy()
 	for(var/obj/tram/floor/F in tram_floors)
@@ -68,16 +41,32 @@
 		remove_wall(TW)
 	for(var/obj/tram/controlpad/CP in controllers)
 		remove_controller(CP)
-	..()
+	killLoop()
+	return ..()
 
 /obj/tram/tram_controller/emp_act(severity)
 	if(automode)	automode = 0
 	..()
 
+/obj/tram/tram_controller/proc/startLoop()
+	if(activated)	return
+	activated = 1
+	spawn(0)
+		while(activated)
+			process()
+			looptick++
+			sleep(1)
+
+/obj/tram/tram_controller/proc/killLoop()
+	activated = 0
+	looptick = 0
+
 /obj/tram/tram_controller/process()
 	update_tram() //Update combine to account for new mobs and/or objects
 	if(automode)
 		tram_rail_follow()
+		if(fast_mode)
+			tram_rail_follow()
 
 /obj/tram/tram_controller/proc/update_tram()
 	tram.Cut()
@@ -85,7 +74,11 @@
 
 /obj/tram/tram_controller/proc/tram_rail_follow()
 	var/stored_rail = null
+	if(delay_timer >= world.time)	return
 	for(var/obj/tram/rail/RT in get_turf(src))
+		if(RT.stop_duration && !delay_timer)
+			delay_timer = world.time + RT.stop_duration
+			return
 		if(RT.godir)
 			handle_move(RT.godir)
 			last_played_rail = RT
@@ -97,6 +90,7 @@
 			if(R != last_played_rail)
 				handle_move(get_dir(src,R))
 				last_played_rail = stored_rail
+				return
 
 //INITIALIZATION PROCS
 
@@ -225,6 +219,7 @@
 	collide_list = collisions
 
 /obj/tram/tram_controller/proc/handle_move(var/dir)
+	delay_timer = null //reset delay
 	gen_collision() //Look for collisions
 	if(dir in collide_list) //Prevent moving if there are collisions in that direction
 		return 0
@@ -235,3 +230,34 @@
 			A.set_light()
 	gen_collision() //Generate collision again
 	return 1
+
+//////////////////////DAMAGE PROCS
+/obj/tram/ex_act(severity)
+	switch(severity)
+		if(1.0)
+			qdel(src)
+			return
+		if(2.0)
+			if(prob(50))
+				qdel(src)
+			return
+		if(3.0)
+			if(prob(25))
+				qdel(src)
+			return
+
+/obj/tram/blob_act()
+	if(prob(50))
+		qdel(src)
+
+/obj/tram/attack_animal(var/mob/living/simple_animal/M as mob)
+	if(M.melee_damage_upper == 0)	return
+	if(prob(M.melee_damage_upper))
+		qdel(src)
+	src.visible_message("\red <B>[M] has [M.attacktext] [src]!</B>")
+	M.attack_log += text("\[[time_stamp()]\] <font color='red'>attacked [src.name]</font>")
+
+/obj/tram/bullet_act(var/obj/item/projectile/proj)
+	if(prob(proj.damage))
+		qdel(src)
+	..()

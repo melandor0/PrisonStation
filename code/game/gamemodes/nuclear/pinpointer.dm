@@ -8,10 +8,14 @@
 	item_state = "electronic"
 	throw_speed = 4
 	throw_range = 20
-	m_amt = 500
+	materials = list(MAT_METAL=500)
 	var/obj/item/weapon/disk/nuclear/the_disk = null
 	var/active = 0
 
+	Destroy()
+		active = 0
+		the_disk = null
+		return ..()
 
 	attack_self()
 		if(!active)
@@ -42,11 +46,11 @@
 				icon_state = "pinonfar"
 		spawn(5) .()
 
-	examine()
-		..()
+	examine(mob/user)
+		..(user)
 		for(var/obj/machinery/nuclearbomb/bomb in world)
 			if(bomb.timing)
-				usr << "Extreme danger.  Arming signal detected.   Time remaining: [bomb.timeleft]"
+				user << "Extreme danger.  Arming signal detected.   Time remaining: [bomb.timeleft]"
 
 
 /obj/item/weapon/pinpointer/advpinpointer
@@ -155,7 +159,7 @@
 						var/n="[tmp_object]"
 						item_names+=n
 						item_paths[n]=typepath
-						del(tmp_object)
+						qdel(tmp_object)
 					var/targetitem = input("Select item to search for.", "Item Mode Select","") as null|anything in potential_theft_objectives
 					if(!targetitem)
 						return
@@ -314,10 +318,10 @@
 		used = 1
 
 
-	examine()
-		..()
+	examine(mob/user)
+		..(user)
 		if (target)
-			usr << "\blue Tracking [target]"
+			user << "\blue Tracking [target]"
 
 	proc/point_at(atom/target)
 		if(!active)
@@ -377,12 +381,12 @@
 /obj/item/weapon/pinpointer/operative/proc/workop()
 	scan_for_ops()
 	point_at(nearest_op, 0)
-	if(active && nearest_op) 
+	if(active && nearest_op)
 		spawn(5)
 			.()
 
 /obj/item/weapon/pinpointer/operative/examine(mob/user)
-	..()
+	..(user)
 	if(nearest_op != null)
 		user << "Nearest operative: <b>[nearest_op]</b>."
 	if(nearest_op == null && active)

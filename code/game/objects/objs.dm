@@ -1,7 +1,5 @@
 /obj
 	//var/datum/module/mod		//not used
-	var/m_amt = 0	// metal
-	var/g_amt = 0	// glass
 	var/w_amt = 0	// waster amounts
 	var/origin_tech = null	//Used by R&D to determine what research bonuses it grants.
 	var/reliability = 100	//Used by SOME devices to determine how reliable they are.
@@ -23,15 +21,14 @@
 	// Reagent ID => friendly name
 	var/list/reagents_to_log=list()
 
-/obj/Topic(href, href_list, var/nowindow = 0, var/datum/topic_state/custom_state = default_state)
+/obj/Topic(href, href_list, var/nowindow = 0, var/datum/topic_state/state = default_state)
 	// Calling Topic without a corresponding window open causes runtime errors
 	if(!nowindow && ..())
 		return 1
 
 	// In the far future no checks are made in an overriding Topic() beyond if(..()) return
 	// Instead any such checks are made in CanUseTopic()
-	var/obj/host = nano_host()
-	if(host.CanUseTopic(usr, href_list, custom_state) == STATUS_INTERACTIVE)
+	if(CanUseTopic(usr, state, href_list) == STATUS_INTERACTIVE)
 		CouldUseTopic(usr)
 		return 0
 
@@ -48,7 +45,9 @@
 /obj/Destroy()
 	machines -= src
 	processing_objects -= src
-	..()
+	nanomanager.close_uis(src)
+	return ..()
+
 /obj/item/proc/is_used_on(obj/O, mob/user)
 
 /obj/proc/process()
@@ -82,9 +81,6 @@
 		return remove_air(breath_request)
 	else
 		return null
-
-/atom/movable/proc/initialize()
-	return
 
 /obj/proc/updateUsrDialog()
 	if(in_use)
@@ -154,15 +150,18 @@
 
 
 /obj/proc/hear_talk(mob/M as mob, text)
+
 	if(talking_atom)
 		talking_atom.catchMessage(text, M)
+
 /*
 	var/mob/mo = locate(/mob) in src
 	if(mo)
 		var/rendered = "<span class='game say'><span class='name'>[M.name]: </span> <span class='message'>[text]</span></span>"
 		mo.show_message(rendered, 2)
-		*/
+*/
 	return
+
 
 /obj/proc/multitool_menu(var/mob/user,var/obj/item/device/multitool/P)
 	return "<b>NO MULTITOOL_MENU!</b>"
@@ -245,3 +244,16 @@ a {
 	user << browse(dat, "window=mtcomputer")
 	user.set_machine(src)
 	onclose(user, "mtcomputer")
+
+/obj/singularity_act()
+	ex_act(1.0)
+	if(src && isnull(gcDestroyed))
+		qdel(src)
+	return 2
+
+/obj/singularity_pull(S, current_size)
+	if(anchored)
+		if(current_size >= STAGE_FIVE)
+			anchored = 0
+			step_towards(src,S)
+	else step_towards(src,S)

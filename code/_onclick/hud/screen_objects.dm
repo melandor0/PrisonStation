@@ -333,16 +333,16 @@
 		if("act_intent")
 			usr.a_intent_change("right")
 		if("help")
-			usr.a_intent = "help"
+			usr.a_intent = I_HELP
 			usr.hud_used.action_intent.icon_state = "intent_help"
 		if("harm")
-			usr.a_intent = "harm"
+			usr.a_intent = I_HARM
 			usr.hud_used.action_intent.icon_state = "intent_harm"
 		if("grab")
-			usr.a_intent = "grab"
+			usr.a_intent = I_GRAB
 			usr.hud_used.action_intent.icon_state = "intent_grab"
 		if("disarm")
-			usr.a_intent = "disarm"
+			usr.a_intent = I_DISARM
 			usr.hud_used.action_intent.icon_state = "intent_disarm"
 
 		if("pull")
@@ -378,6 +378,11 @@
 			if(isrobot(usr))
 				var/mob/living/silicon/robot/R = usr
 				R.sensor_mode()
+
+		if("Toggle Headlamp")
+			if(isrobot(usr))
+				var/mob/living/silicon/robot/R = usr
+				R.control_headlamp()
 
 		if("module1")
 			if(istype(usr, /mob/living/silicon/robot))
@@ -474,7 +479,7 @@
 		if("Crew Monitoring")
 			if(isAI(usr))
 				var/mob/living/silicon/ai/AI = usr
-				AI.nano_crew_monitor()
+				AI.subsystem_crew_monitor()
 
 		if("Show Crew Manifest")
 			if(isAI(usr))
@@ -484,7 +489,7 @@
 		if("Show Alerts")
 			if(isAI(usr))
 				var/mob/living/silicon/ai/AI = usr
-				AI.ai_alerts()
+				AI.subsystem_alarm_monitor()
 
 		if("Announcement")
 			if(isAI(usr))
@@ -496,10 +501,10 @@
 				var/mob/living/silicon/ai/AI = usr
 				AI.ai_call_shuttle()
 
-		if("State Laws")
+		if("Law Manager")
 			if(isAI(usr))
 				var/mob/living/silicon/ai/AI = usr
-				AI.checklaws()
+				AI.subsystem_law_manager()
 
 		if("PDA - Send Message")
 			if(isAI(usr))

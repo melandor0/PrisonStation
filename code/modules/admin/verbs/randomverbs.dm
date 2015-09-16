@@ -107,7 +107,7 @@
 		return
 	world << "[msg]"
 	log_admin("GlobalNarrate: [key_name(usr)] : [msg]")
-	message_admins("\blue \bold GlobalNarrate: [key_name_admin(usr)] : [msg]<BR>", 1)
+	message_admins("\blue \bold GlobalNarrate: [key_name_admin(usr)]: [msg]<BR>", 1)
 	feedback_add_details("admin_verb","GLN") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/cmd_admin_direct_narrate(var/mob/M)	// Targetted narrate -- TLE
@@ -128,8 +128,8 @@
 		return
 
 	M << msg
-	log_admin("DirectNarrate: [key_name(usr)] to ([M.name]/[M.key]): [msg]")
-	message_admins("\blue \bold DirectNarrate: [key_name(usr)] to ([M.name]/[M.key]): [msg]<BR>", 1)
+	log_admin("DirectNarrate: [key_name(usr)] to ([key_name(M)]): [msg]")
+	message_admins("\blue \bold DirectNarrate: [key_name_admin(usr)] to ([key_name_admin(M)]): [msg]<BR>", 1)
 	feedback_add_details("admin_verb","DIRN") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/cmd_admin_godmode(mob/M as mob in mob_list)
@@ -192,7 +192,6 @@ proc/cmd_admin_mute(mob/M as mob, mute_type, automute = 0)
 	M << "You have been [muteunmute] from [mute_string]."
 	feedback_add_details("admin_verb","MUTE") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-
 /client/proc/cmd_admin_add_random_ai_law()
 	set category = "Event"
 	set name = "Add Random AI Law"
@@ -202,13 +201,12 @@ proc/cmd_admin_mute(mob/M as mob, mute_type, automute = 0)
 	var/confirm = alert(src, "You sure?", "Confirm", "Yes", "No")
 	if(confirm != "Yes") return
 	log_admin("[key_name(src)] has added a random AI law.")
-	message_admins("[key_name_admin(src)] has added a random AI law.", 1)
+	message_admins("[key_name_admin(src)] has added a random AI law.")
 
 	var/show_log = alert(src, "Show ion message?", "Message", "Yes", "No")
-	if(show_log == "Yes")
-		command_announcement.Announce("Ion storm detected near the station. Please check all AI-controlled equipment for errors.", "Anomaly Alert", new_sound = 'sound/AI/ionstorm.ogg')
+	var/announce_ion_laws = (show_log == "Yes" ? 1 : -1)
 
-	IonStorm(0)
+	new /datum/event/ion_storm(0, announce_ion_laws)
 	feedback_add_details("admin_verb","ION") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 
@@ -435,14 +433,11 @@ Traitors and the like can also be revived with the previous role mostly intact.
 	else
 		new_character.gender = pick(MALE,FEMALE)
 		var/datum/preferences/A = new()
-		A.randomize_appearance_for(new_character)
-		new_character.real_name = G_found.real_name
+		A.real_name = G_found.real_name
+		A.copy_to(new_character)
 
 	if(!new_character.real_name)
-		if(new_character.gender == MALE)
-			new_character.real_name = capitalize(pick(first_names_male)) + " " + capitalize(pick(last_names))
-		else
-			new_character.real_name = capitalize(pick(first_names_female)) + " " + capitalize(pick(last_names))
+		new_character.real_name = random_name(new_character.gender)
 	new_character.name = new_character.real_name
 
 	if(G_found.mind && !G_found.mind.active)
@@ -473,10 +468,6 @@ Traitors and the like can also be revived with the previous role mostly intact.
 	So all it does is re-equip the mob with powers and/or items. Or not, if they have no special role.
 	If they don't have a mind, they obviously don't have a special role.
 	*/
-
-	//Two variables to properly announce later on.
-	var/admin = key_name_admin(src)
-	var/player_key = G_found.key
 
 	//Now for special roles and equipment.
 	switch(new_character.mind.special_role)
@@ -521,7 +512,7 @@ Traitors and the like can also be revived with the previous role mostly intact.
 			if(alert(new_character,"Would you like an active AI to announce this character?",,"No","Yes")=="Yes")
 				call(/mob/new_player/proc/AnnounceArrival)(new_character, new_character.mind.assigned_role)
 
-	message_admins("\blue [admin] has respawned [player_key] as [new_character.real_name].", 1)
+	message_admins("\blue [key_name_admin(usr)] has respawned [key_name_admin(G_found)] as [new_character.real_name].", 1)
 
 	new_character << "You have been fully respawned. Enjoy the game."
 
@@ -596,22 +587,15 @@ Traitors and the like can also be revived with the previous role mostly intact.
 	var/input = input(usr, "Please enter anything you want the AI to do. Anything. Serious.", "What?", "") as text|null
 	if(!input)
 		return
-	for(var/mob/living/silicon/ai/M in mob_list)
-		if (M.stat == 2)
-			usr << "Upload failed. No signal is being detected from the AI."
-		else if (M.see_in_dark == 0)
-			usr << "Upload failed. Only a faint signal is being detected from the AI, and it is not responding to our requests. It may be low on power."
-		else
-			M.add_ion_law(input)
-			for(var/mob/living/silicon/ai/O in mob_list)
-				O << "\red " + input + "\red...LAWS UPDATED"
 
 	log_admin("Admin [key_name(usr)] has added a new AI law - [input]")
-	message_admins("Admin [key_name_admin(usr)] has added a new AI law - [input]", 1)
+	message_admins("Admin [key_name_admin(usr)] has added a new AI law - [input]")
 
 	var/show_log = alert(src, "Show ion message?", "Message", "Yes", "No")
-	if(show_log == "Yes")
-		command_announcement.Announce("Ion storm detected near the station. Please check all AI-controlled equipment for errors.", "Anomaly Alert", new_sound = 'sound/AI/ionstorm.ogg')
+	var/announce_ion_laws = (show_log == "Yes" ? 1 : -1)
+
+	new /datum/event/ion_storm(0, announce_ion_laws, input)
+
 	feedback_add_details("admin_verb","IONC") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/cmd_admin_rejuvenate(mob/living/M as mob in mob_list)
@@ -707,15 +691,17 @@ Traitors and the like can also be revived with the previous role mostly intact.
 	if(light == null) return
 	var/flash = input("Range of flash. -1 to none", text("Input"))  as num|null
 	if(flash == null) return
+	var/flames = input("Range of flames. -1 to none", text("Input"))  as num|null
+	if(flames == null) return
 
-	if ((devastation != -1) || (heavy != -1) || (light != -1) || (flash != -1))
-		if ((devastation > 20) || (heavy > 20) || (light > 20))
+	if ((devastation != -1) || (heavy != -1) || (light != -1) || (flash != -1) || (flames != -1))
+		if ((devastation > 20) || (heavy > 20) || (light > 20) || (flames > 20))
 			if (alert(src, "Are you sure you want to do this? It will laaag.", "Confirmation", "Yes", "No") == "No")
 				return
 
-		explosion(O, devastation, heavy, light, flash)
-		log_admin("[key_name(usr)] created an explosion ([devastation],[heavy],[light],[flash]) at ([O.x],[O.y],[O.z])")
-		message_admins("[key_name_admin(usr)] created an explosion ([devastation],[heavy],[light],[flash]) at ([O.x],[O.y],[O.z])", 1)
+		explosion(O, devastation, heavy, light, flash, null, null,flames)
+		log_admin("[key_name(usr)] created an explosion ([devastation],[heavy],[light],[flames]) at ([O.x],[O.y],[O.z])")
+		message_admins("[key_name_admin(usr)] created an explosion ([devastation],[heavy],[light],[flames]) at ([O.x],[O.y],[O.z])")
 		feedback_add_details("admin_verb","EXPL") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 		return
 	else
@@ -735,8 +721,8 @@ Traitors and the like can also be revived with the previous role mostly intact.
 	if (heavy || light)
 
 		empulse(O, heavy, light)
-		log_admin("[key_name(usr)] created an EM Pulse ([heavy],[light]) at ([O.x],[O.y],[O.z])")
-		message_admins("[key_name_admin(usr)] created an EM PUlse ([heavy],[light]) at ([O.x],[O.y],[O.z])", 1)
+		log_admin("[key_name(usr)] created an EM pulse ([heavy], [light]) at ([O.x],[O.y],[O.z])")
+		message_admins("[key_name_admin(usr)] created an EM pulse ([heavy], [light]) at ([O.x],[O.y],[O.z])", 1)
 		feedback_add_details("admin_verb","EMP") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 		return
@@ -918,10 +904,13 @@ Traitors and the like can also be revived with the previous role mostly intact.
 		choice = input("The shuttle will not be able to leave if you call it. Call anyway?") in list("Confirm", "Cancel")
 		if(choice != "Confirm")
 			return
+			
+	
 
 	choice = input("Is this an emergency evacuation or a crew transfer?") in list("Emergency", "Crew Transfer")
 	if (choice == "Emergency")
-		emergency_shuttle.call_evac()
+		var/reason = input(usr, "Optional: Please enter the reason for calling the shuttle.", "Shuttle Call Reason.","") as text|null
+		emergency_shuttle.call_evac(reason)
 	else
 		emergency_shuttle.call_transfer()
 

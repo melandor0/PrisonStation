@@ -14,9 +14,17 @@
 /obj/machinery/chem_heater/New()
 	..()
 	component_parts = list()
-	component_parts += new /obj/item/weapon/circuitboard/chem_heater(src)
-	component_parts += new /obj/item/weapon/stock_parts/micro_laser(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
+	component_parts += new /obj/item/weapon/circuitboard/chem_heater(null)
+	component_parts += new /obj/item/weapon/stock_parts/micro_laser(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	RefreshParts()
+	
+/obj/machinery/chem_heater/upgraded/New()
+	..()
+	component_parts = list()
+	component_parts += new /obj/item/weapon/circuitboard/chem_heater(null)
+	component_parts += new /obj/item/weapon/stock_parts/micro_laser/ultra(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
 	RefreshParts()
 
 /obj/machinery/chem_heater/RefreshParts()
@@ -108,7 +116,8 @@
 		if(isnum(val))
 			desired_temp = Clamp(desired_temp+val, 0, 1000)
 		else if(val == "input")
-			desired_temp = Clamp(input("Please input the target temperature", name) as num, 0, 1000)
+			var/target = input("Please input the target temperature", name) as num
+			desired_temp = Clamp(target, 0, 1000)
 		else
 			return 0
 		. = 1

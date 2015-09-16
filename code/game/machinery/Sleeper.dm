@@ -29,10 +29,10 @@
 /obj/machinery/sleep_console/New()
 	..()
 	component_parts = list()
-	component_parts += new /obj/item/weapon/circuitboard/sleep_console(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/stack/cable_coil(src, 2)
+	component_parts += new /obj/item/weapon/circuitboard/sleep_console(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/stack/cable_coil(null, 2)
 	RefreshParts()
 	findsleeper()
 
@@ -99,18 +99,22 @@
 	default_deconstruction_crowbar(G)
 
 /obj/machinery/sleep_console/attack_ai(mob/user as mob)
-	return src.attack_hand(user)
+	return attack_hand(user)
+
+/obj/machinery/sleep_console/attack_ghost(mob/user as mob)
+	return attack_hand(user)
 
 /obj/machinery/sleep_console/attack_hand(mob/user as mob)
-	if(..())
-		return
 	if(stat & (NOPOWER|BROKEN))
 		return
+
 	if (panel_open)
 		user << "<span class='notice'>Close the maintenance panel first.</span>"
 		return
+
 	if (!src.connected)
 		findsleeper()
+
 	if (src.connected)
 		var/mob/living/occupant = src.connected.occupant
 		var/dat = "<font color='blue'><B>Occupant Statistics:</B></FONT><BR>"
@@ -163,10 +167,12 @@
 
 /obj/machinery/sleep_console/Topic(href, href_list)
 	if(..())
-		return
+		return 1
+
 	if(panel_open)
 		usr << "<span class='notice'>Close the maintenance panel first.</span>"
-		return
+		return 1
+
 	if ((usr.contents.Find(src) || ((get_dist(src, usr) <= 1) && istype(src.loc, /turf))) || (istype(usr, /mob/living/silicon/ai)))
 		usr.set_machine(src)
 		if (href_list["chemical"])
@@ -206,9 +212,10 @@
 	dir = 8
 	var/orient = "LEFT" // "RIGHT" changes the dir suffix to "-r"
 	var/mob/living/carbon/human/occupant = null
-	var/possible_chems = list(list("epinephrine", "morphine", "salbutamol", "styptic_powder"),
-								   list("epinephrine", "morphine", "salbutamol", "styptic_powder", "oculine"),
-								   list("epinephrine", "morphine", "salbutamol", "styptic_powder", "oculine", "charcoal", "mutadone", "mannitol"))
+	var/possible_chems = list(list("epinephrine", "ether", "salbutamol", "styptic_powder"),
+								   list("epinephrine", "ether", "salbutamol", "styptic_powder", "oculine"),
+								   list("epinephrine", "ether", "salbutamol", "styptic_powder", "oculine", "charcoal", "mutadone", "mannitol"),
+								   list("epinephrine", "ether", "salbutamol", "styptic_powder", "oculine", "charcoal", "mutadone", "mannitol", "pen_acid", "omnizine"))
 	var/amounts = list(5, 10)
 	var/obj/item/weapon/reagent_containers/glass/beaker = null
 	var/filtering = 0
@@ -231,28 +238,28 @@
 /obj/machinery/sleeper/New()
 	..()
 	component_parts = list()
-	component_parts += new /obj/item/weapon/circuitboard/sleeper(src)
+	component_parts += new /obj/item/weapon/circuitboard/sleeper(null)
 
 	// Customizable bin rating, used by the labor camp to stop people filling themselves with chemicals and escaping.
-	var/obj/item/weapon/stock_parts/matter_bin/B = new(src)
+	var/obj/item/weapon/stock_parts/matter_bin/B = new(null)
 	B.rating = initial_bin_rating
 	component_parts += B
 
-	component_parts += new /obj/item/weapon/stock_parts/manipulator(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/stack/cable_coil(src, 1)
+	component_parts += new /obj/item/weapon/stock_parts/manipulator(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/stack/cable_coil(null, 1)
 	RefreshParts()
 
 /obj/machinery/sleeper/upgraded/New()
 	..()
 	component_parts = list()
-	component_parts += new /obj/item/weapon/circuitboard/sleeper(src)
-	component_parts += new /obj/item/weapon/stock_parts/matter_bin/super(src)
-	component_parts += new /obj/item/weapon/stock_parts/manipulator/pico(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/weapon/stock_parts/console_screen(src)
-	component_parts += new /obj/item/stack/cable_coil(src, 1)
+	component_parts += new /obj/item/weapon/circuitboard/sleeper(null)
+	component_parts += new /obj/item/weapon/stock_parts/matter_bin/super(null)
+	component_parts += new /obj/item/weapon/stock_parts/manipulator/pico(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/weapon/stock_parts/console_screen(null)
+	component_parts += new /obj/item/stack/cable_coil(null, 1)
 	RefreshParts()
 
 /obj/machinery/sleeper/RefreshParts()
@@ -285,7 +292,7 @@
 		for(var/atom/movable/A as mob|obj in src)
 			A.loc = src.loc
 			A.blob_act()
-		del(src)
+		qdel(src)
 	return
 
 
@@ -345,7 +352,7 @@
 
 		visible_message("[user] starts putting [G:affecting:name] into the sleeper.", 3)
 
-		if(do_after(user, 20))
+		if(do_after(user, 20, target = G:affecting))
 			if(src.occupant)
 				user << "\blue <B>The sleeper is already occupied!</B>"
 				return
@@ -360,7 +367,7 @@
 			M << "\blue <b>You feel cool air surround you. You go numb as your senses turn inward.</b>"
 
 			src.add_fingerprint(user)
-			del(G)
+			qdel(G)
 		return
 	return
 
@@ -548,7 +555,7 @@
 	else
 		visible_message("[user] starts putting [L.name] into the sleeper.", 3)
 
-	if(do_after(user, 20))
+	if(do_after(user, 20, target = L))
 		if(src.occupant)
 			user << "\blue <B>The sleeper is already occupied!</B>"
 			return
@@ -589,7 +596,7 @@
 			usr << "You're too busy getting your life sucked out of you."
 			return
 	visible_message("[usr] starts climbing into the sleeper.", 3)
-	if(do_after(usr, 20))
+	if(do_after(usr, 20, target = usr))
 		if(src.occupant)
 			usr << "\blue <B>The sleeper is already occupied!</B>"
 			return
@@ -601,7 +608,7 @@
 		src.icon_state = "sleeper"
 
 		for(var/obj/O in src)
-			del(O)
+			qdel(O)
 		src.add_fingerprint(usr)
 		return
 	return

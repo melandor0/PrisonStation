@@ -29,7 +29,7 @@
 			a_left.holder = null
 		if(a_right)
 			a_right.holder = null
-		..()
+		return ..()
 
 	attach(var/obj/item/device/D, var/obj/item/device/D2, var/mob/user)
 		if((!D)||(!D2))	return 0
@@ -63,15 +63,13 @@
 			master.update_icon()
 
 
-	examine()
-		set src in view()
-		..()
-		if ((in_range(src, usr) || src.loc == usr))
+	examine(mob/user)
+		..(user)
+		if ((in_range(src, user) || src.loc == user))
 			if (src.secured)
-				usr << "\The [src] is ready!"
+				user << "\The [src] is ready!"
 			else
-				usr << "\The [src] can be attached!"
-		return
+				user << "\The [src] can be attached!"
 
 
 	HasProximity(atom/movable/AM as mob|obj)
@@ -173,7 +171,7 @@
 				a_right:holder = null
 				a_right.loc = T
 			spawn(0)
-				del(src)
+				qdel(src)
 		return
 
 
@@ -192,15 +190,15 @@
 	ex_act(severity)
 		switch(severity)
 			if(1.0)
-				del(src)
+				qdel(src)
 				return
 			if(2.0)
 				if (prob(50))
-					del(src)
+					qdel(src)
 					return
 			if(3.0)
 				if (prob(25))
-					del(src)
+					qdel(src)
 					return
 		return
 
